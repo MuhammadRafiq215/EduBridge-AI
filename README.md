@@ -1,86 +1,77 @@
 # 🎓 EduBridge AI
-### Bridging Educational Gaps Through Responsible, Explainable AI
+### Responsible Educational Analytics · Phase 2: Baseline Machine Learning
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Project-Student--led-0f766e?style=for-the-badge" alt="Student-led project" />
-  <img src="https://img.shields.io/badge/Phase-01%20UI%20Prototype-2563eb?style=for-the-badge" alt="Phase 1 prototype" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit" />
+<img src="https://img.shields.io/badge/Phase-02%20ML%20Research-0f766e?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+<img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
+<img src="https://img.shields.io/badge/scikit--learn-Modeling-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white"/>
 </p>
-
-<p align="center">
-  <b>Every learner deserves a fair chance.</b><br/>
-  An educational analytics prototype exploring how transparent data insights could help educators consider timely, human-led student support.
-</p>
+<p align="center"><b>Every learner deserves a fair chance.</b><br/>A student-led research prototype for reproducible data exploration, leakage-aware machine learning, transparent evaluation, and responsible interpretation.</p>
 
 ---
 
-## 🌍 The idea
+## 🔬 Phase 2 overview
 
-Access to consistent academic support is not equal for every learner. EduBridge AI explores a practical question:
+Phase 2 develops the initial interface into a reproducible baseline ML workflow using the **UCI Student Performance Mathematics cohort**.
 
-> **Can responsible data science help educators notice learning needs earlier, understand the evidence, and connect learners with useful support?**
+- Official dataset download when the experiment runs
+- Dataset quality audit and exploratory views
+- Explicit target definition and grade-feature leakage prevention
+- Numeric and categorical preprocessing inside scikit-learn pipelines
+- Dummy, Logistic Regression, and Random Forest baselines
+- Stratified 5-fold cross-validation on training data
+- Model selection using cross-validation F1
+- One held-out test evaluation with multiple metrics
+- Confusion matrix, ROC curve, classification report, and probability metrics
+- Post-evaluation permutation importance
+- Descriptive subgroup diagnostics and responsible-use guidance
+- Downloadable experiment artifacts
 
-The project is being developed as a student-led learning and research initiative. It combines an interactive dashboard concept with a planned machine-learning and explainability workflow.
+**No performance scores are invented or hard-coded.** Run the experiment to generate metrics from the dataset.
 
-## 🚦 Current project status
+## 📊 Dataset and target
 
-**Phase 1 — Streamlit interface prototype.**
+Source: [UCI Machine Learning Repository — Student Performance](https://archive.ics.uci.edu/dataset/320/student+performance).
 
-The current app includes a dashboard, learner explorer, AI workflow explainer, learning-support concept, and project roadmap. It uses synthetic demonstration records only.
+This project uses the **Mathematics file** (`student-mat.csv`). UCI describes the data as coming from two Portuguese secondary schools and notes that final grade G3 is strongly related to earlier grades G1 and G2. This dataset is not representative evidence about Pakistani learners.
 
-- No model has been trained or connected.
-- No real student data is included.
-- The review labels are illustrative placeholders, not predictions.
-- The app must not be used to make decisions about real learners.
+Positive class: `G3 < 10` on the original 0–20 scale. This is an analytical threshold for this experiment—not a diagnosis or universal definition of academic difficulty.
 
-## ✨ What is in the prototype?
+### Leakage-aware feature policy
 
-| Area | What it demonstrates |
+The model excludes **G1, G2, and G3** from predictors. G3 defines the target; G1 and G2 are earlier grades strongly associated with G3. This creates a more demanding early-support research question using the remaining contextual and behavioural features.
+
+## 🧪 Experimental design
+
+| Stage | Implementation |
 |---|---|
-| Overview | Example indicators and interactive visualizations |
-| Learner Explorer | Search, filtering, and tabular exploration |
-| AI & Explainability | Proposed model-development and evaluation workflow |
-| Learning Support | Concept for resources, tutoring, planning, and offline learning |
-| Project | Mission, responsible-use principles, and roadmap |
+| Audit | Dimensions, duplicates, missingness, target distribution |
+| Split | Stratified 75% train / 25% held-out test |
+| Numeric preprocessing | Median imputation + standard scaling |
+| Categorical preprocessing | Most-frequent imputation + one-hot encoding |
+| Leakage control | Learned transformations live inside model pipelines |
+| Baselines | Dummy prior, Logistic Regression, Random Forest |
+| Validation | Stratified 5-fold CV on training partition |
+| Selection | Highest mean CV F1; balanced accuracy tie-breaker |
+| Final test | Held-out metrics after model selection |
+| Interpretation | Permutation importance after evaluation |
 
-## 🖥️ Preview
+The scikit-learn pipeline approach helps prevent preprocessing leakage across validation folds. See the [common pitfalls guide](https://scikit-learn.org/stable/common_pitfalls/) and [Pipeline / ColumnTransformer documentation](https://scikit-learn.org/stable/modules/compose.html).
 
-Run the app locally to explore the dark, responsive Streamlit interface and its interactive charts.
+### Evaluation metrics
 
-## 🧰 Technology
+Accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, average precision, Brier score, confusion matrix, and classification report. No single metric proves that a model is suitable for real-world use.
 
-<p>
-  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white" />
-  <img src="https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white" />
-  <img src="https://img.shields.io/badge/Plotly-3F4F75?style=flat-square&logo=plotly&logoColor=white" />
-  <img src="https://img.shields.io/badge/Git%20%26%20GitHub-181717?style=flat-square&logo=github&logoColor=white" />
-</p>
+## 🖥️ Run locally
 
-| Layer | Planned / current tools |
-|---|---|
-| Application | Python, Streamlit |
-| Data handling | Pandas, NumPy |
-| Visualization | Plotly |
-| Machine learning | Scikit-learn (planned) |
-| Explainability | SHAP / permutation importance (planned) |
-| Reproducibility | Git, GitHub, documented evaluation |
-
-## ⚙️ Run locally
-
-### 1. Clone the repository
 ```bash
 git clone https://github.com/MuhammadRafiq215/EduBridge-AI.git
 cd EduBridge-AI
-```
-
-### 2. Create a virtual environment
-```bash
 python -m venv .venv
 ```
 
-Activate it:
+Activate the environment:
 
 **Windows PowerShell**
 ```powershell
@@ -92,93 +83,87 @@ Activate it:
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+Install and launch:
+
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-```
-
-### 4. Start the application
-```bash
 streamlit run app.py
 ```
 
-Streamlit will provide a local URL, usually `http://localhost:8501`.
+Open the local URL shown by Streamlit. Select **Run / refresh experiment** in the sidebar. Alternatively run:
 
-## 🗂️ Repository structure
+```bash
+python train.py
+```
+
+The app downloads the UCI archive, runs cross-validation, evaluates the selected baseline on the held-out test set, and saves results locally.
+
+## 🗂️ Project structure
 
 ```text
 EduBridge-AI/
-├── app.py                  # Streamlit prototype
-├── requirements.txt        # Python dependencies
-├── README.md               # Project documentation
-├── .gitignore              # Files excluded from Git
-├── .streamlit/
-│   └── config.toml         # App theme and server settings
-├── assets/
-│   └── README.md           # Guidance for future visual assets
-├── data/
-│   └── README.md           # Dataset and privacy guidance
-└── docs/
-    └── PROJECT_PLAN.md     # Research plan and milestones
+├── app.py
+├── train.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── src/
+│   ├── __init__.py
+│   ├── data.py
+│   └── modeling.py
+├── docs/
+│   └── PROJECT_PLAN.md
+└── artifacts/  # generated locally; excluded from Git
 ```
 
-## 🧪 Research and machine-learning roadmap
+### Generated artifacts
 
-The initial public dataset candidate is the [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance). It contains data associated with Portuguese secondary schools. Dataset documentation, licensing, feature meaning, and target suitability must be checked before use.
+- `experiment_results.json` — audit, methodology, CV results, test metrics, subgroup diagnostics
+- `model_comparison.csv` — cross-validation means and standard deviations
+- `permutation_importance.csv` — feature importance estimates
+- `test_predictions.csv` — held-out labels, predictions, probabilities
+- `selected_model.joblib` — locally saved fitted pipeline
 
-| Phase | Planned work | Evidence to publish |
-|---|---|---|
-| 1. Interface | Build and refine the Streamlit experience | Working app and screenshots |
-| 2. Data audit | Inspect schema, missingness, distributions, and limitations | Reproducible EDA notebook/report |
-| 3. Baselines | Define a defensible target; compare simple models | Metrics and validation results |
-| 4. Explainability | Explain model behaviour using suitable methods | Explanation examples and caveats |
-| 5. Responsible evaluation | Check errors, calibration, and subgroup performance where feasible | Evaluation report |
-| 6. Integration | Connect only a validated model to the app | Tested end-to-end demonstration |
+Generated artifacts and model binaries are ignored by Git to keep the repository lightweight and avoid publishing unreviewed outputs.
 
-### Evaluation principles
+## 🛡️ Responsible AI and limitations
 
-- Define the prediction target before training.
-- Prevent target leakage and document feature selection.
-- Use suitable validation, with stratification where appropriate.
-- Report precision, recall, F1-score, confusion matrix, and relevant baselines.
-- Investigate class imbalance and threshold choices.
-- Check subgroup performance only where sample sizes and data quality make it meaningful.
-- Do not claim that correlation proves causation.
-
-## 🛡️ Responsible AI, privacy, and limitations
-
-EduBridge AI is intended as a learning and research prototype—not a student-ranking, diagnostic, admissions, or automated decision system.
-
-1. Use documented and appropriately licensed datasets.
-2. Do not commit identifiable student records, credentials, or private information.
-3. Minimize data collection and document the purpose of each feature.
-4. Present future model outputs as uncertain signals for human review.
-5. Explain dataset limitations and avoid claiming that results generalize to Pakistan without local validation.
-6. Never use an automated score to deny a learner educational opportunities.
+1. The source data represents two Portuguese schools; it is not representative evidence about Pakistan.
+2. Random-split performance does not establish generalization to another country, school, time period, or population.
+3. Subgroup metrics are descriptive diagnostics, not proof of fairness; small groups can make estimates unstable.
+4. Feature importance describes model behaviour, not causation.
+5. Predictions must never be used to rank, punish, diagnose, admit, or exclude students.
+6. A real-world pilot would require local data governance, consent, expert review, and independent evaluation.
+7. Never commit identifiable student data, credentials, or private records.
 
 ## 🗺️ Roadmap
 
-- [x] Establish project concept and initial interface
-- [x] Build interactive Streamlit prototype with synthetic examples
-- [x] Document current limitations and responsible-use principles
-- [ ] Acquire and audit the selected public dataset
-- [ ] Complete exploratory data analysis
-- [ ] Define target and train baseline models
-- [ ] Evaluate and explain model behaviour
-- [ ] Integrate a validated model into the app
-- [ ] Publish final report, screenshots, and demo
+- [x] Phase 1 — initial Streamlit interface
+- [x] Phase 2 — data audit and baseline ML workflow implementation
+- [x] Leakage-aware preprocessing and held-out evaluation implementation
+- [ ] Execute and review experiment outputs in the deployment environment
+- [ ] Add a reproducible EDA report and research notebook
+- [ ] Sensitivity analysis and stronger validation design
+- [ ] Independent review of subgroup and error analysis
+- [ ] Local-context research before Pakistan-specific claims
+- [ ] Phase 3 — validated model integration and deployment
 
-## 👨‍💻 Project author
+## 📚 References
+
+- Cortez, P. & Silva, A. (2008). *Using Data Mining to Predict Student Performance*. FUBUTEC 2008.
+- [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance)
+- [scikit-learn: Common pitfalls and data leakage](https://scikit-learn.org/stable/common_pitfalls/)
+- [scikit-learn: Pipelines and ColumnTransformer](https://scikit-learn.org/stable/modules/compose.html)
+- [scikit-learn: Cross-validation](https://scikit-learn.org/stable/modules/cross_validation.html)
+- [scikit-learn: Permutation importance](https://scikit-learn.org/stable/modules/permutation_importance.html)
+
+## 👨‍💻 Author
 
 **Muhammad Rafique** · AI & Data Science student
 
 - GitHub: [@MuhammadRafiq215](https://github.com/MuhammadRafiq215)
+- Project: [EduBridge AI](https://github.com/MuhammadRafiq215/EduBridge-AI)
 - Email: [muhammadrafiqcoder@gmail.com](mailto:muhammadrafiqcoder@gmail.com)
 
----
-
-<p align="center">
-  <b>Learn. Analyze. Build. Improve.</b><br/>
-  <sub>Built as an evolving educational technology and responsible-AI project.</sub>
-</p>
+<p align="center"><b>Learn · Analyze · Build · Improve</b></p>
