@@ -1,28 +1,65 @@
 # Deploy EduBridge AI on Streamlit Community Cloud
 
-The repository is structured for Streamlit Community Cloud: the entrypoint `app.py`, root-level `requirements.txt`, and optional Streamlit configuration at `.streamlit/config.toml` are in the expected locations.
+This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository stores the source code; Streamlit Community Cloud hosts and runs the website.
 
-## One-time deployment steps
+## Before you begin
 
-1. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/) using the GitHub account that owns this public repository.
-2. Select **Create app**.
-3. Choose **Deploy a public app from GitHub** (or the equivalent option shown in your workspace).
-4. Set repository to `MuhammadRafiq215/EduBridge-AI`.
-5. Set branch to `main`.
-6. Set main file path to `app.py`.
-7. In Advanced settings, select Python 3.12.
-8. Deploy and wait for dependency installation and app startup.
+- A GitHub account with access to `MuhammadRafiq215/EduBridge-AI`.
+- A Streamlit Community Cloud account.
+- Permission to authorize Streamlit to read the repository.
+- The repository's default branch is `main`.
 
-Official guide: https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app
+**Repository visibility:** the repository has previously been configured as private. If it is still private, select the private-repository deployment option and grant Streamlit access when prompted. Do not change repository visibility merely to deploy; public visibility is a separate decision.
+
+## Deploy from a phone or computer
+
+1. Open [https://share.streamlit.io/](https://share.streamlit.io/).
+2. Sign in with GitHub.
+3. If asked, authorize Streamlit Community Cloud to access `MuhammadRafiq215/EduBridge-AI`. If it is not listed, review the GitHub App/repository access settings for Streamlit and grant access to this repository.
+4. Select **Create app**.
+5. Choose the GitHub repository deployment option.
+6. Enter:
+   - **Repository:** `MuhammadRafiq215/EduBridge-AI`
+   - **Branch:** `main`
+   - **Main file path:** `app.py`
+7. Open advanced settings and choose **Python 3.12**.
+8. Select **Deploy** and wait for package installation and app startup.
+9. When Streamlit displays the app, copy the exact URL shown in the app workspace. That is the deployed address to share.
+
+## Choose an app URL
+
+Streamlit may let you choose an available app subdomain during setup or app settings. A suitable name to try is:
+
+`edubridge-ai-rafique`
+
+The final address is assigned by Streamlit and may include the account/workspace portion. Availability is not guaranteed. The text `RAFIQUE@2048` is not a valid Streamlit subdomain because app URLs do not use an @ sign. Do not use a password or secret as a public URL.
+
+A deployed website is not guaranteed to appear immediately in Google or other search engines. Share the exact Streamlit URL directly while search indexing catches up.
 
 ## First launch
 
-The dashboard initially displays instructions because experiment outputs are generated at runtime. In the sidebar, select **Run / refresh experiment**. The app downloads the UCI Student Performance archive, trains and evaluates the baseline models, and saves generated files in the app's local runtime.
+1. Open the deployed app.
+2. In the sidebar, select **Run / refresh experiment**.
+3. Wait while the app downloads the official UCI archive and runs cross-validation and held-out evaluation.
+4. Review the Research Overview, Model Lab, Evaluation and Responsible AI pages.
 
-The first experiment may take a few minutes. If the UCI download is unavailable, retry later and inspect the app logs in the Streamlit workspace.
+The first experiment can take a few minutes. The hosted app needs outbound internet access to retrieve the UCI dataset.
 
-## Important hosting note
+## Updating the website
 
-A GitHub repository is source code storage; it does not itself run a public website. A Streamlit Community Cloud deployment must be created and authorized by the repository owner. Once deployed, pushes to the connected GitHub repository are reflected by Community Cloud.
+When code is pushed to the connected GitHub branch, Streamlit Community Cloud normally detects the update and rebuilds/restarts the app. Check the app's **Manage app** page and logs if the update fails.
 
-Do not add passwords, API keys, or private student information to this repository.
+## Troubleshooting
+
+- **Repository missing:** confirm that you signed into the correct GitHub account and authorized Streamlit for this private repository.
+- **Dependency installation error:** open the Streamlit app logs and check the Python version and `requirements.txt`.
+- **App starts but shows no metrics:** select **Run / refresh experiment** in the sidebar.
+- **UCI download error:** check the app logs and retry later; the dataset is downloaded at runtime.
+- **App URL unavailable:** choose another available subdomain in Streamlit's app settings.
+
+## Security and research safeguards
+
+- Do not add passwords, API keys or private student data to GitHub.
+- Do not place credentials in source code or README files.
+- Do not use the prototype to make decisions about individual students.
+- The source dataset is from Portuguese schools and is not validated for Pakistan.
