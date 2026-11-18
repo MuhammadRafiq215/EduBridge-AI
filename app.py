@@ -1,168 +1,202 @@
-import streamlit as st
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
 
-st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide")
+from src.data import load_student_math
+from src.modeling import ARTIFACTS, run_experiment
 
+st.set_page_config(page_title="EduBridge AI | Research Lab", page_icon="🎓", layout="wide")
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
-html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-.stApp { background: #0b1020; color: #edf2ff; }
-section[data-testid="stSidebar"] { background: #111a2e; border-right: 1px solid #24314d; }
-section[data-testid="stSidebar"] * { color: #e8efff !important; }
-h1,h2,h3 { font-family: 'Manrope', sans-serif !important; color: #f4f7ff !important; }
-.hero { padding: 28px 30px; border-radius: 18px; background: linear-gradient(115deg,#172746,#243b66 55%,#164b5b); border: 1px solid #365277; margin-bottom: 22px; }
-.kicker { color:#8de3d2; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
-.hero-title { color:#fff; font-family:'Manrope',sans-serif; font-size:clamp(25px,4vw,36px); font-weight:800; margin:7px 0; }
-.hero-sub,.muted { color:#c3d0e5; }
-.metric { background:#141f35; border:1px solid #263653; border-radius:14px; padding:17px; min-height:108px; }
-.metric-label { color:#9aabc7; font-size:11px; font-weight:700; letter-spacing:1px; }
-.metric-value { color:#f6f8ff; font-family:'Manrope',sans-serif; font-size:28px; font-weight:800; margin-top:7px; }
-.panel { background:#141f35; border:1px solid #263653; border-radius:14px; padding:18px; margin-bottom:12px; }
-div[data-testid="stDataFrame"] { border:1px solid #263653; border-radius:12px; }
-.stButton button { border-radius:9px; font-weight:700; }
+html,body,[class*="css"]{font-family:'DM Sans',sans-serif}
+.stApp{background:#09111f;color:#edf3ff}
+section[data-testid="stSidebar"]{background:#101d31;border-right:1px solid #263b59}
+h1,h2,h3{font-family:'Manrope',sans-serif!important;color:#f4f7ff!important}
+.hero{padding:28px;border-radius:18px;background:linear-gradient(115deg,#172b49,#244c70 58%,#14645e);border:1px solid #38617c;margin-bottom:20px}
+.kicker{color:#8ce3ce;font-size:12px;font-weight:800;letter-spacing:2px}
+.hero-title{font-family:'Manrope',sans-serif;font-size:clamp(26px,4vw,38px);font-weight:800;color:white;margin:8px 0}
+.subtle{color:#b8c9df}
+.metric{background:#13233a;border:1px solid #2b4261;border-radius:14px;padding:16px;min-height:105px}
+.metric-label{font-size:11px;letter-spacing:1px;color:#9eb2cc;font-weight:700}
+.metric-value{font-family:'Manrope',sans-serif;font-size:25px;font-weight:800;color:#f5f8ff;margin-top:7px;overflow-wrap:anywhere}
 </style>
-""", unsafe_allow_html=True)
-
-# Demonstration records only. Never treat these as real student data or model predictions.
-students = pd.DataFrame({
-    "Student ID": [f"DEMO-{i:03d}" for i in range(1, 11)],
-    "Learner": [f"Learner {letter}" for letter in "ABCDEFGHIJ"],
-    "Attendance (%)": [92, 68, 85, 57, 96, 73, 81, 62, 89, 77],
-    "Study Time (hrs/week)": [12, 5, 9, 3, 14, 6, 8, 4, 11, 7],
-    "Previous Grade": [82, 54, 73, 48, 91, 61, 70, 51, 85, 66],
-    "Review Indicator": ["On track", "Review", "On track", "Priority review", "On track",
-                         "Review", "On track", "Priority review", "On track", "Review"]
-})
+""",unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🎓 EduBridge AI")
-st.sidebar.caption("EDUCATIONAL INTELLIGENCE")
-page = st.sidebar.radio("NAVIGATION", ["Overview", "Learner Explorer", "AI & Explainability", "Learning Support", "Project"])
+st.sidebar.caption("RESPONSIBLE EDUCATIONAL ANALYTICS")
+page=st.sidebar.radio("RESEARCH WORKSPACE",["Research Overview","Dataset Explorer","Model Lab","Evaluation","Explainability","Responsible AI","Methodology"])
 st.sidebar.divider()
-st.sidebar.caption("PHASE 1 · UI PROTOTYPE")
-st.sidebar.info("All displayed records are synthetic examples created for interface demonstration.")
+st.sidebar.caption("PHASE 2 · BASELINE RESEARCH")
+st.sidebar.markdown("**Dataset:** UCI Student Performance · Mathematics")
+st.sidebar.markdown("**Target:** G3 below 10 / 20")
+st.sidebar.caption("Research demonstration only — not a student decision tool.")
+
+result_path=ARTIFACTS/"experiment_results.json"
+results=None
+if result_path.exists():
+    try:
+        results=json.loads(result_path.read_text(encoding="utf-8"))
+    except (OSError,json.JSONDecodeError):
+        st.sidebar.error("Saved results could not be read.")
 
 st.markdown("""
 <div class="hero">
-  <div class="kicker">EDUCATION · DATA · RESPONSIBLE AI</div>
-  <div class="hero-title">Every learner deserves a fair chance.</div>
-  <div class="hero-sub">An educational analytics prototype exploring how understandable data insights
-  can help educators notice learning needs and consider timely, human-led support.</div>
+ <div class="kicker">PHASE 02 · DATA SCIENCE & MACHINE LEARNING</div>
+ <div class="hero-title">From educational data to explainable evidence.</div>
+ <div class="subtle">Dataset audit · Leakage-aware preprocessing · Baseline comparison ·
+ Held-out evaluation · Model inspection</div>
 </div>
-""", unsafe_allow_html=True)
+""",unsafe_allow_html=True)
 
-if page == "Overview":
-    st.subheader("Learning overview")
-    st.caption("Illustrative interface metrics — not institutional statistics")
-    metrics = [
-        ("DEMO LEARNERS", str(len(students)), "Synthetic sample rows"),
-        ("MEAN ATTENDANCE", f"{students['Attendance (%)'].mean():.1f}%", "Across demo records"),
-        ("MEAN PRIOR GRADE", f"{students['Previous Grade'].mean():.1f}", "Illustrative grade scale"),
-        ("REVIEW EXAMPLES", str(students["Review Indicator"].ne("On track").sum()), "Manually assigned demo labels")
-    ]
-    cols = st.columns(4)
-    for col, (label, value, note) in zip(cols, metrics):
+if st.sidebar.button("▶ Run / refresh experiment",use_container_width=True,type="primary"):
+    with st.spinner("Downloading UCI data and running cross-validation..."):
+        try:
+            run_experiment()
+            st.success("Experiment finished. Refreshing dashboard.")
+            st.rerun()
+        except Exception as exc:
+            st.error(f"Experiment could not finish: {exc}")
+            st.info("Check internet access, installed dependencies, and the UCI download endpoint.")
+
+if results is None:
+    st.info("No experiment results exist yet. Select **Run / refresh experiment** in the sidebar.")
+    st.markdown("### What the experiment does")
+    st.markdown("1. Downloads the official UCI Mathematics cohort.\n2. Audits rows, columns, duplicates, missing values, and target distribution.\n3. Defines G3 < 10 as the experimental positive class.\n4. Excludes G1 and G2 from predictors to reduce grade leakage.\n5. Compares Dummy, Logistic Regression, and Random Forest with stratified 5-fold CV.\n6. Selects by training CV F1 and evaluates once on a held-out test set.")
+    st.stop()
+
+audit=results["dataset_audit"]
+metrics=results["test_metrics"]
+comparison=pd.DataFrame(results["model_comparison"])
+
+if page=="Research Overview":
+    st.subheader("Research at a glance")
+    cards=[("DATA RECORDS",f'{audit["rows"]:,}',"UCI Mathematics cohort"),
+           ("PREDICTOR FEATURES",str(len(metrics["predictor_columns"])),"G1/G2/G3 excluded"),
+           ("SELECTED MODEL",metrics["selected_model"],"Chosen by training CV F1"),
+           ("HELD-OUT F1",f'{metrics["f1"]:.3f}',"One untouched test split")]
+    cols=st.columns(4)
+    for col,(label,value,note) in zip(cols,cards):
         with col:
-            st.markdown(f'<div class="metric"><div class="metric-label">{label}</div><div class="metric-value">{value}</div><div class="muted">{note}</div></div>', unsafe_allow_html=True)
-
-    left, right = st.columns([1.35, 1])
+            st.markdown(f'<div class="metric"><div class="metric-label">{label}</div><div class="metric-value">{value}</div><div class="subtle">{note}</div></div>',unsafe_allow_html=True)
+    left,right=st.columns([1.2,1])
     with left:
-        st.markdown("### Attendance and prior grades")
-        fig = px.scatter(students, x="Attendance (%)", y="Previous Grade",
-                         size="Study Time (hrs/week)", color="Review Indicator",
-                         hover_name="Learner", template="plotly_dark",
-                         color_discrete_map={"On track":"#42c7a5","Review":"#f4b860","Priority review":"#ef7185"})
-        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                          font_color="#dce6f7", height=360, margin=dict(l=5,r=5,t=15,b=5))
-        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("### Cross-validation model comparison")
+        chart=comparison.melt(id_vars="model",value_vars=["cv_f1_mean","cv_balanced_accuracy_mean"],var_name="metric",value_name="score")
+        fig=px.bar(chart,x="model",y="score",color="metric",barmode="group",range_y=[0,1],template="plotly_dark")
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",font_color="#dce7f7",legend_title_text="",height=350)
+        st.plotly_chart(fig,use_container_width=True)
     with right:
-        st.markdown("### Example review groups")
-        counts = students["Review Indicator"].value_counts().rename_axis("Indicator").reset_index(name="Count")
-        pie = px.pie(counts, names="Indicator", values="Count", hole=.65, template="plotly_dark",
-                     color="Indicator",
-                     color_discrete_map={"On track":"#42c7a5","Review":"#f4b860","Priority review":"#ef7185"})
-        pie.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#dce6f7",
-                          height=360, margin=dict(l=5,r=5,t=15,b=5), legend_title_text="")
-        st.plotly_chart(pie, use_container_width=True)
-    st.markdown("### Learner snapshot")
-    st.dataframe(students, use_container_width=True, hide_index=True)
-    st.warning("These labels are manually written demonstration values. No AI model has generated them.")
+        st.markdown("### Held-out test metrics")
+        names=["accuracy","balanced_accuracy","precision","recall","f1","roc_auc"]
+        fig=go.Figure(go.Bar(x=[metrics[n] for n in names],y=names,orientation="h",marker=dict(color="#42c7a5")))
+        fig.update_layout(template="plotly_dark",paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",xaxis=dict(range=[0,1]),height=350)
+        st.plotly_chart(fig,use_container_width=True)
+    st.success("Preprocessing is inside model pipelines; G1 and G2 are excluded from predictors.")
+    st.warning("The source data represents Portuguese schools. These results do not establish validity for Pakistani learners.")
 
-elif page == "Learner Explorer":
-    st.subheader("Learner Explorer")
-    st.caption("Search and filter the synthetic demonstration dataset.")
-    query = st.text_input("Search learner or ID", placeholder="Try Learner A or DEMO-001")
-    statuses = students["Review Indicator"].unique().tolist()
-    selected = st.multiselect("Review indicator", statuses, default=statuses)
-    view = students[students["Review Indicator"].isin(selected)]
-    if query:
-        view = view[
-            view["Learner"].str.contains(query, case=False) |
-            view["Student ID"].str.contains(query, case=False)
-        ]
-    st.dataframe(view, use_container_width=True, hide_index=True)
-    st.caption(f"Showing {len(view)} of {len(students)} synthetic records.")
+elif page=="Dataset Explorer":
+    st.subheader("Dataset audit")
+    st.markdown(f"Source: [UCI Student Performance]({results['dataset_url']})")
+    cols=st.columns(4)
+    for col,(label,value) in zip(cols,[("ROWS",audit["rows"]),("COLUMNS",audit["columns"]),("DUPLICATES",audit["duplicate_rows"]),("MISSING CELLS",audit["missing_cells"])]):
+        with col:
+            st.markdown(f'<div class="metric"><div class="metric-label">{label}</div><div class="metric-value">{value}</div></div>',unsafe_allow_html=True)
+    try:
+        data=load_student_math()
+        st.dataframe(data.head(30),use_container_width=True,hide_index=True)
+        left,right=st.columns(2)
+        with left:
+            fig=px.histogram(data,x="G3",nbins=21,title="Final grade distribution (G3)",template="plotly_dark",color_discrete_sequence=["#42c7a5"])
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig,use_container_width=True)
+        with right:
+            missing=pd.Series(audit["missing_by_column"]).sort_values(ascending=False).head(12).rename_axis("Feature").reset_index(name="Missing values")
+            fig=px.bar(missing,x="Missing values",y="Feature",orientation="h",title="Missing values by feature",template="plotly_dark")
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig,use_container_width=True)
+    except Exception as exc:
+        st.warning(f"Dataset preview could not be reloaded: {exc}")
+    st.info("Positive class = G3 < 10 on the source 0–20 grade scale. This is an experiment definition, not a diagnosis or universal academic label.")
 
-elif page == "AI & Explainability":
-    st.subheader("AI & Explainability")
-    st.warning("Machine-learning integration is planned, not implemented. This prototype produces no predictions, risk scores, or explanations.")
-    st.markdown("### Planned workflow")
-    steps = [
-        "Document the dataset, target variable, and intended use.",
-        "Check missingness, class balance, feature definitions, and possible leakage.",
-        "Build simple baselines before comparing more complex models.",
-        "Evaluate precision, recall, F1-score, confusion matrix, and calibration where appropriate.",
-        "Investigate subgroup performance and explain model limitations.",
-        "Present any future output as a prompt for human review, never an automated decision."
-    ]
-    for i, step in enumerate(steps, 1):
-        st.markdown(f'<div class="panel"><b style="color:#8de3d2">{i:02d}</b> &nbsp; {step}</div>', unsafe_allow_html=True)
-    st.markdown("### Candidate methods")
-    st.write("Logistic Regression · Decision Tree · Random Forest · SHAP or permutation-based explanations")
-    st.caption("The final methods will be selected only after data inspection and validation.")
+elif page=="Model Lab":
+    st.subheader("Baseline model laboratory")
+    st.caption("Model selection uses mean stratified 5-fold CV F1 on training data.")
+    display=comparison[["model","cv_accuracy_mean","cv_balanced_accuracy_mean","cv_precision_mean","cv_recall_mean","cv_f1_mean","cv_roc_auc_mean"]]
+    st.dataframe(display.style.format({c:"{:.3f}" for c in display.columns if c!="model"}),use_container_width=True,hide_index=True)
+    fig=go.Figure()
+    fig.add_trace(go.Scatter(x=comparison["model"],y=comparison["cv_f1_mean"],mode="markers",marker=dict(size=13,color="#42c7a5"),
+                             error_y=dict(type="data",array=comparison["cv_f1_std"],visible=True)))
+    fig.update_layout(template="plotly_dark",paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",yaxis=dict(range=[0,1],title="CV F1"),height=350)
+    st.plotly_chart(fig,use_container_width=True)
+    st.info(f"Selected model: **{metrics['selected_model']}**. The held-out test set was not used to select it.")
 
-elif page == "Learning Support":
-    st.subheader("Learning Support Hub")
-    st.caption("A concept for connecting insights with practical, supportive next steps.")
-    cards = [
-        ("📚", "Accessible learning resources", "Topic-based notes, practice materials, and curated learning links."),
-        ("🧑‍🏫", "Teacher or tutor support", "Human guidance for learners who may benefit from extra explanation."),
-        ("🗓️", "Study planning", "Manageable weekly goals and progress check-ins."),
-        ("🌐", "Low-connectivity learning", "Downloadable and offline-friendly resources for limited internet access.")
-    ]
-    for icon, title, desc in cards:
-        st.markdown(f'<div class="panel"><h3>{icon} {title}</h3><span class="muted">{desc}</span></div>', unsafe_allow_html=True)
-    st.info("Support suggestions should be inclusive and optional. A model must never decide a learner's worth or access to education.")
+elif page=="Evaluation":
+    st.subheader("Held-out evaluation")
+    st.caption(f'Test records: {metrics["test_size"]} · Training records: {metrics["train_size"]} · Probability threshold: {metrics["decision_threshold"]:.2f}')
+    cols=st.columns(4)
+    for col,(label,key) in zip(cols,[("F1","f1"),("ROC-AUC","roc_auc"),("PR-AUC","average_precision"),("Brier score","brier_score")]):
+        with col:
+            st.markdown(f'<div class="metric"><div class="metric-label">{label}</div><div class="metric-value">{metrics[key]:.3f}</div></div>',unsafe_allow_html=True)
+    left,right=st.columns(2)
+    with left:
+        fig=px.imshow(metrics["confusion_matrix"],text_auto=True,x=["Predicted ≥10","Predicted <10"],y=["Actual ≥10","Actual <10"],color_continuous_scale="Teal",title="Confusion matrix",template="plotly_dark")
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",height=370)
+        st.plotly_chart(fig,use_container_width=True)
+    with right:
+        curve=metrics["roc_curve"]
+        fig=go.Figure()
+        fig.add_trace(go.Scatter(x=curve["fpr"],y=curve["tpr"],mode="lines",name="ROC",line=dict(color="#42c7a5",width=3)))
+        fig.add_trace(go.Scatter(x=[0,1],y=[0,1],mode="lines",name="Chance",line=dict(dash="dash",color="#9aabc7")))
+        fig.update_layout(title="ROC curve",template="plotly_dark",paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",xaxis_title="False positive rate",yaxis_title="True positive rate",height=370)
+        st.plotly_chart(fig,use_container_width=True)
+    st.dataframe(pd.DataFrame(metrics["classification_report"]).T.style.format("{:.3f}"),use_container_width=True)
+    st.markdown("Precision measures positive prediction correctness; recall measures how many actual positive cases are identified. F1 balances both. ROC-AUC and PR-AUC measure ranking; Brier score measures probability error (lower is better).")
+
+elif page=="Explainability":
+    st.subheader("Model inspection")
+    st.caption("Permutation importance is computed on held-out data after model selection, not used for tuning.")
+    path=ARTIFACTS/"permutation_importance.csv"
+    if path.exists():
+        importance=pd.read_csv(path).head(15).sort_values("importance_mean")
+        fig=px.bar(importance,x="importance_mean",y="feature",orientation="h",error_x="importance_std",template="plotly_dark",color="importance_mean",color_continuous_scale="Teal",title="Permutation importance (F1 decrease)")
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",coloraxis_showscale=False,height=520)
+        st.plotly_chart(fig,use_container_width=True)
+        st.dataframe(importance.sort_values("importance_mean",ascending=False),use_container_width=True,hide_index=True)
+    st.warning("Importance describes this model on this test sample. It does not prove causation, fairness, or that changing a feature changes a learner's outcome.")
+
+elif page=="Responsible AI":
+    st.subheader("Responsible AI and subgroup diagnostics")
+    st.warning("Group metrics are descriptive diagnostics, not proof of fairness. Small groups can make estimates unstable.")
+    for group_name,rows in results.get("group_audit",{}).items():
+        st.markdown(f"### Group: {group_name}")
+        st.dataframe(pd.DataFrame(rows),use_container_width=True,hide_index=True)
+    st.markdown("### Safeguards")
+    for item in ["Never rank, punish, diagnose, admit, or exclude learners using this prototype.",
+                 "Do not treat a model probability as a fact about an individual.",
+                 "Do not upload identifiable student data to a public repository.",
+                 "Portuguese school data is not validated for Pakistan.",
+                 "Any real-world pilot requires local consent, governance, expert review, and independent evaluation."]:
+        st.markdown(f"- {item}")
 
 else:
-    st.subheader("About this project")
-    st.markdown("""
-**Mission:** Explore responsible, explainable educational analytics that may help educators understand learning patterns and consider additional support.
-
-**Problem space:** Students do not always receive timely or consistent academic support, particularly in resource-constrained settings.
-
-**Research direction:** Begin with a documented public dataset, establish a defensible target, compare baseline models, evaluate limitations, and only then consider integrating a validated model.
-
-**Initial dataset candidate:** [UCI Student Performance](https://archive.ics.uci.edu/dataset/320/student+performance). It represents Portuguese schools; results must not be assumed to generalize to Pakistan or any other education system.
-""")
-    st.markdown("### Responsible-use commitments")
-    for item in [
-        "Use documented, appropriately licensed data and protect personal information.",
-        "Avoid target leakage and explain the modelling choices.",
-        "Report uncertainty, limitations, and relevant fairness checks.",
-        "Keep educators and learners central to decisions.",
-        "Never use a prototype score to deny a learner an opportunity."
-    ]:
+    st.subheader("Methodology and reproducibility")
+    st.json(results["methodology"])
+    st.markdown("### Limitations")
+    for item in results["limitations"]:
         st.markdown(f"- {item}")
-    roadmap = pd.DataFrame({
-        "Phase": ["01 · Interface", "02 · Data", "03 · Modelling", "04 · Explainability", "05 · Evaluation", "06 · Deployment"],
-        "Deliverable": ["Streamlit prototype", "Data audit and cleaning", "Baseline model comparison",
-                        "Feature explanations", "Fairness and error analysis", "Documented demonstration app"],
-        "Status": ["In progress", "Planned", "Planned", "Planned", "Planned", "Planned"]
-    })
-    st.markdown("### Development roadmap")
-    st.dataframe(roadmap, use_container_width=True, hide_index=True)
+    st.markdown("### Download experiment artifacts")
+    for filename in ["experiment_results.json","model_comparison.csv","permutation_importance.csv","test_predictions.csv"]:
+        path=ARTIFACTS/filename
+        if path.exists():
+            st.download_button(f"Download {filename}",data=path.read_bytes(),file_name=filename,mime="application/octet-stream")
+    st.caption("The fitted pipeline is stored locally as artifacts/selected_model.joblib and excluded from Git.")
 
 st.divider()
-st.markdown('<p class="muted" style="text-align:center">EduBridge AI · Student-led educational technology research prototype</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtle" style="text-align:center">EduBridge AI · Phase 2 research prototype · Learn · Analyze · Build · Improve</p>',unsafe_allow_html=True)
