@@ -135,7 +135,9 @@ def build_weekly_plan(profile: dict) -> list[dict]:
         whole = [int(value) for value in exact]
         allocations = [base + extra for base, extra in zip(allocations, whole)]
         leftover = remaining - sum(whole)
-        order = sorted(range(len(subjects)), key=lambda index: (-(exact[index] - whole[index]), subjects[index].casefold()))
+        # Resolve leftover hours in priority order so a lower-confidence
+        # subject is not disadvantaged by a fractional-rounding tie.
+        order = sorted(range(len(subjects)), key=lambda index: (-weights[index], subjects[index].casefold()))
         for index in order[:leftover]:
             allocations[index] += 1
 
