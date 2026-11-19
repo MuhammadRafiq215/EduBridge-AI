@@ -39,7 +39,7 @@ if "learner_profile" not in st.session_state:
 with st.sidebar:
     st.markdown("## 🎓 EduBridge AI")
     st.caption("YOUR LEARNING & CAREER COMPANION")
-    page = st.radio("WORKSPACE", ["Home", "My learning profile", "Career pathways", "Study planner", "Research insights", "About EduBridge"], label_visibility="visible")
+    if st.session_state.pop("navigate_to_profile", False):\n        st.session_state["workspace"] = "My learning profile"\n    page = st.radio("WORKSPACE", ["Home", "My learning profile", "Career pathways", "Study planner", "Research insights", "About EduBridge"], label_visibility="visible", key="workspace")
     st.divider()
     st.caption("A student-centred learning companion")
     st.caption("Your profile stays in this browser session unless you download it.")
