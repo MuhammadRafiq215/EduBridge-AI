@@ -155,8 +155,9 @@ input:focus-visible,textarea:focus-visible {
 
 /* Hide Streamlit-hosted developer chrome and repository shortcuts in the public viewer UI.
    This is a presentation change only; repository permissions remain the security boundary. */
-#GithubIcon,
-header[data-testid="stHeader"] [data-testid="stToolbar"] {
+/* Hide only the GitHub shortcut. Keep Streamlit's header controls visible
+   so visitors can open and collapse the navigation sidebar. */
+#GithubIcon {
   display: none !important;
   visibility: hidden !important;
 }
