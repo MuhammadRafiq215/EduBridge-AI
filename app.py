@@ -372,6 +372,12 @@ elif page == "Evaluation":
         )
         st.plotly_chart(figure, use_container_width=True)
 
+    st.markdown("### Decision-threshold sensitivity (held-out set)")
+    st.caption("This table shows how the precision/recall trade-off changes. It is diagnostic only; the default 0.50 threshold is not tuned on the test set.")
+    sensitivity = pd.DataFrame(metrics.get("threshold_sensitivity", []))
+    if not sensitivity.empty:
+        st.dataframe(sensitivity.style.format({column: "{:.3f}" for column in sensitivity.select_dtypes(include="number").columns}), use_container_width=True, hide_index=True)
+
     report = pd.DataFrame(metrics["classification_report"]).T
     st.dataframe(report.style.format("{:.3f}"), use_container_width=True)
     st.markdown(
@@ -454,6 +460,7 @@ else:
         "model_comparison.csv": "text/csv",
         "permutation_importance.csv": "text/csv",
         "test_predictions.csv": "text/csv",
+        "threshold_sensitivity.csv": "text/csv",
     }
     for filename, mime_type in artifact_types.items():
         artifact_path = ARTIFACTS / filename
