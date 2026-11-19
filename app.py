@@ -103,6 +103,51 @@ div[data-testid="stAlert"] {border-radius:14px;}
 .dash-stat-note {font-size:11px;color:#7c829d;margin-top:4px;}
 div[data-testid="stPlotlyChart"] {background:#fff;border:1px solid #e9eaf5;border-radius:18px;padding:8px 8px 0;box-shadow:0 8px 24px rgba(34,38,82,.035);}
 @media (max-width:800px) {.dash-card {padding:17px;border-radius:17px;} .dash-heading {font-size:27px;}}
+
+/* Student-pilot polish: subtle depth, clear focus states and motion-safe hover feedback. */
+.dash-card {
+  position:relative;
+  overflow:hidden;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.dash-card:before {
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:linear-gradient(180deg,#6757f5,#27c9d2,#c7f36b);
+  opacity:.85;
+}
+.dash-card:hover {
+  transform:translateY(-4px);
+  border-color:#c9c5ff;
+  box-shadow:0 16px 34px rgba(47,45,118,.11);
+}
+.dash-card .card-icon {
+  background:linear-gradient(135deg,#efedff 0%,#e5fbfc 100%);
+  box-shadow:inset 0 0 0 1px rgba(103,87,245,.07);
+}
+.pathway-tile,.week-day {
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.pathway-tile:hover,.week-day:hover {
+  transform:translateY(-3px);
+  border-color:#c9c5ff;
+  box-shadow:0 14px 30px rgba(47,45,118,.09);
+}
+.stButton button:focus-visible,.stDownloadButton button:focus-visible,
+input:focus-visible,textarea:focus-visible {
+  outline:3px solid rgba(39,201,210,.65)!important;
+  outline-offset:2px!important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-card,.pathway-tile,.week-day,.stButton button,.stDownloadButton button {
+    transition:none!important;
+  }
+  .dash-card:hover,.pathway-tile:hover,.week-day:hover,.stButton button:hover,.stDownloadButton button:hover {
+    transform:none!important;
+  }
+}
 </style>
 """, unsafe_allow_html=True)
 
