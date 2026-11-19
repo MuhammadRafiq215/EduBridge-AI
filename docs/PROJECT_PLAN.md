@@ -103,3 +103,15 @@ Phase 3 is implemented in `src/exploration.py` and exposed through the standalon
 ## 10. Phase 4 implementation
 
 Phase 4 is implemented in `src/phase4.py` and exposed through `phase4.py`. It adds pre-specified sigmoid calibration trained only within the training partition, raw-versus-calibrated reliability analysis, Brier score, log loss, expected calibration error, percentile-bootstrap confidence intervals on held-out predictions, false-positive/false-negative analysis, descriptive subgroup error summaries, and repeated stratified five-fold training-CV stability diagnostics. The held-out test set is not used for model or calibration selection. See `docs/PHASE4.md`. Run with `streamlit run phase4.py`.
+
+
+### Phase 5 — Explainable AI with SHAP
+
+Implemented in `src/explainability.py` with a dedicated Streamlit workspace in `phase5.py`:
+- Model-agnostic SHAP permutation explanations for a small held-out sample.
+- Global mean-absolute contribution summaries and signed record-level contributions.
+- Model selection and fitting restricted to the training partition; SHAP background sampled from training rows.
+- Leakage exclusions for G1, G2 and G3 remain enforced.
+- Interpretation notes distinguish model attribution from causation and educational decisions.
+
+Run with `streamlit run phase5.py`. See `docs/PHASE5.md` for methodology and safeguards.
