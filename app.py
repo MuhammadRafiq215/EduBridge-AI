@@ -1,481 +1,232 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
-from src.data import load_student_math
+from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan
 from src.modeling import ARTIFACTS, run_experiment
 
-st.set_page_config(
-    page_title="EduBridge AI | Research Lab",
-    page_icon="🎓",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
-    html, body, [class*="css"] {font-family: 'DM Sans', sans-serif;}
-    .stApp {background: #09111f; color: #edf3ff;}
-    section[data-testid="stSidebar"] {background: #101d31; border-right: 1px solid #263b59;}
-    h1, h2, h3 {font-family: 'Manrope', sans-serif !important; color: #f4f7ff !important;}
-    .hero {padding: clamp(20px, 4vw, 34px); border-radius: 20px;
-      background: linear-gradient(115deg, #172b49, #244c70 58%, #14645e);
-      border: 1px solid #38617c; margin-bottom: 22px;}
-    .kicker {color: #8ce3ce; font-size: 11px; font-weight: 800; letter-spacing: 2px;}
-    .hero-title {font-family: 'Manrope', sans-serif; font-size: clamp(25px, 4vw, 40px);
-      line-height: 1.15; font-weight: 800; color: white; margin: 10px 0;}
-    .subtle {color: #b8c9df; font-size: 0.92rem;}
-    .metric {background: #13233a; border: 1px solid #2b4261; border-radius: 14px;
-      padding: 16px; min-height: 112px;}
-    .metric-label {font-size: 10px; letter-spacing: 1px; color: #9eb2cc; font-weight: 700;}
-    .metric-value {font-family: 'Manrope', sans-serif; font-size: clamp(19px, 2vw, 26px);
-      font-weight: 800; color: #f5f8ff; margin-top: 7px; overflow-wrap: anywhere;}
-    div[data-testid="stMetric"] {background: #13233a; padding: 12px; border-radius: 12px;}
-    .stButton button, .stDownloadButton button {border-radius: 10px; font-weight: 700;}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+:root { --ink:#15253a; --muted:#62748a; --accent:#087f70; --line:#e5ecf1; }
+html, body, [class*="css"] {font-family:'DM Sans',sans-serif;}
+.stApp {background:#f5f8fa;color:var(--ink);}
+section[data-testid="stSidebar"] {background:#ffffff;border-right:1px solid var(--line);}
+h1,h2,h3 {font-family:'Manrope',sans-serif;color:#15253a !important;letter-spacing:-.025em;}
+.hero {padding:34px 36px;border-radius:22px;background:linear-gradient(120deg,#102b3b 0%,#145c5b 58%,#168c79 100%);color:#fff;margin:4px 0 26px;}
+.hero .eyebrow {font-size:11px;letter-spacing:2px;font-weight:800;color:#a7f3df;text-transform:uppercase;}
+.hero h1 {color:#fff !important;font-size:clamp(28px,4vw,44px);line-height:1.12;margin:12px 0;}
+.hero p {color:#d9f2ed;font-size:16px;max-width:760px;margin-bottom:0;}
+.section-card {background:#fff;border:1px solid #e5ecf1;border-radius:16px;padding:20px 22px;margin-bottom:12px;}
+.small-muted {color:#62748a;font-size:13px;}
+div[data-testid="stMetric"] {background:#fff;border:1px solid #e5ecf1;border-radius:14px;padding:14px;}
+.stButton button,.stDownloadButton button {border-radius:10px;font-weight:700;min-height:42px;}
+.stTabs [data-baseweb="tab"] {font-weight:700;}
+div[data-testid="stForm"] {background:#fff;border:1px solid #e5ecf1;border-radius:16px;padding:18px;}
+</style>
+""", unsafe_allow_html=True)
 
-st.sidebar.markdown("## 🎓 EduBridge AI")
-st.sidebar.caption("RESPONSIBLE EDUCATIONAL ANALYTICS")
-page = st.sidebar.radio(
-    "RESEARCH WORKSPACE",
-    [
-        "Research Overview",
-        "Dataset Explorer",
-        "Model Lab",
-        "Evaluation",
-        "Explainability",
-        "Responsible AI",
-        "Methodology",
-    ],
-)
-st.sidebar.divider()
-st.sidebar.caption("PHASE 1 → PHASE 2")
-st.sidebar.markdown("**Dataset:** UCI Student Performance · Mathematics")
-st.sidebar.markdown("**Research target:** G3 below 10 / 20")
-st.sidebar.caption("Research prototype only — not a student decision tool.")
+if "learner_profile" not in st.session_state:
+    st.session_state.learner_profile = None
 
-result_path = ARTIFACTS / "experiment_results.json"
-results = None
-if result_path.exists():
-    try:
-        results = json.loads(result_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        st.sidebar.error("Saved results could not be read. Run the experiment again.")
+with st.sidebar:
+    st.markdown("## 🎓 EduBridge AI")
+    st.caption("YOUR LEARNING & CAREER COMPANION")
+    page = st.radio("WORKSPACE", ["Home", "My learning profile", "Career pathways", "Study planner", "Research insights", "About EduBridge"], label_visibility="visible")
+    st.divider()
+    st.caption("A student-centred learning companion")
+    st.caption("Your profile stays in this browser session unless you download it.")
 
-st.markdown(
-    """
-    <div class="hero">
-      <div class="kicker">PHASE 02 · DATA SCIENCE & MACHINE LEARNING</div>
-      <div class="hero-title">From educational data to explainable evidence.</div>
-      <div class="subtle">Dataset audit · Leakage-aware preprocessing · Baseline comparison ·
-      Held-out evaluation · Model inspection</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+def hero(title: str, subtitle: str, eyebrow: str = "LEARN · EXPLORE · GROW"):
+    st.markdown(f'<div class="hero"><div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{subtitle}</p></div>', unsafe_allow_html=True)
 
-if st.sidebar.button("▶ Run / refresh experiment", use_container_width=True, type="primary"):
-    with st.spinner("Downloading UCI data and running cross-validation..."):
-        try:
-            run_experiment()
-            st.success("Experiment completed. Loading the new results…")
-            st.rerun()
-        except Exception as exc:
-            st.error("The experiment could not be completed.")
-            st.exception(exc)
-            st.info("Check the app logs, internet connection, dependencies and UCI download availability.")
+def profile_ready() -> bool:
+    return isinstance(st.session_state.learner_profile, dict) and bool(st.session_state.learner_profile.get("confidence"))
 
-if results is None:
-    st.info("No saved experiment results yet. Select **Run / refresh experiment** in the sidebar.")
-    st.markdown("### How the research workflow operates")
-    st.markdown(
-        """
-        1. Downloads the official UCI Mathematics dataset.
-        2. Audits rows, columns, duplicates, missing values and target distribution.
-        3. Defines G3 < 10 as this experiment's positive class.
-        4. Excludes G1, G2 and G3 from the predictor set.
-        5. Compares three baseline models using stratified five-fold cross-validation.
-        6. Selects using training-fold F1 and evaluates on a held-out test set.
-        """
-    )
-    st.warning(
-        "The dataset represents two Portuguese schools. It is not evidence of model validity "
-        "for Pakistani learners or any individual student."
-    )
-    st.stop()
+profile = st.session_state.learner_profile
 
-try:
-    audit = results["dataset_audit"]
-    metrics = results["test_metrics"]
-    comparison = pd.DataFrame(results["model_comparison"])
-    required_metric_keys = {
-        "selected_model", "test_size", "train_size", "accuracy",
-        "balanced_accuracy", "precision", "recall", "f1", "roc_auc",
-        "average_precision", "brier_score", "confusion_matrix",
-        "classification_report", "roc_curve", "decision_threshold",
-        "predictor_columns",
-    }
-    missing_keys = required_metric_keys.difference(metrics)
-    if missing_keys:
-        raise KeyError(f"Experiment results are missing fields: {sorted(missing_keys)}")
-    if comparison.empty:
-        raise ValueError("The model comparison table is empty.")
-except (KeyError, TypeError, ValueError) as exc:
-    st.error("The saved experiment results are incomplete or incompatible.")
-    st.exception(exc)
-    st.info("Select **Run / refresh experiment** in the sidebar to regenerate them.")
-    st.stop()
-
-if page == "Research Overview":
-    st.subheader("Research at a glance")
-    cards = [
-        ("DATA RECORDS", f'{audit["rows"]:,}', "UCI Mathematics cohort"),
-        ("PREDICTOR FEATURES", str(len(metrics["predictor_columns"])), "G1/G2/G3 excluded"),
-        ("SELECTED MODEL", metrics["selected_model"], "Chosen by training CV F1"),
-        ("HELD-OUT F1", f'{metrics["f1"]:.3f}', "One untouched test split"),
-    ]
-    columns = st.columns(4)
-    for column, (label, value, note) in zip(columns, cards):
-        with column:
-            st.markdown(
-                f'<div class="metric"><div class="metric-label">{label}</div>'
-                f'<div class="metric-value">{value}</div><div class="subtle">{note}</div></div>',
-                unsafe_allow_html=True,
-            )
-
-    left, right = st.columns([1.2, 1])
+if page == "Home":
+    hero("Your next step starts here.", "Understand your current learning priorities, explore degree pathways, and build a study plan around your goals.")
+    left, right = st.columns([1.25, 1])
     with left:
-        st.markdown("### Cross-validation model comparison")
-        chart_data = comparison.melt(
-            id_vars="model",
-            value_vars=["cv_f1_mean", "cv_balanced_accuracy_mean"],
-            var_name="metric",
-            value_name="score",
-        )
-        figure = px.bar(
-            chart_data,
-            x="model",
-            y="score",
-            color="metric",
-            barmode="group",
-            range_y=[0, 1],
-            template="plotly_dark",
-        )
-        figure.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#dce7f7",
-            legend_title_text="",
-            height=350,
-        )
-        st.plotly_chart(figure, use_container_width=True)
-
+        st.markdown("### A clearer route through education")
+        st.write("EduBridge helps you organise what you're studying, what you want to pursue, and what you can work on next.")
+        st.markdown("""
+        <div class="section-card"><b>01 · Understand your position</b><br><span class="small-muted">Add your education level, subjects and confidence ratings.</span></div>
+        <div class="section-card"><b>02 · Explore your direction</b><br><span class="small-muted">Compare preparation areas for engineering, computing, medicine, economics and more.</span></div>
+        <div class="section-card"><b>03 · Turn goals into action</b><br><span class="small-muted">Create a manageable weekly plan and track your learning priorities.</span></div>
+        """, unsafe_allow_html=True)
+        if st.button("Build my learning profile", type="primary", use_container_width=True):
+            st.session_state["navigate_to_profile"] = True
+            st.rerun()
     with right:
-        st.markdown("### Held-out test metrics")
-        names = ["accuracy", "balanced_accuracy", "precision", "recall", "f1", "roc_auc"]
-        figure = go.Figure(
-            go.Bar(
-                x=[metrics[name] for name in names],
-                y=names,
-                orientation="h",
-                marker={"color": "#42c7a5"},
-            )
-        )
-        figure.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            xaxis={"range": [0, 1]},
-            height=350,
-        )
-        st.plotly_chart(figure, use_container_width=True)
+        if profile_ready():
+            snapshot = build_learning_snapshot(profile)
+            st.markdown("### Your latest snapshot")
+            st.metric("Self-rated confidence", f'{snapshot["average_confidence"]:.1f} / 5')
+            st.write(f'**Current direction:** {snapshot["pathway"]}')
+            st.write(f'**Education level:** {snapshot["level"]}')
+            st.write("**Next focus:** " + (", ".join(snapshot["focus_subjects"]) or "Explore an advanced topic"))
+        else:
+            st.markdown("### What you can explore")
+            st.markdown('<div class="section-card"><h3>Engineering</h3><p class="small-muted">Mathematics · Physics · Design</p></div><div class="section-card"><h3>Medicine & health</h3><p class="small-muted">Biology · Chemistry · Evidence</p></div><div class="section-card"><h3>Economics & business</h3><p class="small-muted">Mathematics · Economics · Analysis</p></div><div class="section-card"><h3>Computing & AI</h3><p class="small-muted">Logic · Programming · Mathematics</p></div>', unsafe_allow_html=True)
+    st.info("EduBridge offers learning guidance and reflection. It does not estimate admission chances or make decisions about students.")
 
-    st.success("Preprocessing is inside model pipelines; G1 and G2 are excluded from predictors.")
-    st.warning("The source data represents Portuguese schools. These results do not establish validity for Pakistan.")
+elif page == "My learning profile":
+    hero("Tell us about your learning.", "A few details help organise your subjects and suggest practical next steps.", "YOUR PROFILE")
+    st.markdown("### Education and interests")
+    with st.form("learner_profile_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            level = st.selectbox("Current education level", LEVELS, index=2)
+            institution = st.text_input("School, college or university (optional)", max_chars=100)
+            board = st.selectbox("Curriculum / programme", ["Cambridge", "FBISE", "Sindh Board", "Punjab Board", "Other board", "University semester", "Other / not sure"])
+        with col2:
+            pathway = st.selectbox("Field you're exploring", list(PATHWAYS.keys()))
+            programme = st.text_input("Class, group or BS programme (optional)", placeholder="e.g. A2, Pre-Medical, BS Computer Science")
+            weekly_hours = st.slider("Hours you can study each week", 1, 40, 8)
+        available = LEVEL_SUBJECTS[level]
+        suggested = [subject for subject in PATHWAYS[pathway]["focus"] if subject in available]
+        subjects = st.multiselect("Subjects you're currently studying", available, default=suggested[:min(3, len(suggested))])
+        st.markdown("#### How confident do you currently feel?")
+        st.caption("Rate your own confidence from 1 (need more support) to 5 (comfortable). This is for planning, not grading.")
+        ratings = {}
+        rating_cols = st.columns(2)
+        for index, subject in enumerate(subjects):
+            with rating_cols[index % 2]:
+                ratings[subject] = st.slider(subject, 1, 5, 3, key=f"profile_rating_{subject}")
+        submitted = st.form_submit_button("Save my learning profile", type="primary", use_container_width=True)
+    if submitted:
+        if not subjects:
+            st.error("Please choose at least one subject.")
+        else:
+            st.session_state.learner_profile = {
+                "level": level, "institution": institution.strip(), "board": board,
+                "pathway": pathway, "programme": programme.strip(),
+                "weekly_hours": weekly_hours, "subjects": subjects,
+                "confidence": ratings, "updated": date.today().isoformat(),
+            }
+            st.success("Your learning profile is ready.")
+            st.rerun()
+    if profile_ready():
+        st.divider()
+        snapshot = build_learning_snapshot(st.session_state.learner_profile)
+        a, b, c = st.columns(3)
+        a.metric("Subjects reviewed", snapshot["subjects_rated"])
+        b.metric("Average self-rating", f'{snapshot["average_confidence"]:.1f} / 5')
+        c.metric("Learning stage", snapshot["confidence_label"])
+        st.caption("This profile is stored only in the active Streamlit session. It is not a permanent account.")
+        st.download_button("Download my profile (JSON)", json.dumps(st.session_state.learner_profile, indent=2), file_name="edubridge_learning_profile.json", mime="application/json")
 
-elif page == "Dataset Explorer":
-    st.subheader("Dataset audit")
-    st.markdown(f"Source: [UCI Student Performance]({results['dataset_url']})")
-    columns = st.columns(4)
-    for column, (label, value) in zip(
-        columns,
-        [
-            ("ROWS", audit["rows"]),
-            ("COLUMNS", audit["columns"]),
-            ("DUPLICATES", audit["duplicate_rows"]),
-            ("MISSING CELLS", audit["missing_cells"]),
-        ],
-    ):
-        with column:
-            st.markdown(
-                f'<div class="metric"><div class="metric-label">{label}</div>'
-                f'<div class="metric-value">{value}</div></div>',
-                unsafe_allow_html=True,
-            )
-
-    try:
-        @st.cache_data(ttl=3600, show_spinner="Loading the UCI dataset…")
-        def cached_student_math():
-            return load_student_math()
-
-        data = cached_student_math()
-        st.dataframe(data.head(30), use_container_width=True, hide_index=True)
-        left, right = st.columns(2)
-        with left:
-            figure = px.histogram(
-                data,
-                x="G3",
-                nbins=21,
-                title="Final grade distribution (G3)",
-                template="plotly_dark",
-                color_discrete_sequence=["#42c7a5"],
-            )
-            figure.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(figure, use_container_width=True)
-        with right:
-            missing = (
-                pd.Series(audit["missing_by_column"])
-                .sort_values(ascending=False)
-                .head(12)
-                .rename_axis("Feature")
-                .reset_index(name="Missing values")
-            )
-            figure = px.bar(
-                missing,
-                x="Missing values",
-                y="Feature",
-                orientation="h",
-                title="Missing values by feature",
-                template="plotly_dark",
-            )
-            figure.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(figure, use_container_width=True)
-    except Exception as exc:
-        st.warning(f"Dataset preview could not be reloaded: {exc}")
-
-    st.info(
-        "Positive class = G3 < 10 on the source 0–20 grade scale. This is an experiment "
-        "definition, not a diagnosis or universal academic label."
-    )
-
-elif page == "Model Lab":
-    st.subheader("Baseline model laboratory")
-    st.caption("Model selection uses mean stratified five-fold CV F1 on training data.")
-    display = comparison[
-        [
-            "model",
-            "cv_accuracy_mean",
-            "cv_balanced_accuracy_mean",
-            "cv_precision_mean",
-            "cv_recall_mean",
-            "cv_f1_mean",
-            "cv_roc_auc_mean",
-        ]
-    ]
-    st.dataframe(
-        display.style.format(
-            {column: "{:.3f}" for column in display.columns if column != "model"}
-        ),
-        use_container_width=True,
-        hide_index=True,
-    )
-    figure = go.Figure()
-    figure.add_trace(
-        go.Scatter(
-            x=comparison["model"],
-            y=comparison["cv_f1_mean"],
-            mode="markers",
-            marker={"size": 13, "color": "#42c7a5"},
-            error_y={"type": "data", "array": comparison["cv_f1_std"], "visible": True},
-        )
-    )
-    figure.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"range": [0, 1], "title": "CV F1"},
-        height=350,
-    )
-    st.plotly_chart(figure, use_container_width=True)
-    st.info(
-        f"Selected model: **{metrics['selected_model']}**. "
-        "The held-out test set was not used to select it."
-    )
-
-elif page == "Evaluation":
-    st.subheader("Held-out evaluation")
-    st.caption(
-        f"Test records: {metrics['test_size']} · Training records: {metrics['train_size']} · "
-        f"Probability threshold: {metrics['decision_threshold']:.2f}"
-    )
-    columns = st.columns(4)
-    for column, (label, key) in zip(
-        columns,
-        [("F1", "f1"), ("ROC-AUC", "roc_auc"), ("PR-AUC", "average_precision"), ("Brier score", "brier_score")],
-    ):
-        with column:
-            st.metric(label, f"{metrics[key]:.3f}")
-
+elif page == "Career pathways":
+    hero("Explore a direction that fits your interests.", "See common preparation areas and degree options. Always check the entry requirements of the universities you are considering.", "CAREER EXPLORER")
+    selected = st.selectbox("Choose a field to explore", list(PATHWAYS.keys()))
+    item = PATHWAYS[selected]
+    st.markdown(f"### {selected}")
+    st.write(item["description"])
     left, right = st.columns(2)
     with left:
-        figure = px.imshow(
-            metrics["confusion_matrix"],
-            text_auto=True,
-            x=["Predicted ≥10", "Predicted <10"],
-            y=["Actual ≥10", "Actual <10"],
-            color_continuous_scale="Teal",
-            title="Confusion matrix",
-            template="plotly_dark",
-        )
-        figure.update_layout(paper_bgcolor="rgba(0,0,0,0)", height=370)
-        st.plotly_chart(figure, use_container_width=True)
-
+        st.markdown("#### Common preparation areas")
+        for subject in item["focus"]:
+            st.markdown(f"- {subject}")
+        st.markdown("#### Degree areas to explore")
+        for degree in item["degrees"]:
+            st.markdown(f"- {degree}")
     with right:
-        curve = metrics["roc_curve"]
-        figure = go.Figure()
-        figure.add_trace(
-            go.Scatter(
-                x=curve["fpr"],
-                y=curve["tpr"],
-                mode="lines",
-                name="ROC",
-                line={"color": "#42c7a5", "width": 3},
-            )
-        )
-        figure.add_trace(
-            go.Scatter(
-                x=[0, 1],
-                y=[0, 1],
-                mode="lines",
-                name="Chance",
-                line={"dash": "dash", "color": "#9aabc7"},
-            )
-        )
-        figure.update_layout(
-            title="ROC curve",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            xaxis_title="False positive rate",
-            yaxis_title="True positive rate",
-            height=370,
-        )
-        st.plotly_chart(figure, use_container_width=True)
+        st.markdown("#### Try a small project")
+        for project in item["projects"]:
+            st.markdown(f"- {project}")
+        st.info("These are broad orientation ideas, not official admission prerequisites. Requirements differ by country, university and programme.")
+    if profile_ready():
+        matches = [x for x in item["focus"] if x in profile.get("subjects", [])]
+        st.markdown("#### Compare with your profile")
+        st.write("Preparation areas already in your subject list: " + (", ".join(matches) if matches else "None yet — you can add relevant subjects in My learning profile."))
 
-    st.markdown("### Decision-threshold sensitivity (held-out set)")
-    st.caption("This table shows how the precision/recall trade-off changes. It is diagnostic only; the default 0.50 threshold is not tuned on the test set.")
-    sensitivity = pd.DataFrame(metrics.get("threshold_sensitivity", []))
-    if not sensitivity.empty:
-        st.dataframe(sensitivity.style.format({column: "{:.3f}" for column in sensitivity.select_dtypes(include="number").columns}), use_container_width=True, hide_index=True)
-
-    report = pd.DataFrame(metrics["classification_report"]).T
-    st.dataframe(report.style.format("{:.3f}"), use_container_width=True)
-    st.markdown(
-        "Precision measures positive-prediction correctness; recall measures how many actual "
-        "positive cases are identified. F1 balances both. ROC-AUC and PR-AUC measure ranking; "
-        "Brier score measures probability error (lower is better)."
-    )
-
-elif page == "Explainability":
-    st.subheader("Model inspection")
-    st.caption("Permutation importance is computed on held-out data after model selection, not used for tuning.")
-    importance_path = ARTIFACTS / "permutation_importance.csv"
-    if importance_path.exists():
-        importance = pd.read_csv(importance_path).head(15).sort_values("importance_mean")
-        figure = px.bar(
-            importance,
-            x="importance_mean",
-            y="feature",
-            orientation="h",
-            error_x="importance_std",
-            template="plotly_dark",
-            color="importance_mean",
-            color_continuous_scale="Teal",
-            title="Permutation importance (F1 decrease)",
-        )
-        figure.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            coloraxis_showscale=False,
-            height=520,
-        )
-        st.plotly_chart(figure, use_container_width=True)
-        st.dataframe(
-            importance.sort_values("importance_mean", ascending=False),
-            use_container_width=True,
-            hide_index=True,
-        )
+elif page == "Study planner":
+    hero("Make a plan you can actually follow.", "Your plan uses the subjects you rated as needing more attention. Adjust your profile whenever your priorities change.", "WEEKLY STUDY PLAN")
+    if not profile_ready():
+        st.info("Create your learning profile first to generate a study plan.")
+        if st.button("Open my learning profile"):
+            st.session_state["navigate_to_profile"] = True
+            st.rerun()
     else:
-        st.info("No feature-importance file exists yet. Run the experiment from the sidebar.")
+        plan = build_weekly_plan(profile)
+        total = sum(row["hours"] for row in plan)
+        st.metric("Planned study time", f"{total} hours / week")
+        frame = pd.DataFrame(plan)
+        st.dataframe(frame, use_container_width=True, hide_index=True)
+        figure = px.pie(frame, values="hours", names="subject", hole=0.55, title="How your study time is allocated")
+        figure.update_layout(margin=dict(t=55, b=10), height=350, legend_title_text="")
+        st.plotly_chart(figure, use_container_width=True)
+        st.markdown("#### A simple weekly routine")
+        for row in plan:
+            st.markdown(f"**{row['subject']} · {row['hours']} hour(s)** — {row['activity']}")
+        st.caption("This is a suggested starting plan. Adapt it to your timetable, deadlines and wellbeing.")
 
-    st.warning(
-        "Importance describes this model on this test sample. It does not prove causation, "
-        "fairness, or that changing a feature changes a learner's outcome."
-    )
+elif page == "Research insights":
+    hero("The science behind the guidance.", "Explore transparent machine-learning experiments separately from your personal learning profile.", "RESEARCH LAB")
+    st.info("Research models use public, de-identified datasets. They do not analyse your personal profile or predict your individual academic future.")
+    st.markdown("### Secondary-school benchmark")
+    st.write("The UCI Student Performance dataset covers students from two Portuguese schools. It is useful for reproducible experiments, but it is not representative of Pakistani learners.")
+    if st.button("Run benchmark experiment", type="primary"):
+        with st.spinner("Downloading the public dataset and comparing models…"):
+            try:
+                results = run_experiment()
+                st.success("Benchmark completed.")
+                st.session_state["research_results"] = results
+            except Exception as exc:
+                st.error("The experiment could not be completed.")
+                st.exception(exc)
+    results = st.session_state.get("research_results")
+    results_path = ARTIFACTS / "experiment_results.json"
+    if results is None and results_path.exists():
+        try:
+            results = json.loads(results_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            results = None
+    if results:
+        comparison = pd.DataFrame(results["model_comparison"])
+        st.markdown("#### Model comparison")
+        show_cols = [c for c in ["model", "cv_accuracy_mean", "cv_balanced_accuracy_mean", "cv_precision_mean", "cv_recall_mean", "cv_f1_mean", "cv_roc_auc_mean"] if c in comparison]
+        st.dataframe(comparison[show_cols].style.format({c: "{:.3f}" for c in show_cols if c != "model"}), use_container_width=True, hide_index=True)
+        figure = px.bar(comparison, x="model", y="cv_f1_mean", error_y="cv_f1_std", title="Cross-validation F1 (training data only)", range_y=[0, 1])
+        figure.update_layout(height=360, xaxis_title="", yaxis_title="Mean F1")
+        st.plotly_chart(figure, use_container_width=True)
+        metrics = results["test_metrics"]
+        cols = st.columns(4)
+        for col, label, key in zip(cols, ["F1", "Balanced accuracy", "Precision", "Recall"], ["f1", "balanced_accuracy", "precision", "recall"]):
+            col.metric(label, f"{metrics[key]:.3f}")
+        st.caption("The test set is held out from model selection. Metrics describe this dataset and split only; they are not evidence of local validity.")
+    with st.expander("Other public datasets on the research roadmap"):
+        st.markdown("- [Open University Learning Analytics Dataset (OULAD)](https://archive.ics.uci.edu/dataset/349/open+university+learning+analytics+dataset) — 30,000+ higher-education registrations and online-learning activity. Its different population and task require a separate model, not pooled training.")
+        st.markdown("- [Higher Education Students Performance Evaluation](https://archive.ics.uci.edu/dataset/856/higher+education+students+performance+evaluation) — a small 145-record benchmark from engineering and educational-science faculties; suitable for cautious exploratory comparison only.")
+        st.markdown("- [Engineering student performance dataset](https://data.mendeley.com/datasets/83tcx8psxv/1) — a separate engineering-focused dataset; its schema and licence must be reviewed before integration.")
 
-elif page == "Responsible AI":
-    st.subheader("Responsible AI and subgroup diagnostics")
-    st.warning(
-        "Group metrics are descriptive diagnostics, not proof of fairness. "
-        "Small groups can make estimates unstable."
-    )
-    for group_name, rows in results.get("group_audit", {}).items():
-        st.markdown(f"### Group: {group_name}")
-        if rows:
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-        else:
-            st.caption("No subgroup rows were available for this group.")
-
-    st.markdown("### Safeguards")
-    safeguards = [
-        "Never rank, punish, diagnose, admit or exclude learners using this prototype.",
-        "Do not treat a model probability as a fact about an individual.",
-        "Do not upload identifiable student data to a public repository.",
-        "Portuguese school data is not validated for Pakistan.",
-        "Any real-world pilot requires local consent, governance, expert review and independent evaluation.",
-    ]
-    for safeguard in safeguards:
-        st.markdown(f"- {safeguard}")
-
-else:
-    st.subheader("Methodology and reproducibility")
-    st.json(results["methodology"])
-    st.markdown("### Limitations")
-    for item in results["limitations"]:
-        st.markdown(f"- {item}")
-
-    st.markdown("### Download experiment artifacts")
-    artifact_types = {
-        "experiment_results.json": "application/json",
-        "model_comparison.csv": "text/csv",
-        "permutation_importance.csv": "text/csv",
-        "test_predictions.csv": "text/csv",
-        "threshold_sensitivity.csv": "text/csv",
-    }
-    for filename, mime_type in artifact_types.items():
-        artifact_path = ARTIFACTS / filename
-        if artifact_path.exists():
-            st.download_button(
-                f"Download {filename}",
-                data=artifact_path.read_bytes(),
-                file_name=filename,
-                mime=mime_type,
-            )
-    st.caption("The fitted pipeline is stored locally as artifacts/selected_model.joblib and excluded from Git.")
+elif page == "About EduBridge":
+    hero("Education is a journey, not a single score.", "EduBridge AI brings learning reflection, career exploration and transparent educational data science into one student-friendly space.", "ABOUT")
+    st.markdown("### What this platform does")
+    st.markdown("- Helps learners organise subjects and self-assess confidence.")
+    st.markdown("- Suggests study priorities and manageable weekly plans.")
+    st.markdown("- Explains broad academic and career pathways.")
+    st.markdown("- Demonstrates reproducible machine-learning research on public datasets.")
+    st.markdown("### What it does not do")
+    st.markdown("- It does not calculate admission chances, rank students or issue diagnoses.")
+    st.markdown("- It does not use your profile to train a model.")
+    st.markdown("- It does not claim that overseas datasets represent Pakistani students.")
+    st.markdown("### Privacy")
+    st.write("Do not enter passwords, identity numbers, private records or sensitive personal details. At this stage, profile information remains in the current session and can be downloaded by you.")
+    st.markdown("### Account registration")
+    st.write("Permanent registration and sign-in are not enabled yet. A secure authentication provider and private database must be configured before accounts can be offered safely.")
+    st.markdown("### Research data")
+    st.markdown("- [UCI Student Performance](https://archive.ics.uci.edu/dataset/320/student+performance)")
+    st.markdown("- [OULAD](https://analyse.kmi.open.ac.uk/open_dataset)")
 
 st.divider()
-st.markdown(
-    '<p class="subtle" style="text-align:center">EduBridge AI · Phase 1 → Phase 2 · '
-    'Learn · Analyze · Build · Improve</p>',
-    unsafe_allow_html=True,
-)
+st.caption("EduBridge AI · A student learning companion and educational data-science research prototype.")
