@@ -32,9 +32,9 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
 The app uses Supabase Auth and PostgreSQL for genuine student accounts and persistent profiles.
 
 1. Create a Supabase project at https://supabase.com/dashboard.
-2. Open the project's SQL Editor and run the complete contents of supabase/schema.sql. This creates student_profiles and enables row-level security policies that restrict each row to its authenticated owner.
-3. In Supabase, open Project Settings → API (or API Keys). Copy the Project URL and publishable key (or legacy anon key). Do not use the service_role/secret key.
-4. In Streamlit Community Cloud, open the app's Manage app → Settings → Secrets and add:
+2. Open the project's SQL Editor and run the complete contents of supabase/schema.sql. This creates student_profiles and enables row-level security policies that restrict each row to its authenticated owner.\n3. To enable the Student feedback workspace, run supabase/feedback_schema.sql as a separate SQL script. It creates an isolated feedback table with row-level security; visitors can submit but cannot read submissions. This does not modify student_profiles. The project owner can review submissions in the SQL Editor.
+4. In Supabase, open Project Settings → API (or API Keys). Copy the Project URL and publishable key (or legacy anon key). Do not use the service_role/secret key.
+5. In Streamlit Community Cloud, open the app's Manage app → Settings → Secrets and add:
 
 ~~~toml
 [supabase]
@@ -43,7 +43,7 @@ anon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
 ~~~
 
 5. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, profile save, sign-out and sign-in again.
-6. Keep row-level security enabled on student_profiles. Never disable RLS and never put a service-role key in GitHub or Streamlit secrets.
+7. Keep row-level security enabled on student_profiles. Never disable RLS and never put a service-role key in GitHub or Streamlit secrets.
 
 Until the Supabase project and Streamlit secrets are configured, public learning and research pages can load, but account and persistent-profile features will not work. A profile is persisted only after successful sign-in and database setup.
 
@@ -89,14 +89,14 @@ When code is pushed to the connected GitHub branch, Streamlit Community Cloud no
 - **Dependency installation error:** open the Streamlit app logs and check the Python version and `requirements.txt`.
 - **Account features unavailable:** confirm Streamlit secrets use the exact supabase URL and anon_key names, and that supabase/schema.sql was executed.
 - **UCI download error:** the app searches the official UCI archive and nested ZIP files, then retries the official legacy archive. If UCI is temporarily unavailable, retry later and inspect Streamlit logs.
-- **Profile export:** the learner-facing download is a printable PDF. JSON remains available in the optional data-portability expander.
+- **Profile export:** the learner-facing download is a printable PDF. JSON remains available in the optional data-portability expander.\n- **Student feedback:** run supabase/feedback_schema.sql in the SQL Editor. The feedback form does not ask for names or contact details; review entries in the SQL Editor and remove them when no longer needed. Public insert-only access is suitable for a small pilot, not an unmoderated high-traffic public launch.
 - **App URL unavailable:** choose another available subdomain in Streamlit's app settings.
 
 ## Security and research safeguards
 
 - Do not add passwords, API keys or private student data to GitHub.
 - Never use the Supabase service-role key in the Streamlit app.
-- Keep row-level security enabled and test that two accounts cannot read one another's profiles.
+- Keep row-level security enabled and test that two accounts cannot read one another's profiles.\n- The student_feedback table intentionally has no public SELECT policy. Only the project owner should review its entries in the Supabase SQL Editor.
 - Do not place credentials in source code or README files.
 - Do not use the prototype to make decisions about individual students.
 - The source dataset is from Portuguese schools and is not validated for Pakistan.
