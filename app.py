@@ -9,7 +9,7 @@ import plotly.express as px
 import streamlit as st
 
 from src.account_store import (get_supabase_client, restore_auth_session, save_auth_session, clear_auth_session, load_learner_profile, save_learner_profile, delete_learner_profile)
-from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan
+from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan, build_personalised_recommendations
 from src.modeling import ARTIFACTS, run_experiment
 from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
@@ -153,15 +153,20 @@ input:focus-visible,textarea:focus-visible {
   }
 }
 
-/* Hide Streamlit-hosted developer chrome and repository shortcuts in the public viewer UI.
-   This is a presentation change only; repository permissions remain the security boundary. */
-/* Hide public-facing repository/edit shortcuts without hiding the
-   Streamlit header or sidebar navigation controls. */
-#GithubIcon,
+/* Keep Streamlit's Share control available while hiding public-facing
+   repository, app-menu, deploy/star and edit shortcuts. Do not hide the header. */
+header[data-testid="stHeader"] [data-testid="stToolbar"] #GithubIcon,
+header[data-testid="stHeader"] [data-testid="stToolbar"] a[href*="github.com" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stMainMenu"],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stAppDeployButton"],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="GitHub" i],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="GitHub" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Star" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Star" i],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Edit" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Edit" i] {
+header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Edit" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Deploy" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Deploy" i] {
   display: none !important;
   visibility: hidden !important;
 }
@@ -349,13 +354,16 @@ if page == "Dashboard":
             with st.container(border=True):
                 st.markdown(f"**Current direction**  \n{snapshot['pathway']}")
                 st.caption(f"{profile.get('level', 'Learning stage not set')} · {profile.get('programme') or 'Programme not specified'}")
-                if snapshot["focus_subjects"]:
-                    st.markdown("**Give a little extra attention to**")
-                    for subject in snapshot["focus_subjects"]:
-                        st.markdown(f"- {subject}")
-                else:
-                    st.markdown("**Keep your momentum**")
-                    st.write("Your self-ratings show no immediate low-confidence focus area. Choose a stretch topic that interests you.")
+                recommendations = build_personalised_recommendations(profile)
+                st.markdown("**Your personalised priorities**")
+                for item in recommendations["recommendations"]:
+                    st.markdown(f"**{item['subject']} · {item['priority']}**")
+                    st.caption(f"Why: {item['reason']}")
+                    st.write(item["action"])
+                if recommendations["pathway_gaps"]:
+                    st.markdown("**Pathway themes you have not rated yet**")
+                    st.caption(", ".join(recommendations["pathway_gaps"]))
+                st.caption(recommendations["note"])
                 st.divider()
                 if st.button("Open my study planner", type="primary", use_container_width=True, key="dash_open_planner"):
                     st.session_state["navigate_to_workspace"] = "Study planner"
