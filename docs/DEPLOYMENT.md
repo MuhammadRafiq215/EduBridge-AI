@@ -32,7 +32,8 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
 The app uses Supabase Auth and PostgreSQL for genuine student accounts and persistent profiles.
 
 1. Create a Supabase project at https://supabase.com/dashboard.
-2. Open the project's SQL Editor and run the complete contents of supabase/schema.sql. This creates student_profiles and enables row-level security policies that restrict each row to its authenticated owner.\n3. To enable the Student feedback workspace, run supabase/feedback_schema.sql as a separate SQL script. It creates an isolated feedback table with row-level security; visitors can submit but cannot read submissions. This does not modify student_profiles. The project owner can review submissions in the SQL Editor.
+2. Open the project's SQL Editor and run the complete contents of supabase/schema.sql. This creates student_profiles and enables row-level security policies that restrict each row to its authenticated owner.
+3. To enable the Student feedback workspace, run supabase/feedback_schema.sql as a separate SQL script. It creates an isolated feedback table with row-level security; visitors can submit but cannot read submissions. This does not modify student_profiles. The project owner can review submissions in the SQL Editor.
 4. In Supabase, open Project Settings → API (or API Keys). Copy the Project URL and publishable key (or legacy anon key). Do not use the service_role/secret key.
 5. In Streamlit Community Cloud, open the app's Manage app → Settings → Secrets and add:
 
@@ -42,7 +43,7 @@ url = "https://YOUR-PROJECT.supabase.co"
 anon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
 ~~~
 
-5. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, profile save, sign-out and sign-in again.
+6. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, profile save, sign-out and sign-in again.
 7. Keep row-level security enabled on student_profiles. Never disable RLS and never put a service-role key in GitHub or Streamlit secrets.
 
 Until the Supabase project and Streamlit secrets are configured, public learning and research pages can load, but account and persistent-profile features will not work. A profile is persisted only after successful sign-in and database setup.
