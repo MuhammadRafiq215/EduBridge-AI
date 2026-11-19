@@ -150,6 +150,9 @@ elif page == "Career pathways":
         st.markdown("#### Try a small project")
         for project in item["projects"]:
             st.markdown(f"- {project}")
+        st.markdown("#### Free learning resources")
+        for resource_title, resource_url in item.get("resources", []):
+            st.markdown(f"- [{resource_title}]({resource_url})")
         st.info("These are broad orientation ideas, not official admission prerequisites. Requirements differ by country, university and programme.")
     if profile_ready():
         matches = [x for x in item["focus"] if x in profile.get("subjects", [])]
