@@ -153,17 +153,12 @@ input:focus-visible,textarea:focus-visible {
   }
 }
 
-/* Keep Share and Star available; hide only the GitHub/source action.
-   The icon can be nested inside Streamlit's toolbar button, so hide its
-   interactive parent as well as the SVG itself. */
-header[data-testid="stHeader"] [data-testid="stToolbar"] #GithubIcon,
-header[data-testid="stHeader"] [data-testid="stToolbar"] button:has(#GithubIcon),
-header[data-testid="stHeader"] [data-testid="stToolbar"] a:has(#GithubIcon),
-header[data-testid="stHeader"] [data-testid="stToolbar"] [role="button"]:has(#GithubIcon),
-header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stToolbarActionButton"]:has(#GithubIcon),
-header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="GitHub" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="GitHub" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] a[href*="github.com" i] {
+/* Keep Streamlit's Share action only. Hide the other toolbar shortcuts
+   (GitHub, edit, app menu/three dots, deploy and star) without hiding the
+   header itself, so sidebar controls remain available. */
+header[data-testid="stHeader"] [data-testid="stToolbar"] button:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]),
+header[data-testid="stHeader"] [data-testid="stToolbar"] a:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]),
+header[data-testid="stHeader"] [data-testid="stToolbar"] [role="button"]:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]) {
   display: none !important;
   visibility: hidden !important;
 }
