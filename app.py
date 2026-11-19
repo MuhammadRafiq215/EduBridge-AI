@@ -32,6 +32,8 @@ section[data-testid="stSidebar"] {background:linear-gradient(180deg,#171a35 0%,#
 section[data-testid="stSidebar"] * {color:#f6f7ff;}
 section[data-testid="stSidebar"] [data-testid="stRadio"] label {padding:10px 12px;border-radius:12px;transition:background .18s ease;}
 section[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {background:rgba(255,255,255,.10);}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label {display:flex;align-items:center;gap:10px;min-height:44px;font-weight:600;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label p {font-size:14px;line-height:1.25;}
 section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
 section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {color:#b9bddb;}
 section[data-testid="stSidebar"] hr {border-color:rgba(255,255,255,.14);}
@@ -95,6 +97,7 @@ div[data-testid="stAlert"] {border-radius:14px;}
 .dash-subheading {font-size:15px;color:#69718f;line-height:1.65;margin:0 0 20px;}
 .dash-card {height:100%;background:linear-gradient(145deg,#fff 0%,#fbfbff 100%);border:1px solid #e7e9f5;border-radius:20px;padding:22px;box-shadow:0 10px 28px rgba(35,38,85,.055);}
 .dash-card .card-icon {display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#efedff;color:#6255e9;font-size:21px;margin-bottom:15px;}
+.dash-card .card-icon {font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1;flex:0 0 42px;}
 .dash-card h3 {font-family:'Space Grotesk',sans-serif;font-size:18px;color:#202247;margin:0 0 8px;letter-spacing:-.4px;}
 .dash-card p {font-size:13px;line-height:1.6;color:#6c7390;margin:0;}
 .dash-card .card-meta {display:inline-block;margin-top:15px;padding:5px 9px;border-radius:999px;background:#f0efff;color:#6255e9;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;}
@@ -183,7 +186,23 @@ with st.sidebar:
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
     if pending_workspace in ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
-    page = st.radio("WORKSPACE", ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
+    workspace_icons = {
+        "Dashboard": "🏠",
+        "My learning profile": "👤",
+        "Career pathways": "🧭",
+        "Study planner": "📅",
+        "Research insights": "🧪",
+        "Student feedback": "💬",
+        "Account & privacy": "🔒",
+        "About EduBridge": "ℹ️",
+    }
+    page = st.radio(
+        "WORKSPACE",
+        list(workspace_icons),
+        format_func=lambda workspace: f"{workspace_icons[workspace]}  {workspace}",
+        label_visibility="visible",
+        key="workspace",
+    )
     st.divider()
     if user:
         st.success("Signed in")
@@ -345,7 +364,7 @@ if page == "Dashboard":
         for index, row in enumerate(plan):
             with plan_cols[index % len(plan_cols)]:
                 st.markdown(
-                    f'<div class="dash-card"><div class="card-icon">◷</div><h3>{row["subject"]}</h3>'
+                    f'<div class="dash-card"><div class="card-icon">⏱️</div><h3>{row["subject"]}</h3>'
                     f'<p>{row["activity"]}</p><span class="card-meta">{row["hours"]} hour(s) this week</span></div>',
                     unsafe_allow_html=True,
                 )
@@ -366,7 +385,7 @@ if page == "Dashboard":
         for col, (destination, description, label) in zip(action_cols, actions):
             with col:
                 st.markdown(
-                    f'<div class="dash-card"><div class="card-icon">✦</div><h3>{destination}</h3><p>{description}</p></div>',
+                    f'<div class="dash-card"><div class="card-icon">🗂️</div><h3>{destination}</h3><p>{description}</p></div>',
                     unsafe_allow_html=True,
                 )
                 if st.button(label, use_container_width=True, key=f"dash_go_{destination}"):
@@ -400,9 +419,9 @@ if page == "Dashboard":
         st.markdown('<div class="dash-kicker">✦ ONE SPACE. MORE POSSIBILITIES.</div><div class="dash-heading">Less guesswork. More direction.</div><p class="dash-subheading">A learning companion for curious students — designed to make academic planning feel clearer, more visual and more actionable.</p>', unsafe_allow_html=True)
         feature_cols = st.columns(3, gap="large")
         feature_cards = [
-            ("01", "Know your learning style", "Organise your subjects and reflect on where you feel confident or want more practice.", "PERSONAL PROFILE"),
-            ("02", "Explore what comes next", "Browse broad degree pathways, useful preparation areas and small projects to try.", "CAREER DISCOVERY"),
-            ("03", "Make your time count", "Turn your own priorities and available hours into a manageable weekly plan.", "STUDY PLANNING"),
+            ("👤", "Know your learning style", "Organise your subjects and reflect on where you feel confident or want more practice.", "PERSONAL PROFILE"),
+            ("🧭", "Explore what comes next", "Browse broad degree pathways, useful preparation areas and small projects to try.", "CAREER DISCOVERY"),
+            ("📅", "Make your time count", "Turn your own priorities and available hours into a manageable weekly plan.", "STUDY PLANNING"),
         ]
         for col, (number, title, description, meta) in zip(feature_cols, feature_cards):
             with col:
@@ -421,7 +440,7 @@ if page == "Dashboard":
         for col, (name, tags) in zip(pathway_cols, pathway_preview):
             with col:
                 st.markdown(
-                    f'<div class="dash-card"><div class="card-icon">✧</div><h3>{name}</h3><p>{tags}</p></div>',
+                    f'<div class="dash-card"><div class="card-icon">✨</div><h3>{name}</h3><p>{tags}</p></div>',
                     unsafe_allow_html=True,
                 )
                 if st.button("Explore", use_container_width=True, key=f"guest_path_{name}"):
