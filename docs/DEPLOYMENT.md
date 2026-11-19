@@ -88,7 +88,8 @@ When code is pushed to the connected GitHub branch, Streamlit Community Cloud no
 - **Repository missing:** confirm that you signed into the correct GitHub account and authorized Streamlit for this repository.
 - **Dependency installation error:** open the Streamlit app logs and check the Python version and `requirements.txt`.
 - **Account features unavailable:** confirm Streamlit secrets use the exact supabase URL and anon_key names, and that supabase/schema.sql was executed.
-- **UCI download error:** check the app logs and retry later; the dataset is downloaded at runtime.
+- **UCI download error:** the app searches the official UCI archive and nested ZIP files, then retries the official legacy archive. If UCI is temporarily unavailable, retry later and inspect Streamlit logs.
+- **Profile export:** the learner-facing download is a printable PDF. JSON remains available in the optional data-portability expander.
 - **App URL unavailable:** choose another available subdomain in Streamlit's app settings.
 
 ## Security and research safeguards
