@@ -650,10 +650,13 @@ elif page == "Account & privacy":
                 new_password = st.text_input("Password (at least 10 characters)", type="password", key="signup_password")
                 confirm = st.text_input("Confirm password", type="password", key="signup_confirm")
                 accepted = st.checkbox("I understand my learning profile will be stored in my account.")
+                adult_review = st.checkbox("I am 18 or older, or my parent/guardian has reviewed and approved my use of this account.")
                 signup = st.form_submit_button("Create account", type="primary", use_container_width=True)
             if signup:
                 if not accepted:
                     st.error("Please confirm the profile-storage notice.")
+                elif not adult_review:
+                    st.error("Please ask a parent or guardian to review and approve account use if you are under 18.")
                 elif "@" not in new_email or "." not in new_email.rsplit("@", 1)[-1]:
                     st.error("Enter a valid email address.")
                 elif len(new_password) < 10:
