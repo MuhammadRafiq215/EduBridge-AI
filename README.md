@@ -93,7 +93,7 @@ The Streamlit dashboard contains seven workspaces:
 | Research Overview | Dataset and experiment summary, model comparison and headline metrics |
 | Dataset Explorer | Dataset audit, preview, grade distribution and missingness |
 | Model Lab | Cross-validation comparison of baseline estimators |
-| Evaluation | Held-out metrics, confusion matrix, ROC curve and classification report |
+| Evaluation | Held-out metrics, confusion matrix, ROC curve, classification report and threshold-sensitivity diagnostics |
 | Explainability | Permutation-importance inspection |
 | Responsible AI | Descriptive subgroup diagnostics and safeguards |
 | Methodology | Experiment settings, limitations and downloadable artifacts |
