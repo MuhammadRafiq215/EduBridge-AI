@@ -112,7 +112,7 @@ Implemented in `src/explainability.py` with a dedicated Streamlit workspace in `
 - Leakage exclusions for G1, G2 and G3 remain enforced.
 - Interpretation notes distinguish model attribution from causation and educational decisions.
 
-Run with `streamlit run phase5.py`. See `docs/PHASE5.md` for methodology and safeguards.
+Run the standalone workspace with `streamlit run phase5.py`, or open **Phase 5 — Explainability** from the multipage navigation when running `streamlit run app.py`. See `docs/PHASE5.md` for methodology and safeguards.
 
 ### Next research priorities
 
