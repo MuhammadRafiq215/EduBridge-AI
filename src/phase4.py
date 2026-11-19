@@ -194,6 +194,15 @@ def run_phase4_analysis(
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=RANDOM_STATE, stratify=y
     )
+    # Five-fold CV needs at least five examples from each class in the
+    # training partition; checking the original dataset alone is insufficient.
+    minimum_training_class_count = int(y_train.value_counts().min())
+    if minimum_training_class_count < 5:
+        raise ValueError(
+            "After the stratified 75/25 split, each training class must contain "
+            "at least five observations for 5-fold cross-validation. "
+            "Provide a larger dataset or use a separately pre-specified design."
+        )
 
     # Baseline selection uses training-only CV.
     selection_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
