@@ -52,6 +52,8 @@ with st.sidebar:
     st.caption("YOUR LEARNING & CAREER COMPANION")
     if st.session_state.pop("navigate_to_profile", False):
         st.session_state["workspace"] = "My learning profile"
+    if st.session_state.pop("navigate_to_account", False):
+        st.session_state["workspace"] = "Account & privacy"
     page = st.radio("WORKSPACE", ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
     st.divider()
     if user:
@@ -314,7 +316,7 @@ elif page == "Account & privacy":
                 st.error("Could not delete your profile. Check database policies.")
         st.caption("Deleting the profile does not delete the login account; full account deletion needs a separately secured server-side process.")
     else:
-        sign_in_tab, create_tab, reset_tab = st.tabs(["Sign in", "Create account", "Reset password"])
+        sign_in_tab, create_tab = st.tabs(["Sign in", "Create account"])
         with sign_in_tab:
             with st.form("sign_in_form"):
                 email = st.text_input("Email address")
@@ -353,16 +355,6 @@ elif page == "Account & privacy":
                         st.success("Check your inbox to verify your email, then sign in.")
                     except Exception:
                         st.error("Account creation failed. Check the email and Supabase Auth settings.")
-        with reset_tab:
-            with st.form("reset_password_form"):
-                reset_email = st.text_input("Account email")
-                reset = st.form_submit_button("Send password reset email")
-            if reset:
-                try:
-                    supabase.auth.reset_password_for_email(reset_email.strip())
-                    st.success("If the account exists, Supabase will send a password-reset email.")
-                except Exception:
-                    st.error("Could not send the reset email. Check Supabase Auth email settings.")
     st.markdown("### Privacy")
     st.markdown("- Passwords are managed by Supabase Auth, not stored in learner profiles.")
     st.markdown("- Only enter education information needed for guidance; avoid sensitive personal details.")
