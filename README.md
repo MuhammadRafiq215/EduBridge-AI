@@ -125,12 +125,17 @@ EduBridge-AI/
 │   ├── PHASE3.md
 │   ├── PHASE4.md
 │   ├── PHASE5.md
-│   └── PROJECT_PLAN.md
+│   ├── PROJECT_PLAN.md
+│   └── STUDENT_PILOT.md
 ├── supabase/
-│   └── schema.sql
+│   ├── schema.sql
+│   └── feedback_schema.sql
 ├── src/
 │   ├── __init__.py
 │   ├── account_store.py
+│   ├── feedback.py
+│   ├── profile_export.py
+│   ├── research_ui.py
 │   ├── student_guidance.py
 │   ├── data.py
 │   ├── exploration.py
