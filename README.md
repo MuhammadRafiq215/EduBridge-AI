@@ -16,11 +16,8 @@ A student-led project exploring how educational data can be audited, analysed an
 ## Table of contents
 
 1. [Project vision](#project-vision)
-2. [Development history](#development-history)
-   - [Phase 1 — Initial application prototype](#phase-1--initial-application-prototype)
-   - [Phase 2 — Reproducible machine-learning workflow](#phase-2--reproducible-machine-learning-workflow)
-   - [Next phases](#next-phases)
-3. [Current application features](#current-application-features)
+2. [Student-facing experience](#student-facing-experience)
+3. [Machine-learning research](#machine-learning-research)
 4. [Dataset, target and feature policy](#dataset-target-and-feature-policy)
 5. [Research methodology](#research-methodology)
 6. [Repository structure](#repository-structure)
