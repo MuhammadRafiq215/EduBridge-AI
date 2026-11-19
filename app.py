@@ -373,7 +373,7 @@ elif page == "About EduBridge":
     st.markdown("- It does not use your profile to train a model.")
     st.markdown("- It does not claim that overseas datasets represent Pakistani students.")
     st.markdown("### Privacy")
-    st.write("Do not enter passwords, identity numbers, private records or sensitive personal details. At this stage, profile information remains in the current session and can be downloaded by you.")
+    st.write("Do not enter passwords, identity numbers, private records or sensitive personal details. Your saved learning profile is stored in your Supabase account when the database is configured. Do not enter passwords, identity numbers, private records or sensitive personal details.")
     st.markdown("### Account registration")
     st.write("Student accounts use Supabase Auth. Profiles are stored in a PostgreSQL table protected by row-level security after the project owner completes the setup in docs/DEPLOYMENT.md.")
     st.markdown("### Research data")
