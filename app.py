@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, timedelta
+from urllib.parse import quote
 
 import pandas as pd
 import plotly.express as px
@@ -248,6 +249,36 @@ def profile_ready() -> bool:
 
 profile = st.session_state.learner_profile
 
+def render_share_strip() -> None:
+    """Offer social share links without collecting recipient addresses."""
+    app_url = "https://educationbridge-ai.streamlit.app/"
+    title = "Try EduBridge AI"
+    message = "Explore EduBridge AI, a student-centred learning and career companion."
+    encoded_url = quote(app_url, safe="")
+    encoded_title = quote(title, safe="")
+    encoded_message = quote(message, safe="")
+    st.markdown(
+        '<div class="dash-kicker">✦ PASS IT FORWARD</div>'
+        '<div class="dash-heading" style="font-size:22px">Know someone who would find this useful?</div>'
+        '<p class="dash-subheading">Share the public website. No recipient email address is collected or displayed here.</p>',
+        unsafe_allow_html=True,
+    )
+    share_cols = st.columns(5, gap="small")
+    share_links = [
+        ("Facebook", f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}"),
+        ("WhatsApp", f"https://wa.me/?text={encoded_message}%20{encoded_url}"),
+        ("LinkedIn", f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}"),
+        ("X", f"https://twitter.com/intent/tweet?text={encoded_title}&url={encoded_url}"),
+        ("Email", f"mailto:?subject={encoded_title}&body={encoded_message}%0A{encoded_url}"),
+    ]
+    for column, (label, target) in zip(share_cols, share_links):
+        with column:
+            st.link_button(label, target, use_container_width=True)
+    with st.expander("Share on Instagram"):
+        st.caption("Copy the website address below and paste it into an Instagram message, story link or bio.")
+        st.code(app_url, language=None)
+
+
 if page == "Dashboard":
     if user and profile_ready():
         snapshot = build_learning_snapshot(profile)
@@ -357,6 +388,7 @@ if page == "Dashboard":
 
     else:
         hero("Your learning journey, upgraded.", "Explore your next direction, build better study habits and understand the data behind education — all in one student-first space.", "WELCOME TO EDUBRIDGE")
+        render_share_strip()
         st.markdown('<div class="dash-kicker">✦ ONE SPACE. MORE POSSIBILITIES.</div><div class="dash-heading">Less guesswork. More direction.</div><p class="dash-subheading">A learning companion for curious students — designed to make academic planning feel clearer, more visual and more actionable.</p>', unsafe_allow_html=True)
         feature_cols = st.columns(3, gap="large")
         feature_cards = [
