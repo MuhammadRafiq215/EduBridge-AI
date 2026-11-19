@@ -48,7 +48,7 @@ The main Streamlit app is designed around the learner rather than development mi
 | Account & privacy | Create an account, sign in, reset a password and manage saved profile data |
 | About EduBridge | Review the platform's scope, privacy and limitations |
 
-Student accounts use Supabase Auth for email/password registration, sign-in and password reset. Learner profiles are stored in PostgreSQL and protected by row-level security. Run supabase/schema.sql and add the project URL and publishable/anon key to Streamlit secrets before enabling account features. The app never needs the service-role key.
+Student accounts use Supabase Auth for email/password registration and sign-in. Learner profiles are stored in PostgreSQL and protected by row-level security. Run supabase/schema.sql and add the project URL and publishable/anon key to Streamlit secrets before enabling account features. The app never needs the service-role key.
 
 The confidence snapshot is based only on the learner's own ratings. It is not an objective grade, admissions probability, diagnosis or AI prediction.
 
