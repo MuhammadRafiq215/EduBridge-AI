@@ -8,6 +8,7 @@ Assess whether predicted probabilities align with observed frequencies, quantify
 - Predictors: all available columns except G1, G2 and G3.
 - Split: stratified 75/25, random_state=42.
 - Model selection: training-only stratified five-fold CV, mean F1 with balanced accuracy as tie-breaker.
+- Sample-size guard: after the 75/25 split, require at least five examples from each class in the training partition before starting five-fold CV.
 - Calibration: sigmoid calibration fitted using five-fold CV within the training partition. It is pre-specified and is not selected by held-out test performance.
 - Decision threshold: 0.50, retained as a transparent analytical convention, not a recommended intervention threshold.
 - Uncertainty: percentile bootstrap over held-out prediction/label pairs, with 95% intervals and valid-resample counts.
