@@ -45,7 +45,9 @@ class Phase4MetricTests(unittest.TestCase):
         self.assertEqual(result["probability_calibration"]["method"].startswith("Sigmoid"), True)
         self.assertEqual(result["uncertainty"]["calibrated_model"]["confidence_level"], 0.95)
         self.assertIn("sex", result["error_analysis"]["group_diagnostics"])
-        self.assertNotIn("G1", result["methodology"]["predictors"])
+        self.assertNotIn("G1", result["methodology"]["predictor_columns"])
+        self.assertNotIn("G2", result["methodology"]["predictor_columns"])
+        self.assertNotIn("G3", result["methodology"]["predictor_columns"])
         self.assertEqual(result["robustness"]["results"][0]["folds"], 10)
 
 
