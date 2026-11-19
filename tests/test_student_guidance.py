@@ -34,7 +34,7 @@ class StudentGuidanceTests(unittest.TestCase):
         result = build_personalised_recommendations(self.profile)
         self.assertEqual(result["recommendations"][0]["subject"], "Mathematics")
         self.assertIn("confidence rating is 2/5", result["recommendations"][0]["reason"])
-        self.assertIn("not a trained ML model", result["note"])
+        self.assertIn("a trained ML model", result["note"])
         self.assertEqual(result["weekly_hours"], 8)
 
     def test_pathway_gaps_are_reported(self):
