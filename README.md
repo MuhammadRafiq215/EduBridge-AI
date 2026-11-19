@@ -101,6 +101,19 @@ Implemented in `src/phase4.py` with a separate Streamlit workspace in `phase4.py
 
 Run with `streamlit run phase4.py`. Test-set metrics are not used to tune the model or select calibration. See `docs/PHASE4.md` for the complete design and cautions.
 
+
+
+### Phase 5 — Explainable AI with SHAP
+
+Implemented in `src/explainability.py` with a dedicated Streamlit workspace in `phase5.py`:
+- Model-agnostic SHAP permutation explanations for a small held-out sample.
+- Global mean-absolute contribution summaries and signed record-level contributions.
+- Model selection and fitting restricted to the training partition; SHAP background sampled from training rows.
+- Leakage exclusions for G1, G2 and G3 remain enforced.
+- Interpretation notes distinguish model attribution from causation and educational decisions.
+
+Run with `streamlit run phase5.py`. See `docs/PHASE5.md` for methodology and safeguards.
+
 ### Next research priorities
 
 - [ ] Run Phase 4 against the live UCI dataset and review outputs.
