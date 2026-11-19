@@ -47,6 +47,19 @@ anon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
 
 Until the Supabase project and Streamlit secrets are configured, public learning and research pages can load, but account and persistent-profile features will not work. A profile is persisted only after successful sign-in and database setup.
 
+### Supabase confirmation emails
+
+Supabase's built-in email sender is intended for evaluation, not general public registration. Its current hosted-project restrictions include delivery only to authorised organisation-team addresses and a low project-wide sending limit (currently two emails per hour). A successful sign-up API response with no session means email confirmation is required; it does not prove that a message reached the inbox.
+
+For public testing or production, the project owner should configure a supported custom SMTP provider in Supabase Authentication → SMTP Settings. The provider account and sending domain must be eligible under that provider's terms. Keep SMTP credentials in Supabase's SMTP settings only; never place them in GitHub, application source code, or Streamlit secrets. Check Supabase Authentication → Logs and the SMTP provider's delivery logs when messages are not received. Keep email confirmation enabled.
+
+If a message is missing, check Spam/Promotions, verify the recipient address, inspect Auth logs, and respect the email rate limit before requesting another message. The app's resend action only works when an initial signup confirmation exists.
+
+References:
+- [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
+- [Supabase troubleshooting: not receiving Auth emails](https://supabase.com/kb/troubleshooting/not-receiving-auth-emails-from-the-supabase-project-OFSNzw)
+- [Supabase Python: resend signup confirmation](https://supabase.com/docs/reference/python/auth-resend)
+
 ## Choose an app URL
 
 Streamlit may let you choose an available app subdomain during setup or app settings. A suitable name to try is:
