@@ -398,9 +398,9 @@ if page == "Dashboard":
         st.markdown('<div class="dash-kicker">✦ YOUR FIRST STEPS</div><div class="dash-heading">Build a workspace that feels like yours.</div><p class="dash-subheading">Your account is signed in, but you have not saved a learning snapshot yet. Add only the education details you need for guidance.</p>', unsafe_allow_html=True)
         setup_cols = st.columns(3)
         setup_cards = [
-            ("01", "Set your learning profile", "Choose your level, subjects, field of interest and confidence ratings.", "My learning profile"),
-            ("02", "Explore possible directions", "Compare broad degree families, preparation areas and project ideas.", "Career pathways"),
-            ("03", "Turn priorities into a plan", "Create a realistic weekly allocation from your own study-time estimate.", "Study planner"),
+            ("👤", "Set your learning profile", "Choose your level, subjects, field of interest and confidence ratings.", "My learning profile"),
+            ("🧭", "Explore possible directions", "Compare broad degree families, preparation areas and project ideas.", "Career pathways"),
+            ("📅", "Turn priorities into a plan", "Create a realistic weekly allocation from your own study-time estimate.", "Study planner"),
         ]
         for col, (number, title, description, destination) in zip(setup_cols, setup_cards):
             with col:
