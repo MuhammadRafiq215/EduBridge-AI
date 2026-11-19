@@ -55,7 +55,11 @@ def build_profile_pdf(profile: dict) -> bytes:
     )
 
     def safe(value):
-        return escape(str(value if value not in (None, "") else "Not provided"))
+        text = str(value if value not in (None, "") else "Not provided")
+        # Built-in ReportLab Helvetica fonts use WinAnsi; replace unsupported
+        # glyphs (for example, non-Latin scripts) rather than failing the export.
+        text = text.encode("cp1252", errors="replace").decode("cp1252")
+        return escape(text)
 
     story = [
         Paragraph("EduBridge AI", title_style),
