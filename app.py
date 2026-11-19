@@ -10,6 +10,8 @@ import streamlit as st
 from src.account_store import (get_supabase_client, restore_auth_session, save_auth_session, clear_auth_session, load_learner_profile, save_learner_profile, delete_learner_profile)
 from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan
 from src.modeling import ARTIFACTS, run_experiment
+from src.profile_export import build_profile_pdf
+from src.research_ui import render_research_lab
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -415,7 +417,24 @@ elif page == "My learning profile":
             result_rows = [{"Subject": subject, "Result": value or "Not entered", "Confidence": f"{st.session_state.learner_profile['confidence'][subject]}/5"} for subject, value in st.session_state.learner_profile["latest_results"].items()]
             st.dataframe(pd.DataFrame(result_rows), use_container_width=True, hide_index=True)
         st.caption("Your profile is saved in your private Supabase account when signed in.")
-        st.download_button("Download my profile (JSON)", json.dumps(st.session_state.learner_profile, indent=2), file_name="edubridge_learning_profile.json", mime="application/json")
+        pdf_bytes = build_profile_pdf(st.session_state.learner_profile)
+        st.download_button(
+            "Download my learning profile (PDF)",
+            data=pdf_bytes,
+            file_name="edubridge_learning_profile.pdf",
+            mime="application/pdf",
+            type="primary",
+            use_container_width=True,
+            help="A printable summary of the learning information you entered.",
+        )
+        with st.expander("Need a machine-readable backup?"):
+            st.download_button(
+                "Download profile data (JSON)",
+                data=json.dumps(st.session_state.learner_profile, indent=2),
+                file_name="edubridge_learning_profile.json",
+                mime="application/json",
+                help="JSON is intended for data portability and technical use.",
+            )
 
 elif page == "Career pathways":
     hero("Explore your next chapter.", "A visual career studio for comparing fields, building foundations and discovering small projects you can actually try.", "CAREER STUDIO")
@@ -568,43 +587,7 @@ elif page == "Study planner":
         st.caption("Your plan is generated from your saved learning profile. Checklist ticks are temporary and clear when the browser session ends.")
 
 elif page == "Research insights":
-    hero("The science behind the guidance.", "Explore transparent machine-learning experiments separately from your personal learning profile.", "RESEARCH LAB")
-    st.info("Research models use public, de-identified datasets. They do not analyse your personal profile or predict your individual academic future.")
-    st.markdown("### Secondary-school benchmark")
-    st.write("The UCI Student Performance dataset covers students from two Portuguese schools. It is useful for reproducible experiments, but it is not representative of Pakistani learners.")
-    if st.button("Run benchmark experiment", type="primary"):
-        with st.spinner("Downloading the public dataset and comparing models…"):
-            try:
-                results = run_experiment()
-                st.success("Benchmark completed.")
-                st.session_state["research_results"] = results
-            except Exception as exc:
-                st.error("The experiment could not be completed.")
-                st.exception(exc)
-    results = st.session_state.get("research_results")
-    results_path = ARTIFACTS / "experiment_results.json"
-    if results is None and results_path.exists():
-        try:
-            results = json.loads(results_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            results = None
-    if results:
-        comparison = pd.DataFrame(results["model_comparison"])
-        st.markdown("#### Model comparison")
-        show_cols = [c for c in ["model", "cv_accuracy_mean", "cv_balanced_accuracy_mean", "cv_precision_mean", "cv_recall_mean", "cv_f1_mean", "cv_roc_auc_mean"] if c in comparison]
-        st.dataframe(comparison[show_cols].style.format({c: "{:.3f}" for c in show_cols if c != "model"}), use_container_width=True, hide_index=True)
-        figure = px.bar(comparison, x="model", y="cv_f1_mean", error_y="cv_f1_std", title="Cross-validation F1 (training data only)", range_y=[0, 1])
-        figure.update_layout(height=360, xaxis_title="", yaxis_title="Mean F1")
-        st.plotly_chart(figure, use_container_width=True)
-        metrics = results["test_metrics"]
-        cols = st.columns(4)
-        for col, label, key in zip(cols, ["F1", "Balanced accuracy", "Precision", "Recall"], ["f1", "balanced_accuracy", "precision", "recall"]):
-            col.metric(label, f"{metrics[key]:.3f}")
-        st.caption("The test set is held out from model selection. Metrics describe this dataset and split only; they are not evidence of local validity.")
-    with st.expander("Other public datasets on the research roadmap"):
-        st.markdown("- [Open University Learning Analytics Dataset (OULAD)](https://archive.ics.uci.edu/dataset/349/open+university+learning+analytics+dataset) — 30,000+ higher-education registrations and online-learning activity. Its different population and task require a separate model, not pooled training.")
-        st.markdown("- [Higher Education Students Performance Evaluation](https://archive.ics.uci.edu/dataset/856/higher+education+students+performance+evaluation) — a small 145-record benchmark from engineering and educational-science faculties; suitable for cautious exploratory comparison only.")
-        st.markdown("- [Engineering student performance dataset](https://data.mendeley.com/datasets/83tcx8psxv/1) — a separate engineering-focused dataset; its schema and licence must be reviewed before integration.")
+    render_research_lab(hero)
 
 elif page == "Account & privacy":
     hero("Your account, your learning space.", "Understand how sign-in works, what is saved and how to troubleshoot verification safely.", "ACCOUNT & PRIVACY")
