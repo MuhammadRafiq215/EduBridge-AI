@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from src.account_store import (get_supabase_client, restore_auth_session, save_auth_session, clear_auth_session, load_learner_profile, save_learner_profile, delete_learner_profile)
 from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan
 from src.modeling import ARTIFACTS, run_experiment
 
@@ -33,16 +34,39 @@ div[data-testid="stForm"] {background:#fff;border:1px solid #e5ecf1;border-radiu
 </style>
 """, unsafe_allow_html=True)
 
+supabase = get_supabase_client()
+user = restore_auth_session(supabase) if supabase else None
 if "learner_profile" not in st.session_state:
     st.session_state.learner_profile = None
+if user and st.session_state.get("profile_loaded_for") != str(user.id):
+    try:
+        st.session_state.learner_profile = load_learner_profile(supabase, str(user.id))
+        st.session_state["profile_loaded_for"] = str(user.id)
+        st.session_state.pop("profile_load_error", None)
+    except Exception:
+        st.session_state.learner_profile = None
+        st.session_state["profile_load_error"] = True
 
 with st.sidebar:
     st.markdown("## 🎓 EduBridge AI")
     st.caption("YOUR LEARNING & CAREER COMPANION")
     if st.session_state.pop("navigate_to_profile", False):
         st.session_state["workspace"] = "My learning profile"
-    page = st.radio("WORKSPACE", ["Home", "My learning profile", "Career pathways", "Study planner", "Research insights", "About EduBridge"], label_visibility="visible", key="workspace")
+    page = st.radio("WORKSPACE", ["Home", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
     st.divider()
+    if user:
+        st.success("Signed in")
+        st.caption(user.email or "Student account")
+        if st.button("Sign out", use_container_width=True):
+            try:
+                supabase.auth.sign_out()
+            finally:
+                clear_auth_session()
+                st.rerun()
+    elif supabase:
+        st.info("Sign in to save your learning profile.")
+    else:
+        st.warning("Student accounts need Supabase setup.")
     st.caption("A student-centred learning companion")
     st.caption("Your profile stays in this browser session unless you download it.")
 
@@ -82,6 +106,8 @@ if page == "Home":
     st.info("EduBridge offers learning guidance and reflection. It does not estimate admission chances or make decisions about students.")
 
 elif page == "My learning profile":
+    if not user:
+        st.warning("You can explore the app, but sign in or create an account before saving a permanent learning profile. Open Account & privacy in the sidebar.")
     hero("Tell us about your learning.", "A few details help organise your subjects and suggest practical next steps.", "YOUR PROFILE")
     st.markdown("### Education and interests")
     with st.form("learner_profile_form"):
@@ -112,14 +138,22 @@ elif page == "My learning profile":
         if not subjects:
             st.error("Please choose at least one subject.")
         else:
-            st.session_state.learner_profile = {
+            new_profile = {
                 "level": level, "institution": institution.strip(), "board": board,
                 "pathway": pathway, "programme": programme.strip(), "current_year": current_year.strip(),
                 "weekly_hours": weekly_hours, "subjects": subjects,
                 "confidence": ratings, "latest_results": latest_results, "updated": date.today().isoformat(),
             }
-            st.success("Your learning profile is ready.")
-            st.rerun()
+            if not user:
+                st.error("Sign in first so this profile can be saved to your private account.")
+            else:
+                try:
+                    save_learner_profile(supabase, str(user.id), new_profile)
+                    st.session_state.learner_profile = new_profile
+                    st.success("Your learning profile has been saved to your account.")
+                    st.rerun()
+                except Exception:
+                    st.error("Profile storage is not ready. Run supabase/schema.sql in your Supabase project and check Streamlit secrets.")
     if profile_ready():
         st.divider()
         snapshot = build_learning_snapshot(st.session_state.learner_profile)
@@ -131,7 +165,7 @@ elif page == "My learning profile":
             st.markdown("#### Your latest self-reported results")
             result_rows = [{"Subject": subject, "Result": value or "Not entered", "Confidence": f"{st.session_state.learner_profile['confidence'][subject]}/5"} for subject, value in st.session_state.learner_profile["latest_results"].items()]
             st.dataframe(pd.DataFrame(result_rows), use_container_width=True, hide_index=True)
-        st.caption("This profile is stored only in the active Streamlit session. It is not a permanent account.")
+        st.caption("Your profile is saved in your private Supabase account when signed in.")
         st.download_button("Download my profile (JSON)", json.dumps(st.session_state.learner_profile, indent=2), file_name="edubridge_learning_profile.json", mime="application/json")
 
 elif page == "Career pathways":
@@ -220,6 +254,80 @@ elif page == "Research insights":
         st.markdown("- [Open University Learning Analytics Dataset (OULAD)](https://archive.ics.uci.edu/dataset/349/open+university+learning+analytics+dataset) — 30,000+ higher-education registrations and online-learning activity. Its different population and task require a separate model, not pooled training.")
         st.markdown("- [Higher Education Students Performance Evaluation](https://archive.ics.uci.edu/dataset/856/higher+education+students+performance+evaluation) — a small 145-record benchmark from engineering and educational-science faculties; suitable for cautious exploratory comparison only.")
         st.markdown("- [Engineering student performance dataset](https://data.mendeley.com/datasets/83tcx8psxv/1) — a separate engineering-focused dataset; its schema and licence must be reviewed before integration.")
+
+elif page == "Account & privacy":
+    hero("Your account, your learning space.", "Create an account or sign in to save your learning profile across visits.", "ACCOUNT & PRIVACY")
+    if not supabase:
+        st.error("Supabase is not connected yet. Create a Supabase project, run supabase/schema.sql, then add the project URL and publishable/anon key to Streamlit Community Cloud Secrets.")
+        st.code('[supabase]\nurl = "https://YOUR-PROJECT.supabase.co"\nanon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"', language="toml")
+        st.warning("Never use a service-role key in this app. The publishable/anon key is safe only when row-level security is enabled.")
+    elif user:
+        st.success(f"Signed in as {user.email}")
+        st.write("Your profile is stored in the private student_profiles table and protected by row-level security.")
+        if st.button("Delete my saved learning profile"):
+            try:
+                delete_learner_profile(supabase, str(user.id))
+                st.session_state.learner_profile = None
+                st.success("Your saved profile has been deleted.")
+                st.rerun()
+            except Exception:
+                st.error("Could not delete your profile. Check database policies.")
+        st.caption("Deleting the profile does not delete the login account; full account deletion needs a separately secured server-side process.")
+    else:
+        sign_in_tab, create_tab, reset_tab = st.tabs(["Sign in", "Create account", "Reset password"])
+        with sign_in_tab:
+            with st.form("sign_in_form"):
+                email = st.text_input("Email address")
+                password = st.text_input("Password", type="password")
+                login = st.form_submit_button("Sign in", type="primary", use_container_width=True)
+            if login:
+                try:
+                    response = supabase.auth.sign_in_with_password({"email": email.strip(), "password": password})
+                    if response.session:
+                        save_auth_session(response.session)
+                        st.rerun()
+                    st.error("No active session was returned. Verify your email if required.")
+                except Exception:
+                    st.error("Sign-in failed. Check your email, password and email-verification status.")
+        with create_tab:
+            st.write("Use an email address you can access. Do not enter identity numbers, home addresses or private documents.")
+            with st.form("create_account_form"):
+                new_email = st.text_input("Email address", key="signup_email")
+                new_password = st.text_input("Password (at least 10 characters)", type="password", key="signup_password")
+                confirm = st.text_input("Confirm password", type="password", key="signup_confirm")
+                accepted = st.checkbox("I understand my learning profile will be stored in my account.")
+                signup = st.form_submit_button("Create account", type="primary", use_container_width=True)
+            if signup:
+                if not accepted:
+                    st.error("Please confirm the profile-storage notice.")
+                elif len(new_password) < 10:
+                    st.error("Use a password with at least 10 characters.")
+                elif new_password != confirm:
+                    st.error("The passwords do not match.")
+                else:
+                    try:
+                        response = supabase.auth.sign_up({"email": new_email.strip(), "password": new_password})
+                        if response.session:
+                            save_auth_session(response.session)
+                            st.rerun()
+                        st.success("Check your inbox to verify your email, then sign in.")
+                    except Exception:
+                        st.error("Account creation failed. Check the email and Supabase Auth settings.")
+        with reset_tab:
+            with st.form("reset_password_form"):
+                reset_email = st.text_input("Account email")
+                reset = st.form_submit_button("Send password reset email")
+            if reset:
+                try:
+                    supabase.auth.reset_password_for_email(reset_email.strip())
+                    st.success("If the account exists, Supabase will send a password-reset email.")
+                except Exception:
+                    st.error("Could not send the reset email. Check Supabase Auth email settings.")
+    st.markdown("### Privacy")
+    st.markdown("- Passwords are managed by Supabase Auth, not stored in learner profiles.")
+    st.markdown("- Only enter education information needed for guidance; avoid sensitive personal details.")
+    st.markdown("- Run the supplied SQL so row-level security limits each account to its own profile.")
+    st.markdown("- If you are under 18, involve a parent or guardian before creating an online account.")
 
 elif page == "About EduBridge":
     hero("Education is a journey, not a single score.", "EduBridge AI brings learning reflection, career exploration and transparent educational data science into one student-friendly space.", "ABOUT")
