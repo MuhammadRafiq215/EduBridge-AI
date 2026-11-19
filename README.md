@@ -45,6 +45,7 @@ The main Streamlit app is designed around the learner rather than development mi
 | Career pathways | Explore preparation areas, degree families and small project ideas across engineering, computing/AI, medicine/health, economics/business, sciences, social sciences and design |
 | Study planner | Turn self-reported priorities and available weekly time into a simple study allocation |
 | Research insights | Inspect public-dataset experiments and compare machine-learning model families |
+| Student feedback | Submit anonymous usability feedback without creating an account |
 | Account & privacy | Create an account, sign in, reset a password and manage saved profile data |
 | About EduBridge | Review the platform's scope, privacy and limitations |
 
@@ -219,7 +220,7 @@ The Streamlit Community Cloud app must be created by an account holder who can a
 
 The final public app URL is assigned/confirmed by Streamlit during deployment. A repository URL is not a live application URL, and search engines may take time to index a newly published site. Never treat a guessed URL as a deployed address.
 
-## Tests and quality checks
+## Student pilot\n\nUse [docs/STUDENT_PILOT.md](docs/STUDENT_PILOT.md) for a structured usability pilot. The Student feedback workspace stores a rating, selected workspace, category and short comment without asking for a name or contact details. To enable it, run the separate `supabase/feedback_schema.sql` file once in the Supabase SQL Editor. The feedback table is insert-only for visitors; review submissions in the Supabase SQL Editor.\n\n## Tests and quality checks
 
 Run the local test suite:
 
@@ -241,7 +242,7 @@ GitHub Actions runs the same compilation and unit-test checks on pushes and pull
 7. Any future real-world study requires local data governance, appropriate consent, privacy protection, expert review and independent evaluation.
 8. Never commit passwords, API keys, identifiable student records or other private information.
 9. Use only the Supabase publishable/anon key in Streamlit secrets; never expose the service-role key.
-10. Keep row-level security enabled on student_profiles so each learner can access only their own row.
+10. Keep row-level security enabled on student_profiles so each learner can access only their own row.\n11. The optional student_feedback table accepts inserts only from visitors; it does not grant visitors permission to read other submissions.
 
 ## References
 
