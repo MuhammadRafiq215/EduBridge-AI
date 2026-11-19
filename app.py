@@ -153,14 +153,28 @@ input:focus-visible,textarea:focus-visible {
   }
 }
 
-/* Keep Streamlit's Share action only. Hide the other toolbar shortcuts
-   (GitHub, edit, app menu/three dots, deploy and star) without hiding the
-   header itself, so sidebar controls remain available. */
-header[data-testid="stHeader"] [data-testid="stToolbar"] button:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]),
-header[data-testid="stHeader"] [data-testid="stToolbar"] a:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]),
-header[data-testid="stHeader"] [data-testid="stToolbar"] [role="button"]:not(:has([aria-label*="Share" i])):not(:has([title*="Share" i])):not([aria-label*="Share" i]):not([title*="Share" i]) {
+/* Keep the first two toolbar actions (Share and Star).
+   Hide the three actions after them (GitHub, Edit and the overflow menu).
+   Target action positions rather than icon labels, which vary by Streamlit version. */
+header[data-testid="stHeader"] [data-testid="stToolbarActions"] > :nth-child(n+3),
+header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stToolbarActions"] > :nth-child(n+3),
+header[data-testid="stHeader"] [data-testid="stToolbar"] > div > div > :nth-child(n+3) {
   display: none !important;
   visibility: hidden !important;
+}
+
+/* Branded identity stays inside the app, not in Streamlit's protected header. */
+.top-brand-strip {
+  display:flex; align-items:center; gap:10px; width:fit-content;
+  margin:0 0 16px; padding:8px 14px; border:1px solid #e3e5f6;
+  border-radius:999px; background:rgba(255,255,255,.82);
+  color:#292b67; font-size:13px; font-weight:800; letter-spacing:.2px;
+  box-shadow:0 5px 16px rgba(34,38,82,.045);
+}
+.top-brand-strip .brand-mark {
+  display:grid; place-items:center; width:25px; height:25px;
+  border-radius:9px; background:linear-gradient(135deg,#6757f5,#27c9d2);
+  color:#fff; font-size:14px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -221,6 +235,8 @@ with st.sidebar:
         st.warning("Student accounts need Supabase setup.")
     st.caption("A student-centred learning companion")
     st.caption("Your profile stays in this browser session unless you download it.")
+
+st.markdown('<div class="top-brand-strip"><span class="brand-mark">✦</span><span>EduBridge AI</span><span style="font-weight:500;color:#737a99">· Learn · Explore · Grow</span></div>', unsafe_allow_html=True)
 
 def hero(title: str, subtitle: str, eyebrow: str = "LEARN · EXPLORE · GROW"):
     st.markdown(f"""
