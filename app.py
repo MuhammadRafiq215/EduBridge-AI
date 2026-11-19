@@ -298,7 +298,7 @@ if page == "Dashboard":
                 )
                 if st.button("Explore", use_container_width=True, key=f"guest_path_{name}"):
                     st.session_state["workspace"] = "Career pathways"
-                    st.session_state["selected_pathway"] = name
+                    st.session_state["career_pathway_select"] = name
                     st.rerun()
         st.markdown('<div class="dash-band"><strong>Built around real learning inputs.</strong><br><span class="small-muted">Personal dashboards use the learner’s own profile. Research results come from documented public datasets. Empty states stay honest — no fabricated streaks, scores or activity counts.</span></div>', unsafe_allow_html=True)
         st.markdown("### Jump into the platform")
@@ -379,7 +379,7 @@ elif page == "My learning profile":
 
 elif page == "Career pathways":
     hero("Explore a direction that fits your interests.", "See common preparation areas and degree options. Always check the entry requirements of the universities you are considering.", "CAREER EXPLORER")
-    selected = st.selectbox("Choose a field to explore", list(PATHWAYS.keys()))
+    selected = st.selectbox("Choose a field to explore", list(PATHWAYS.keys()), key="career_pathway_select")
     item = PATHWAYS[selected]
     st.markdown(f"### {selected}")
     st.write(item["description"])
