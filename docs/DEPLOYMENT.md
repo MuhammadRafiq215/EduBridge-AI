@@ -45,7 +45,7 @@ A deployed website is not guaranteed to appear immediately in Google or other se
 3. Wait while the app downloads the official UCI archive and runs cross-validation and held-out evaluation.
 4. Review the Research Overview, Model Lab, Evaluation and Responsible AI pages.
 
-The first experiment can take a few minutes. The hosted app needs outbound internet access to retrieve the UCI dataset.
+The first research experiment can take a few minutes. The hosted app needs outbound internet access to retrieve the UCI dataset. Learner profiles are session-based; persistent registration and sign-in are not enabled until an authentication provider and database are configured.
 
 ## Updating the website
 
