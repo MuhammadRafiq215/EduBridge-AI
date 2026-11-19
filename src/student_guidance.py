@@ -104,20 +104,54 @@ def build_learning_snapshot(profile: dict) -> dict:
 
 
 def build_weekly_plan(profile: dict) -> list[dict]:
-    """Allocate the learner's stated weekly study time across focus subjects."""
+    """Allocate weekly study time using self-rated confidence and pathway relevance.
+
+    Lower confidence receives a larger share. A subject relevant to the selected
+    pathway receives a modest additional weight. This is transparent planning
+    logic, not a trained model or a measure of ability.
+    """
     snapshot = build_learning_snapshot(profile)
     hours = max(1, min(40, int(profile.get("weekly_hours", 5))))
     subjects = snapshot["focus_subjects"] or snapshot["pathway_subjects_reviewed"] or list(profile.get("confidence", {}))
-    subjects = subjects[:3]
+    subjects = subjects[:min(3, hours)]
     if not subjects:
         raise ValueError("Choose subjects before generating a study plan.")
-    allocations = [hours // len(subjects)] * len(subjects)
-    for index in range(hours % len(subjects)):
-        allocations[index] += 1
-    return [
-        {"subject": subject, "hours": allocation, "activity": "Review one concept, practise questions, then note what remains unclear."}
-        for subject, allocation in zip(subjects, allocations)
-    ]
+
+    pathway_focus = PATHWAYS.get(snapshot["pathway"], PATHWAYS["Computer Science & AI"])["focus"]
+    ratings = profile.get("confidence", {})
+    weights = []
+    for subject in subjects:
+        confidence = max(1, min(5, int(ratings.get(subject, 3))))
+        pathway_bonus = 1.25 if subject in pathway_focus else 0
+        weights.append((6 - confidence) + pathway_bonus)
+
+    # Give every selected subject one hour, then distribute the remaining
+    # hours proportionally using the largest-remainder method.
+    allocations = [1] * len(subjects)
+    remaining = hours - len(subjects)
+    if remaining:
+        total_weight = sum(weights)
+        exact = [remaining * weight / total_weight for weight in weights]
+        whole = [int(value) for value in exact]
+        allocations = [base + extra for base, extra in zip(allocations, whole)]
+        leftover = remaining - sum(whole)
+        order = sorted(range(len(subjects)), key=lambda index: (-(exact[index] - whole[index]), subjects[index].casefold()))
+        for index in order[:leftover]:
+            allocations[index] += 1
+
+    rows = []
+    for subject, allocation in zip(subjects, allocations):
+        confidence = max(1, min(5, int(ratings.get(subject, 3))))
+        if confidence <= 2:
+            activity = f"Build the foundations in {subject}: review one core idea, work through a few guided examples and write down one question to revisit."
+        elif confidence == 3:
+            activity = f"Strengthen {subject}: review a concept, practise applying it and check your understanding."
+        else:
+            activity = f"Maintain {subject}: use mixed practice or a small project to apply what you already know."
+        rows.append({"subject": subject, "hours": allocation, "activity": activity,
+                     "confidence": confidence,
+                     "allocation_reason": "More time is assigned to lower-confidence subjects; pathway relevance is a small tie-breaker."})
+    return rows
 
 def build_personalised_recommendations(profile: dict) -> dict:
     """Create transparent, profile-based learning priorities and explain their rationale.
