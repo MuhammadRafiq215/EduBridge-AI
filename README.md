@@ -75,14 +75,27 @@ Implemented capabilities:
 
 **Phase 2 outcome:** the code for an end-to-end baseline research workflow is implemented. Actual experiment results are generated only when the experiment is run; no performance scores are fabricated or pre-filled.
 
+### Phase 3 — Deeper exploratory analysis and target-definition sensitivity
+
+**Goal:** examine descriptive patterns and test whether baseline conclusions depend on the definition of the positive class.
+
+Implemented in `src/exploration.py` with a separate Streamlit workspace in `phase3.py`:
+- Descriptive final-grade distribution, numeric summaries, feature/grade correlations and categorical distributions.
+- Sensitivity scenarios `G3 < 8`, `G3 < 10`, and `G3 < 12` on the original 0–20 scale.
+- Separate model selection for each target using the same stratified 75/25 split seed and five-fold training CV.
+- G1, G2 and G3 remain excluded from predictors in every scenario.
+- Reports class prevalence, selected model, CV metrics and held-out metrics without declaring a preferred cut-off.
+- Unit tests and a detailed methodology note in `docs/PHASE3.md`.
+
+Run with `streamlit run phase3.py`. These cut-offs are analytical scenarios, not diagnoses or school-policy recommendations.
+
 ### Next phases
 
-- [ ] Run the experiment in the hosted environment and review the generated outputs.
-- [ ] Add deeper exploratory analysis and target-threshold sensitivity analysis.
+- [ ] Run Phase 3 in the hosted environment and review generated outputs.
 - [ ] Examine calibration and error patterns.
 - [ ] Seek independent educator/researcher review.
 - [ ] Investigate an appropriate local dataset only with consent, governance and privacy safeguards.
-- [ ] Consider Phase 3 only after validation; do not present the current prototype as deployment-ready for real student decisions.
+- [ ] Do not present the prototype as deployment-ready for real student decisions.
 
 ## Current application features
 
