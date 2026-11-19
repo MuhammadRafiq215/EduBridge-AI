@@ -28,6 +28,19 @@ class Phase4MetricTests(unittest.TestCase):
         self.assertGreaterEqual(first["intervals"]["brier_score"]["lower"], 0)
         self.assertLessEqual(first["intervals"]["brier_score"]["upper"], 1)
 
+    def test_phase4_rejects_too_few_training_examples_for_five_fold_cv(self):
+        # Five observations per class in the full frame become fewer than five
+        # per class after the stratified training split.
+        frame = pd.DataFrame({
+            "studytime": list(range(10)),
+            "school": ["A", "B"] * 5,
+            "G1": [7, 8, 11, 12, 6, 9, 13, 14, 5, 15],
+            "G2": [8, 9, 12, 13, 7, 10, 14, 15, 6, 16],
+            "G3": [6, 7, 11, 12, 8, 9, 13, 14, 5, 15],
+        })
+        with self.assertRaisesRegex(ValueError, "at least five observations"):
+            run_phase4_analysis(frame, bootstrap_repeats=200, robustness_repeats=2)
+
     def test_phase4_pipeline_excludes_grade_columns(self):
         frame = pd.DataFrame({
             "studytime": [1, 2, 3, 4] * 30,
