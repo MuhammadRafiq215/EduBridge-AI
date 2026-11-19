@@ -741,7 +741,7 @@ elif page == "Student feedback":
                     try:
                         supabase.table("student_feedback").insert(payload).execute()
                         st.success("Thank you — your feedback has been submitted.")
-                        st.caption("Your feedback is anonymous in this form. No contact details were requested.")
+                        st.caption("No contact details were requested. The form stores only the page, category, rating and comment you submitted.")
                     except Exception:
                         st.error(
                             "The feedback inbox is not ready yet. The project owner needs to run "
