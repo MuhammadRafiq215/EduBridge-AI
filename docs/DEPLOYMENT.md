@@ -23,10 +23,29 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
    - **Branch:** `main`
    - **Main file path:** `app.py` (the main dashboard)
 
-The app also exposes Phase 3, Phase 4 and Phase 5 in Streamlit's multipage navigation. The page scripts are in `pages/`; Phase 5 uses `phase5.py` and the SHAP dependency listed in `requirements.txt`.
 7. Open advanced settings and choose **Python 3.12**.
 8. Select **Deploy** and wait for package installation and app startup.
 9. When Streamlit displays the app, copy the exact URL shown in the app workspace. That is the deployed address to share.
+
+## Configure Supabase accounts and profile storage
+
+The app uses Supabase Auth and PostgreSQL for genuine student accounts and persistent profiles.
+
+1. Create a Supabase project at https://supabase.com/dashboard.
+2. Open the project's SQL Editor and run the complete contents of supabase/schema.sql. This creates student_profiles and enables row-level security policies that restrict each row to its authenticated owner.
+3. In Supabase, open Project Settings → API (or API Keys). Copy the Project URL and publishable key (or legacy anon key). Do not use the service_role/secret key.
+4. In Streamlit Community Cloud, open the app's Manage app → Settings → Secrets and add:
+
+~~~toml
+[supabase]
+url = "https://YOUR-PROJECT.supabase.co"
+anon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
+~~~
+
+5. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, password reset, profile save, sign-out and sign-in again.
+6. Keep row-level security enabled on student_profiles. Never disable RLS and never put a service-role key in GitHub or Streamlit secrets.
+
+Until the Supabase project and Streamlit secrets are configured, public learning and research pages can load, but account and persistent-profile features will not work. A profile is persisted only after successful sign-in and database setup.
 
 ## Choose an app URL
 
@@ -40,12 +59,12 @@ A deployed website is not guaranteed to appear immediately in Google or other se
 
 ## First launch
 
-1. Open the deployed app.
-2. In the sidebar, select **Run / refresh experiment**.
-3. Wait while the app downloads the official UCI archive and runs cross-validation and held-out evaluation.
-4. Review the Research Overview, Model Lab, Evaluation and Responsible AI pages.
+1. Open the deployed app and confirm the Dashboard loads.
+2. Open Account & privacy and test sign-up and email verification.
+3. Sign in, create a learning profile, save it, then refresh and sign in again to verify persistence.
+4. Open Research insights to run the UCI benchmark and inspect the model comparison.
 
-The first research experiment can take a few minutes. The hosted app needs outbound internet access to retrieve the UCI dataset. Learner profiles are session-based; persistent registration and sign-in are not enabled until an authentication provider and database are configured.
+The first research experiment can take a few minutes. The hosted app needs outbound internet access to retrieve the UCI dataset. Student profiles are stored persistently through Supabase after the SQL schema and Streamlit secrets are configured.
 
 ## Updating the website
 
@@ -53,15 +72,17 @@ When code is pushed to the connected GitHub branch, Streamlit Community Cloud no
 
 ## Troubleshooting
 
-- **Repository missing:** confirm that you signed into the correct GitHub account and authorized Streamlit for this private repository.
+- **Repository missing:** confirm that you signed into the correct GitHub account and authorized Streamlit for this repository.
 - **Dependency installation error:** open the Streamlit app logs and check the Python version and `requirements.txt`.
-- **App starts but shows no metrics:** select **Run / refresh experiment** in the sidebar.
+- **Account features unavailable:** confirm Streamlit secrets use the exact supabase URL and anon_key names, and that supabase/schema.sql was executed.
 - **UCI download error:** check the app logs and retry later; the dataset is downloaded at runtime.
 - **App URL unavailable:** choose another available subdomain in Streamlit's app settings.
 
 ## Security and research safeguards
 
 - Do not add passwords, API keys or private student data to GitHub.
+- Never use the Supabase service-role key in the Streamlit app.
+- Keep row-level security enabled and test that two accounts cannot read one another's profiles.
 - Do not place credentials in source code or README files.
 - Do not use the prototype to make decisions about individual students.
 - The source dataset is from Portuguese schools and is not validated for Pakistan.
