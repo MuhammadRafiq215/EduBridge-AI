@@ -93,3 +93,8 @@ Accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, average precision, 
 - The UCI dataset download and full experiment complete in the hosted runtime.
 - Generated metrics and artifacts are reviewed for plausibility.
 - Limitations and non-decision-use safeguards remain visible in the app and documentation.
+
+
+## 9. Phase 3 implementation
+
+Phase 3 is implemented in `src/exploration.py` and exposed through the standalone Streamlit workspace `phase3.py`. It reports descriptive grade distributions, numeric summaries, numeric-feature correlations with G3, categorical distributions, and target sensitivity for G3 < 8, G3 < 10, and G3 < 12. Each target definition is evaluated as a separate classification task using the same stratified 75/25 split seed (42), five-fold CV on training data, and the existing model family. G1, G2 and G3 remain excluded from predictors. See `docs/PHASE3.md` for assumptions, interpretation safeguards and run instructions. The scenarios are not recommendations for academic labels or interventions.
