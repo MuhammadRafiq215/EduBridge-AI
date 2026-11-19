@@ -116,7 +116,7 @@ Run the standalone workspace with `streamlit run phase5.py`, or open **Phase 5 �
 
 ### Next research priorities
 
-- [ ] Run Phase 4 against the live UCI dataset and review outputs.
+- [ ] Run Phases 3–5 against the live UCI dataset in the hosted app and review outputs.
 - [ ] Seek independent educator/researcher review.
 - [ ] Investigate an appropriate local dataset only with consent, governance and privacy safeguards.
 - [ ] Do not present the prototype as deployment-ready for real student decisions.
@@ -177,25 +177,37 @@ The pipeline design follows the scikit-learn guidance on [common pitfalls and da
 
 ```text
 EduBridge-AI/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── .streamlit/
-│   └── config.toml
+├── .github/workflows/ci.yml
+├── .streamlit/config.toml
 ├── docs/
 │   ├── DEPLOYMENT.md
+│   ├── PHASE3.md
+│   ├── PHASE4.md
+│   ├── PHASE5.md
 │   └── PROJECT_PLAN.md
+├── pages/
+│   ├── 2_Phase_3_Exploration.py
+│   ├── 3_Phase_4_Robustness.py
+│   └── 4_Phase_5_Explainability.py
 ├── src/
 │   ├── __init__.py
 │   ├── data.py
-│   └── modeling.py
+│   ├── exploration.py
+│   ├── explainability.py
+│   ├── modeling.py
+│   └── phase4.py
 ├── tests/
-│   └── test_data_audit.py
+│   ├── test_data_audit.py
+│   ├── test_explainability.py
+│   ├── test_phase3.py
+│   └── test_phase4.py
 ├── .gitignore
 ├── app.py
+├── phase3.py
+├── phase4.py
+├── phase5.py
 ├── requirements.txt
-├── train.py
-└── README.md
+└── train.py
 ```
 
 Generated files are stored under `artifacts/` at runtime and excluded from Git:
@@ -272,7 +284,7 @@ The final public app URL is assigned/confirmed by Streamlit during deployment. A
 Run the local test suite:
 
 ```bash
-python -m compileall -q app.py train.py src tests
+python -m compileall -q app.py phase3.py phase4.py phase5.py train.py src tests pages
 python -m unittest discover -s tests -v
 ```
 
