@@ -12,6 +12,7 @@ from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learnin
 from src.modeling import ARTIFACTS, run_experiment
 from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
+from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -126,9 +127,9 @@ with st.sidebar:
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
-    if pending_workspace in ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"]:
+    if pending_workspace in ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
-    page = st.radio("WORKSPACE", ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
+    page = st.radio("WORKSPACE", ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
     st.divider()
     if user:
         st.success("Signed in")
@@ -676,6 +677,83 @@ elif page == "Account & privacy":
     st.markdown("- Only enter education information needed for guidance; avoid sensitive personal details.")
     st.markdown("- Row-level security limits each account to its own profile.")
     st.markdown("- If you are under 18, involve a parent or guardian before creating an online account.")
+
+elif page == "Student feedback":
+    hero(
+        "Help us make learning feel better.",
+        "Tell us what worked, what felt confusing and what you would improve. Your feedback helps shape the next version.",
+        "STUDENT VOICE",
+    )
+    st.markdown(
+        '<div class="pathway-banner"><div class="pathway-icon">💬</div>'
+        '<h2>Your experience matters.</h2>'
+        '<p>Short, honest feedback is more useful than perfect feedback. You can submit without creating an account.</p></div>',
+        unsafe_allow_html=True,
+    )
+    st.info(
+        "Privacy first: this form does not ask for your name, email, phone number or school. "
+        "Do not include personal details, passwords, identity numbers, private documents or information about another student. "
+        "Submissions are stored for the project owner to review; other visitors cannot read them."
+    )
+    if not supabase:
+        st.warning(
+            "The feedback inbox needs the Supabase connection already used by EduBridge AI. "
+            "Check the Streamlit Secrets setup in the deployment guide."
+        )
+    else:
+        with st.form("student_feedback_form", clear_on_submit=True):
+            category = st.selectbox(
+                "What would you like to tell us?",
+                sorted(ALLOWED_CATEGORIES),
+            )
+            workspace = st.selectbox(
+                "Which part are you reviewing?",
+                sorted(ALLOWED_WORKSPACES),
+            )
+            rating = st.radio(
+                "How was your overall experience?",
+                [1, 2, 3, 4, 5],
+                horizontal=True,
+                format_func=lambda value: f"{value} / 5",
+            )
+            message = st.text_area(
+                "Your suggestion or issue",
+                placeholder="For example: I liked the pathway ideas, but I could not find the next step…",
+                max_chars=1000,
+                help="Please write 10–1,000 characters. Do not include personal or sensitive information.",
+            )
+            confirmed = st.checkbox(
+                "I have not included personal, identifying or sensitive information."
+            )
+            submitted = st.form_submit_button(
+                "Send feedback",
+                type="primary",
+                use_container_width=True,
+            )
+        if submitted:
+            if not confirmed:
+                st.error("Please confirm that your feedback contains no personal or sensitive information.")
+            else:
+                payload, error = validate_feedback(category, workspace, rating, message)
+                if error:
+                    st.error(error)
+                else:
+                    try:
+                        supabase.table("student_feedback").insert(payload).execute()
+                        st.success("Thank you — your feedback has been submitted.")
+                        st.caption("Your feedback is anonymous in this form. No contact details were requested.")
+                    except Exception:
+                        st.error(
+                            "The feedback inbox is not ready yet. The project owner needs to run "
+                            "supabase/feedback_schema.sql once in the Supabase SQL Editor."
+                        )
+                        with st.expander("Setup instructions"):
+                            st.markdown(
+                                "[Open the feedback database setup file on GitHub](https://github.com/MuhammadRafiq215/EduBridge-AI/blob/main/supabase/feedback_schema.sql)"
+                            )
+    st.caption(
+        "Feedback is for improving the website's usability. It is not used to assess students or predict academic outcomes."
+    )
 
 elif page == "About EduBridge":
     hero("Education is a journey, not a single score.", "EduBridge AI brings learning reflection, career exploration and transparent educational data science into one student-friendly space.", "ABOUT")
