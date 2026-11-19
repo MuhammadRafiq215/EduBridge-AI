@@ -98,3 +98,8 @@ Accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, average precision, 
 ## 9. Phase 3 implementation
 
 Phase 3 is implemented in `src/exploration.py` and exposed through the standalone Streamlit workspace `phase3.py`. It reports descriptive grade distributions, numeric summaries, numeric-feature correlations with G3, categorical distributions, and target sensitivity for G3 < 8, G3 < 10, and G3 < 12. Each target definition is evaluated as a separate classification task using the same stratified 75/25 split seed (42), five-fold CV on training data, and the existing model family. G1, G2 and G3 remain excluded from predictors. See `docs/PHASE3.md` for assumptions, interpretation safeguards and run instructions. The scenarios are not recommendations for academic labels or interventions.
+
+
+## 10. Phase 4 implementation
+
+Phase 4 is implemented in `src/phase4.py` and exposed through `phase4.py`. It adds pre-specified sigmoid calibration trained only within the training partition, raw-versus-calibrated reliability analysis, Brier score, log loss, expected calibration error, percentile-bootstrap confidence intervals on held-out predictions, false-positive/false-negative analysis, descriptive subgroup error summaries, and repeated stratified five-fold training-CV stability diagnostics. The held-out test set is not used for model or calibration selection. See `docs/PHASE4.md`. Run with `streamlit run phase4.py`.
