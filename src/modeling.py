@@ -13,6 +13,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import (
     accuracy_score, balanced_accuracy_score, brier_score_loss,
     classification_report, confusion_matrix, f1_score, precision_score,
@@ -63,6 +65,31 @@ def build_models(X: pd.DataFrame) -> dict:
                 n_estimators=350, min_samples_leaf=2, class_weight="balanced",
                 random_state=RANDOM_STATE, n_jobs=-1
             )),
+        ]),
+        "Extra Trees": Pipeline([
+            ("preprocess", build_preprocessor(X)),
+            ("model", ExtraTreesClassifier(
+                n_estimators=300, min_samples_leaf=2, class_weight="balanced",
+                random_state=RANDOM_STATE, n_jobs=-1
+            )),
+        ]),
+        "Gradient Boosting": Pipeline([
+            ("preprocess", build_preprocessor(X)),
+            ("model", GradientBoostingClassifier(
+                n_estimators=100, learning_rate=0.05, max_depth=2,
+                random_state=RANDOM_STATE
+            )),
+        ]),
+        "RBF Support Vector Machine": Pipeline([
+            ("preprocess", build_preprocessor(X)),
+            ("model", SVC(
+                C=1.0, kernel="rbf", probability=True,
+                class_weight="balanced", random_state=RANDOM_STATE
+            )),
+        ]),
+        "K-Nearest Neighbours": Pipeline([
+            ("preprocess", build_preprocessor(X)),
+            ("model", KNeighborsClassifier(n_neighbors=7, weights="distance")),
         ]),
     }
 
