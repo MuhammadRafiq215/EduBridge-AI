@@ -301,6 +301,7 @@ def run_phase4_analysis(
             "bootstrap": f"{bootstrap_repeats} percentile-bootstrap resamples of held-out predictions",
             "decision_threshold": POSITIVE_THRESHOLD,
             "random_state": RANDOM_STATE,
+            "minimum_training_class_count": minimum_training_class_count,
         },
         "limitations": [
             "The dataset represents two Portuguese secondary schools and is not representative of Pakistani learners.",
