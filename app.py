@@ -158,6 +158,8 @@ input:focus-visible,textarea:focus-visible {
 /* Hide public-facing repository/edit shortcuts without hiding the
    Streamlit header or sidebar navigation controls. */
 #GithubIcon,
+header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="GitHub" i],
+header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="GitHub" i],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Edit" i],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Edit" i] {
   display: none !important;
