@@ -15,22 +15,57 @@ st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", i
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
-:root { --ink:#15253a; --muted:#62748a; --accent:#087f70; --line:#e5ecf1; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root {
+  --ink:#171a35; --muted:#68708d; --paper:#f6f7ff; --line:#e7e9f5;
+  --violet:#6757f5; --cyan:#27c9d2; --lime:#c7f36b; --coral:#ff8d75;
+}
 html, body, [class*="css"] {font-family:'DM Sans',sans-serif;}
-.stApp {background:#f5f8fa;color:var(--ink);}
-section[data-testid="stSidebar"] {background:#ffffff;border-right:1px solid var(--line);}
-h1,h2,h3 {font-family:'Manrope',sans-serif;color:#15253a !important;letter-spacing:-.025em;}
-.hero {padding:34px 36px;border-radius:22px;background:linear-gradient(120deg,#102b3b 0%,#145c5b 58%,#168c79 100%);color:#fff;margin:4px 0 26px;}
-.hero .eyebrow {font-size:11px;letter-spacing:2px;font-weight:800;color:#a7f3df;text-transform:uppercase;}
-.hero h1 {color:#fff !important;font-size:clamp(28px,4vw,44px);line-height:1.12;margin:12px 0;}
-.hero p {color:#d9f2ed;font-size:16px;max-width:760px;margin-bottom:0;}
-.section-card {background:#fff;border:1px solid #e5ecf1;border-radius:16px;padding:20px 22px;margin-bottom:12px;}
-.small-muted {color:#62748a;font-size:13px;}
-div[data-testid="stMetric"] {background:#fff;border:1px solid #e5ecf1;border-radius:14px;padding:14px;}
-.stButton button,.stDownloadButton button {border-radius:10px;font-weight:700;min-height:42px;}
+.stApp {background:radial-gradient(circle at 88% 4%,rgba(103,87,245,.09),transparent 24%),var(--paper);color:var(--ink);}
+header[data-testid="stHeader"] {background:rgba(246,247,255,.78);}
+.main .block-container {max-width:1440px;padding:2rem 2.5rem 3.5rem;}
+section[data-testid="stSidebar"] {background:linear-gradient(180deg,#171a35 0%,#242653 100%);border-right:0;}
+section[data-testid="stSidebar"] * {color:#f6f7ff;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label {padding:10px 12px;border-radius:12px;transition:background .18s ease;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {background:rgba(255,255,255,.10);}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {color:#b9bddb;}
+section[data-testid="stSidebar"] hr {border-color:rgba(255,255,255,.14);}
+h1,h2,h3,h4 {font-family:'Space Grotesk',sans-serif;color:var(--ink)!important;letter-spacing:-.035em;}
+h2 {font-size:1.8rem!important;} h3 {font-size:1.3rem!important;}
+.hero {position:relative;isolation:isolate;overflow:hidden;padding:38px 42px;border-radius:28px;background:linear-gradient(112deg,#171a35 0%,#292b67 58%,#5144c9 100%);color:#fff;margin:4px 0 28px;box-shadow:0 22px 55px rgba(44,42,112,.18);min-height:220px;}
+.hero:before {content:"";position:absolute;z-index:-1;width:330px;height:330px;right:8%;top:-185px;border:1px solid rgba(255,255,255,.16);border-radius:50%;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025);}
+.hero:after {content:"";position:absolute;z-index:-1;width:250px;height:250px;right:13%;bottom:-190px;border-radius:50%;background:radial-gradient(circle,rgba(39,201,210,.45),rgba(39,201,210,0) 68%);}
+.hero-inner {display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.hero-copy {max-width:760px;}
+.hero .eyebrow {display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1.8px;font-weight:800;color:#d5f879;text-transform:uppercase;background:rgba(199,243,107,.12);border:1px solid rgba(199,243,107,.25);padding:7px 11px;border-radius:999px;}
+.hero h1 {color:#fff!important;font-size:clamp(30px,4.3vw,49px);line-height:1.08;margin:15px 0 12px;max-width:760px;}
+.hero p {color:#e0e3ff;font-size:16px;line-height:1.65;max-width:720px;margin:0;}
+.hero-art {width:210px;min-width:170px;filter:drop-shadow(0 16px 24px rgba(0,0,0,.16));}
+.hero-art svg {width:100%;height:auto;display:block;}
+.section-card {background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-bottom:14px;box-shadow:0 8px 24px rgba(34,38,82,.045);}
+.small-muted {color:var(--muted);font-size:13px;}
+div[data-testid="stMetric"] {background:linear-gradient(145deg,#fff,#fbfbff);border:1px solid var(--line);border-radius:18px;padding:18px 18px;box-shadow:0 8px 22px rgba(34,38,82,.045);min-height:112px;}
+div[data-testid="stMetricLabel"] p {color:#747b99;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;}
+div[data-testid="stMetricValue"] {font-family:'Space Grotesk',sans-serif;color:#252653;font-weight:700;}
+.stButton button,.stDownloadButton button {border-radius:12px;font-weight:700;min-height:44px;border:1px solid #dedff2;transition:transform .16s ease,box-shadow .16s ease;}
+.stButton button[kind="primary"],.stFormSubmitButton button[kind="primary"] {background:linear-gradient(100deg,#6556ed,#8a62f5);border:0;color:white;box-shadow:0 8px 18px rgba(103,87,245,.22);}
+.stButton button:hover,.stDownloadButton button:hover {transform:translateY(-1px);box-shadow:0 10px 22px rgba(45,45,100,.12);border-color:#b8b6f5;}
 .stTabs [data-baseweb="tab"] {font-weight:700;}
-div[data-testid="stForm"] {background:#fff;border:1px solid #e5ecf1;border-radius:16px;padding:18px;}
+.stTabs [aria-selected="true"] {color:#6556ed!important;}
+div[data-testid="stForm"] {background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 8px 24px rgba(34,38,82,.04);}
+div[data-baseweb="input"]>div,div[data-baseweb="select"]>div,div[data-testid="stTextInput"] input {border-radius:11px!important;}
+div[data-testid="stDataFrame"],div[data-testid="stTable"] {border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+div[data-testid="stAlert"] {border-radius:14px;}
+.stProgress>div>div>div>div {background:linear-gradient(90deg,#6757f5,#27c9d2);}
+@media (max-width:800px) {
+ .main .block-container {padding:1rem 1rem 2rem;}
+ .hero {padding:26px 24px;border-radius:22px;min-height:0;}
+ .hero-art {width:120px;min-width:100px;}
+ .hero h1 {font-size:32px;}
+ .hero p {font-size:14px;}
+}
+@media (max-width:520px) {.hero-art {display:none;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -73,7 +108,36 @@ with st.sidebar:
     st.caption("Your profile stays in this browser session unless you download it.")
 
 def hero(title: str, subtitle: str, eyebrow: str = "LEARN · EXPLORE · GROW"):
-    st.markdown(f'<div class="hero"><div class="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{subtitle}</p></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="eyebrow">✦ {eyebrow}</div>
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 220 190" role="img" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="ebGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7f36b"/><stop offset="1" stop-color="#27c9d2"/></linearGradient>
+              <linearGradient id="ebCard" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".98"/><stop offset="1" stop-color="#dfe5ff" stop-opacity=".92"/></linearGradient>
+            </defs>
+            <circle cx="112" cy="92" r="77" fill="none" stroke="#ffffff" stroke-opacity=".20" stroke-width="1.5" stroke-dasharray="4 7"/>
+            <circle cx="112" cy="92" r="57" fill="url(#ebGlow)" opacity=".18"/>
+            <rect x="53" y="48" width="118" height="91" rx="17" fill="url(#ebCard)" transform="rotate(-7 112 94)"/>
+            <rect x="69" y="67" width="38" height="38" rx="12" fill="#6656ed"/>
+            <path d="M80 87l8 8 14-18" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="116" y="70" width="39" height="7" rx="3.5" fill="#292b67" opacity=".82"/>
+            <rect x="116" y="84" width="29" height="6" rx="3" fill="#9ba1c7"/>
+            <rect x="69" y="117" width="86" height="7" rx="3.5" fill="#c6cbe4"/>
+            <circle cx="174" cy="37" r="13" fill="#c7f36b"/><path d="M174 30v14M167 37h14" stroke="#20234d" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="38" cy="137" r="10" fill="#27c9d2"/><path d="M34 137l3 3 6-7" fill="none" stroke="#172044" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="183" cy="151" r="5" fill="#ff8d75"/><circle cx="40" cy="42" r="4" fill="#c7f36b"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def profile_ready() -> bool:
     return isinstance(st.session_state.learner_profile, dict) and bool(st.session_state.learner_profile.get("confidence"))
