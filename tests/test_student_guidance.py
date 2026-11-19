@@ -29,5 +29,19 @@ class StudentGuidanceTests(unittest.TestCase):
             build_learning_snapshot({"pathway": "Engineering", "confidence": {}})
 
 
+    def test_personalised_recommendations_explain_priority(self):
+        from src.student_guidance import build_personalised_recommendations
+        result = build_personalised_recommendations(self.profile)
+        self.assertEqual(result["recommendations"][0]["subject"], "Mathematics")
+        self.assertIn("confidence rating is 2/5", result["recommendations"][0]["reason"])
+        self.assertIn("not a trained ML model", result["note"])
+        self.assertEqual(result["weekly_hours"], 8)
+
+    def test_pathway_gaps_are_reported(self):
+        from src.student_guidance import build_personalised_recommendations
+        result = build_personalised_recommendations(self.profile)
+        self.assertIn("Computing", result["pathway_gaps"])
+
+
 if __name__ == "__main__":
     unittest.main()
