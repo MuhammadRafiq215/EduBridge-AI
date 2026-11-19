@@ -7,7 +7,7 @@ textColor = "#171a35"
 font = "sans serif"
 
 [client]
-toolbarMode = "minimal"
+toolbarMode = "viewer"
 
 [server]
 headless = true
