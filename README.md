@@ -89,10 +89,21 @@ Implemented in `src/exploration.py` with a separate Streamlit workspace in `phas
 
 Run with `streamlit run phase3.py`. These cut-offs are analytical scenarios, not diagnoses or school-policy recommendations.
 
-### Next phases
+### Phase 4 — Calibration, uncertainty, robustness and error analysis
 
-- [ ] Run Phase 3 in the hosted environment and review generated outputs.
-- [ ] Examine calibration and error patterns.
+Implemented in `src/phase4.py` with a separate Streamlit workspace in `phase4.py`:
+- Pre-specified sigmoid probability calibration fitted using training-only cross-validation.
+- Raw-versus-calibrated reliability bins, Brier score, log loss and expected calibration error.
+- Percentile-bootstrap confidence intervals for held-out metrics.
+- False-positive/false-negative counts and descriptive subgroup error summaries.
+- Repeated stratified five-fold training-CV stability comparisons.
+- JSON research export, methodology documentation and automated tests.
+
+Run with `streamlit run phase4.py`. Test-set metrics are not used to tune the model or select calibration. See `docs/PHASE4.md` for the complete design and cautions.
+
+### Next research priorities
+
+- [ ] Run Phase 4 against the live UCI dataset and review outputs.
 - [ ] Seek independent educator/researcher review.
 - [ ] Investigate an appropriate local dataset only with consent, governance and privacy safeguards.
 - [ ] Do not present the prototype as deployment-ready for real student decisions.
