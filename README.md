@@ -128,9 +128,6 @@ EduBridge-AI/
 ├── supabase/
 │   └── schema.sql
 ├── src/
-│   ├── account_store.py
-│   └── student_guidance.py
-├── src/
 │   ├── __init__.py
 │   ├── data.py
 │   ├── exploration.py
