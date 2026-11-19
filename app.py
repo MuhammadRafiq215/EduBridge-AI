@@ -153,20 +153,17 @@ input:focus-visible,textarea:focus-visible {
   }
 }
 
-/* Keep Streamlit's Share control available while hiding public-facing
-   repository, app-menu, deploy/star and edit shortcuts. Do not hide the header. */
+/* Keep Share and Star available; hide only the GitHub/source action.
+   The icon can be nested inside Streamlit's toolbar button, so hide its
+   interactive parent as well as the SVG itself. */
 header[data-testid="stHeader"] [data-testid="stToolbar"] #GithubIcon,
-header[data-testid="stHeader"] [data-testid="stToolbar"] a[href*="github.com" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stMainMenu"],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stAppDeployButton"],
+header[data-testid="stHeader"] [data-testid="stToolbar"] button:has(#GithubIcon),
+header[data-testid="stHeader"] [data-testid="stToolbar"] a:has(#GithubIcon),
+header[data-testid="stHeader"] [data-testid="stToolbar"] [role="button"]:has(#GithubIcon),
+header[data-testid="stHeader"] [data-testid="stToolbar"] [data-testid="stToolbarActionButton"]:has(#GithubIcon),
 header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="GitHub" i],
 header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="GitHub" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Star" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Star" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Edit" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Edit" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [aria-label*="Deploy" i],
-header[data-testid="stHeader"] [data-testid="stToolbar"] [title*="Deploy" i] {
+header[data-testid="stHeader"] [data-testid="stToolbar"] a[href*="github.com" i] {
   display: none !important;
   visibility: hidden !important;
 }
