@@ -9,7 +9,7 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
 - Permission to authorize Streamlit to read the repository.
 - The repository's default branch is `main`.
 
-**Repository visibility:** the repository is currently private. Streamlit Community Cloud can be authorized to access a private repository; public visibility is not technically required. If you still want the code public, change it separately in GitHub under **Settings → General → Danger Zone → Change repository visibility → Make public**. Review the entire repository first: public means anyone can read and copy its code and history. Never commit passwords, tokens, private records or personal documents.
+**Repository visibility:** GitHub currently reports this repository as public. Anyone can read its code and commit history. Never commit passwords, API keys, private student records or personal documents.
 
 ## Deploy from a phone or computer
 
@@ -42,7 +42,7 @@ url = "https://YOUR-PROJECT.supabase.co"
 anon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
 ~~~
 
-5. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, password reset, profile save, sign-out and sign-in again.
+5. In Supabase Authentication settings, configure email confirmation and the redirect/site URL for the exact Streamlit app URL. Test account creation, email verification, sign-in, profile save, sign-out and sign-in again.
 6. Keep row-level security enabled on student_profiles. Never disable RLS and never put a service-role key in GitHub or Streamlit secrets.
 
 Until the Supabase project and Streamlit secrets are configured, public learning and research pages can load, but account and persistent-profile features will not work. A profile is persisted only after successful sign-in and database setup.
