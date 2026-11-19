@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 
 import pandas as pd
 import plotly.express as px
@@ -67,6 +67,24 @@ div[data-testid="stAlert"] {border-radius:14px;}
 }
 @media (max-width:520px) {.hero-art {display:none;}}
 
+/* Phase 3: career studio + weekly planner */
+.pathway-banner {position:relative;overflow:hidden;border-radius:24px;padding:28px 30px;color:#fff;background:linear-gradient(115deg,#1b1d3d 0%,#4d43b8 58%,#1e9ca8 100%);box-shadow:0 18px 42px rgba(47,47,115,.15);margin:12px 0 22px;}
+.pathway-banner:after {content:"";position:absolute;width:220px;height:220px;right:-45px;top:-115px;border:1px solid rgba(255,255,255,.25);border-radius:50%;box-shadow:0 0 0 22px rgba(255,255,255,.05),0 0 0 48px rgba(255,255,255,.035);}
+.pathway-icon {font-size:42px;line-height:1;margin-bottom:14px;}
+.pathway-banner h2 {color:#fff!important;margin:0 0 8px;font-size:clamp(24px,3vw,34px)!important;}
+.pathway-banner p {color:#e8eaff;margin:0;max-width:760px;line-height:1.65;}
+.pathway-chip {display:inline-block;margin:5px 5px 5px 0;padding:8px 12px;border-radius:999px;background:#f0efff;border:1px solid #e4e1ff;color:#5145c4;font-size:12px;font-weight:700;}
+.pathway-tile {height:100%;min-height:150px;background:#fff;border:1px solid #e7e9f5;border-radius:18px;padding:19px;box-shadow:0 8px 22px rgba(34,38,82,.04);}
+.pathway-tile .tile-icon {font-size:25px;margin-bottom:10px;}
+.pathway-tile h4 {font-size:15px;margin:0 0 7px;}
+.pathway-tile p {font-size:12px;color:#69718f;line-height:1.55;margin:0;}
+.week-day {height:100%;min-height:180px;background:#fff;border:1px solid #e7e9f5;border-radius:17px;padding:15px;box-shadow:0 7px 20px rgba(34,38,82,.035);}
+.week-day .day-label {font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#6657df;}
+.week-day .day-count {font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;color:#202247;margin:4px 0 10px;}
+.week-day .day-empty {font-size:12px;color:#8a90a8;line-height:1.5;}
+.planner-progress {border-radius:18px;padding:20px 22px;background:linear-gradient(105deg,#f0efff,#e7fbfc);border:1px solid #e2e5fa;}
+@media (max-width:800px) {.pathway-banner {padding:22px;border-radius:20px;} .week-day {min-height:0;padding:13px;}}
+
 /* Phase 2 dashboard system */
 .dash-kicker {display:inline-flex;align-items:center;gap:8px;color:#6255e9;font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;margin:2px 0 10px;}
 .dash-heading {font-family:'Space Grotesk',sans-serif;font-size:clamp(25px,3vw,36px);font-weight:700;letter-spacing:-1.4px;color:#1b1d3d;line-height:1.12;margin:0 0 8px;}
@@ -105,6 +123,9 @@ with st.sidebar:
         st.session_state["workspace"] = "My learning profile"
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
+    pending_workspace = st.session_state.pop("navigate_to_workspace", None)
+    if pending_workspace in ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"]:
+        st.session_state["workspace"] = pending_workspace
     page = st.radio("WORKSPACE", ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Account & privacy", "About EduBridge"], label_visibility="visible", key="workspace")
     st.divider()
     if user:
@@ -154,6 +175,25 @@ def hero(title: str, subtitle: str, eyebrow: str = "LEARN · EXPLORE · GROW"):
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+def auth_error_message(error: Exception, action: str) -> str:
+    """Map common Supabase Auth failures to safe, actionable user guidance."""
+    message = str(error).lower()
+    if any(token in message for token in ("email_not_authorized", "email address not authorized", "not authorized to send")):
+        return "Supabase's default email service only sends to authorised project-team addresses. Configure a custom SMTP provider in Supabase Auth → SMTP Settings before expecting confirmation emails to reach other addresses."
+    if any(token in message for token in ("over_email_send_rate_limit", "email rate limit", "429")):
+        return "Supabase's email limit has been reached. Please wait before requesting another message; repeated clicks will not speed up delivery."
+    if any(token in message for token in ("already registered", "user already exists")):
+        return "An account may already exist for this address. Try signing in, or use the resend-confirmation form if the address is still unverified."
+    if any(token in message for token in ("invalid login credentials", "email not confirmed")):
+        return "Sign-in was not completed. Check the email and password, and make sure the email address has been confirmed."
+    if any(token in message for token in ("password", "weak_password")):
+        return "Supabase rejected that password. Choose a longer password that meets the project's password policy."
+    if action == "signup":
+        return "Account creation could not be completed. Check Supabase Authentication logs for the exact provider error, then try again later."
+    if action == "resend":
+        return "The confirmation message could not be requested. Check the Auth logs and email-provider settings, and avoid repeated requests."
+    return "Sign-in could not be completed. Check your credentials and Supabase Auth logs."
 
 def profile_ready() -> bool:
     return isinstance(st.session_state.learner_profile, dict) and bool(st.session_state.learner_profile.get("confidence"))
@@ -207,10 +247,10 @@ if page == "Dashboard":
                     st.write("Your self-ratings show no immediate low-confidence focus area. Choose a stretch topic that interests you.")
                 st.divider()
                 if st.button("Open my study planner", type="primary", use_container_width=True, key="dash_open_planner"):
-                    st.session_state["workspace"] = "Study planner"
+                    st.session_state["navigate_to_workspace"] = "Study planner"
                     st.rerun()
                 if st.button("Update my learning profile", use_container_width=True, key="dash_edit_profile"):
-                    st.session_state["workspace"] = "My learning profile"
+                    st.session_state["navigate_to_workspace"] = "My learning profile"
                     st.rerun()
         st.markdown("### Your weekly game plan")
         plan = build_weekly_plan(profile)
@@ -243,7 +283,7 @@ if page == "Dashboard":
                     unsafe_allow_html=True,
                 )
                 if st.button(label, use_container_width=True, key=f"dash_go_{destination}"):
-                    st.session_state["workspace"] = destination
+                    st.session_state["navigate_to_workspace"] = destination
                     st.rerun()
         st.caption("Everything above is derived from your saved profile or clearly marked session-only interactions. EduBridge AI does not predict grades, admissions or individual outcomes.")
 
@@ -263,7 +303,7 @@ if page == "Dashboard":
                     unsafe_allow_html=True,
                 )
                 if st.button("Open workspace", use_container_width=True, key=f"setup_{number}"):
-                    st.session_state["workspace"] = destination
+                    st.session_state["navigate_to_workspace"] = destination
                     st.rerun()
         st.info("Your dashboard will show personal analytics after you add a learning profile. No sample scores or made-up progress are displayed.")
 
@@ -297,7 +337,7 @@ if page == "Dashboard":
                     unsafe_allow_html=True,
                 )
                 if st.button("Explore", use_container_width=True, key=f"guest_path_{name}"):
-                    st.session_state["workspace"] = "Career pathways"
+                    st.session_state["navigate_to_workspace"] = "Career pathways"
                     st.session_state["career_pathway_select"] = name
                     st.rerun()
         st.markdown('<div class="dash-band"><strong>Built around real learning inputs.</strong><br><span class="small-muted">Personal dashboards use the learner’s own profile. Research results come from documented public datasets. Empty states stay honest — no fabricated streaks, scores or activity counts.</span></div>', unsafe_allow_html=True)
@@ -310,7 +350,7 @@ if page == "Dashboard":
         ):
             with col:
                 if st.button(label, use_container_width=True, key=f"guest_jump_{destination}"):
-                    st.session_state["workspace"] = destination
+                    st.session_state["navigate_to_workspace"] = destination
                     st.rerun()
         st.caption("You can explore public learning and research features without signing in. Account features are subject to the service's eligibility requirements.")
 
@@ -378,52 +418,154 @@ elif page == "My learning profile":
         st.download_button("Download my profile (JSON)", json.dumps(st.session_state.learner_profile, indent=2), file_name="edubridge_learning_profile.json", mime="application/json")
 
 elif page == "Career pathways":
-    hero("Explore a direction that fits your interests.", "See common preparation areas and degree options. Always check the entry requirements of the universities you are considering.", "CAREER EXPLORER")
-    selected = st.selectbox("Choose a field to explore", list(PATHWAYS.keys()), key="career_pathway_select")
+    hero("Explore your next chapter.", "A visual career studio for comparing fields, building foundations and discovering small projects you can actually try.", "CAREER STUDIO")
+    pathway_names = list(PATHWAYS.keys())
+    if st.session_state.get("career_pathway_select") not in pathway_names:
+        st.session_state.pop("career_pathway_select", None)
+    selected = st.selectbox("Choose a field to explore", pathway_names, key="career_pathway_select")
     item = PATHWAYS[selected]
-    st.markdown(f"### {selected}")
+    pathway_art = {
+        "Engineering": ("⚙️", "Design, test and improve the systems people rely on."),
+        "Computer Science & AI": ("💻", "Turn logic, code and data into useful tools."),
+        "Medicine & Health Sciences": ("🧬", "Explore life sciences, evidence and human wellbeing."),
+        "Economics & Business": ("📈", "Understand choices, markets and how organisations work."),
+        "Natural Sciences & Biotechnology": ("🔬", "Ask scientific questions and investigate the natural world."),
+        "Social Sciences & Education": ("🌍", "Understand people, communities and how learning happens."),
+        "Architecture & Design": ("🎨", "Shape spaces, products and digital experiences around people."),
+    }
+    icon, tagline = pathway_art.get(selected, ("✨", "Explore a field through curiosity and practical learning."))
+    st.markdown(
+        f'<div class="pathway-banner"><div class="pathway-icon">{icon}</div>'
+        f'<h2>{selected}</h2><p>{tagline}</p></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("### Your field at a glance")
     st.write(item["description"])
-    left, right = st.columns(2)
+    overview_cols = st.columns(3, gap="medium")
+    overview = [
+        ("🧭", "Preparation themes", f"{len(item['focus'])} broad subject areas"),
+        ("🎓", "Degree directions", f"{len(item['degrees'])} degree areas to research"),
+        ("🛠️", "Starter projects", f"{len(item['projects'])} practical ideas"),
+    ]
+    for col, (tile_icon, title, detail) in zip(overview_cols, overview):
+        with col:
+            st.markdown(
+                f'<div class="pathway-tile"><div class="tile-icon">{tile_icon}</div>'
+                f'<h4>{title}</h4><p>{detail}</p></div>',
+                unsafe_allow_html=True,
+            )
+    left, right = st.columns([1, 1], gap="large")
     with left:
-        st.markdown("#### Common preparation areas")
-        for subject in item["focus"]:
-            st.markdown(f"- {subject}")
-        st.markdown("#### Degree areas to explore")
-        for degree in item["degrees"]:
-            st.markdown(f"- {degree}")
+        st.markdown("### Skills & preparation")
+        st.caption("These are broad exploration themes, not a universal admissions checklist.")
+        chips = "".join(f'<span class="pathway-chip">{subject}</span>' for subject in item["focus"])
+        st.markdown(chips, unsafe_allow_html=True)
+        st.markdown("### Degree areas to investigate")
+        for index, degree in enumerate(item["degrees"], start=1):
+            st.markdown(f"**{index:02d} · {degree}**")
     with right:
-        st.markdown("#### Try a small project")
-        for project in item["projects"]:
-            st.markdown(f"- {project}")
-        st.markdown("#### Free learning resources")
+        st.markdown("### Try a starter project")
+        for index, project in enumerate(item["projects"], start=1):
+            with st.container(border=True):
+                st.markdown(f"**{index:02d} · {project}**")
+                st.caption("Keep the scope small: define one question, build a first version and document what you learn.")
+        st.markdown("### Free learning resources")
         for resource_title, resource_url in item.get("resources", []):
             st.markdown(f"- [{resource_title}]({resource_url})")
-        st.info("These are broad orientation ideas, not official admission prerequisites. Requirements differ by country, university and programme.")
     if profile_ready():
-        matches = [x for x in item["focus"] if x in profile.get("subjects", [])]
-        st.markdown("#### Compare with your profile")
-        st.write("Preparation areas already in your subject list: " + (", ".join(matches) if matches else "None yet — you can add relevant subjects in My learning profile."))
+        st.markdown("### How this connects with your learning profile")
+        matches = [subject for subject in item["focus"] if subject in profile.get("subjects", [])]
+        missing = [subject for subject in item["focus"] if subject not in profile.get("subjects", [])]
+        match_cols = st.columns(2)
+        match_cols[0].metric("Themes already in your profile", len(matches))
+        match_cols[1].metric("Other themes to explore", len(missing))
+        if matches:
+            st.success("Already in your profile: " + ", ".join(matches))
+        if missing:
+            st.info("Not currently listed in your profile: " + ", ".join(missing))
+        st.caption("This compares names in your self-reported subject list; it is not a suitability score or admissions assessment.")
+        if st.button("Build a study plan around my profile", type="primary", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Study planner"
+            st.rerun()
+    else:
+        st.info("You can explore every pathway without an account. Add a learning profile later if you want to compare these themes with your own subjects.")
+    st.caption("University entry requirements vary by country, institution and programme. Always verify them on the official university website.")
 
 elif page == "Study planner":
-    hero("Make a plan you can actually follow.", "Your plan uses the subjects you rated as needing more attention. Adjust your profile whenever your priorities change.", "WEEKLY STUDY PLAN")
+    hero("Make your week work for you.", "A flexible study planner built from your own subject-confidence ratings and weekly time budget — not generic productivity pressure.", "YOUR WEEKLY RESET")
     if not profile_ready():
-        st.info("Create your learning profile first to generate a study plan.")
-        if st.button("Open my learning profile"):
-            st.session_state["navigate_to_profile"] = True
+        st.markdown('<div class="dash-band"><strong>Your planner starts with your learning profile.</strong><br><span class="small-muted">Add subjects, reflect on confidence and choose a realistic weekly study budget. EduBridge will then build a suggested allocation.</span></div>', unsafe_allow_html=True)
+        if st.button("Create my learning profile", type="primary", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "My learning profile"
             st.rerun()
     else:
         plan = build_weekly_plan(profile)
-        total = sum(row["hours"] for row in plan)
-        st.metric("Planned study time", f"{total} hours / week")
-        frame = pd.DataFrame(plan)
-        st.dataframe(frame, use_container_width=True, hide_index=True)
-        figure = px.pie(frame, values="hours", names="subject", hole=0.55, title="How your study time is allocated")
-        figure.update_layout(margin=dict(t=55, b=10), height=350, legend_title_text="")
-        st.plotly_chart(figure, use_container_width=True)
-        st.markdown("#### A simple weekly routine")
+        total = sum(int(row["hours"]) for row in plan)
+        st.markdown("### Your plan at a glance")
+        k1, k2, k3 = st.columns(3)
+        k1.metric("Planned focus time", f"{total} hrs", help="Based on the weekly hours you entered in your profile.")
+        k2.metric("Focus subjects", len(plan))
+        k3.metric("Weekly budget", f"{int(profile.get('weekly_hours', 0))} hrs")
+        st.caption("This is a suggested allocation, not a requirement. Adjust it to your timetable, rest and other responsibilities.")
+        st.markdown("### Time allocation")
+        plan_frame = pd.DataFrame(plan).rename(columns={"subject": "Subject", "hours": "Hours", "activity": "Suggested activity"})
+        plan_chart = px.bar(
+            plan_frame, x="Hours", y="Subject", orientation="h", text="Hours",
+            color="Subject", color_discrete_sequence=["#6757f5", "#27c9d2", "#ff8d75"],
+        )
+        plan_chart.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0)
+        plan_chart.update_layout(
+            height=max(250, 76 * len(plan)), margin=dict(l=8, r=30, t=18, b=12),
+            showlegend=False, xaxis_title="Suggested hours this week", yaxis_title="",
+            xaxis=dict(dtick=1, gridcolor="#eef0f8", zeroline=False),
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(family="DM Sans", color="#525a78"),
+        )
+        st.plotly_chart(plan_chart, use_container_width=True, config={"displayModeBar": False})
+        st.markdown("### Your seven-day focus board")
+        week_start = st.date_input("Choose the first day of your planning week", value=date.today(), key="planner_week_start")
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        monday = week_start - timedelta(days=week_start.weekday())
+        blocks = []
         for row in plan:
-            st.markdown(f"**{row['subject']} · {row['hours']} hour(s)** — {row['activity']}")
-        st.caption("This is a suggested starting plan. Adapt it to your timetable, deadlines and wellbeing.")
+            for _ in range(int(row["hours"])):
+                blocks.append({"subject": row["subject"], "activity": row["activity"]})
+        calendar = {day: [] for day in day_names}
+        for index, block in enumerate(blocks):
+            calendar[day_names[index % 7]].append(block)
+        completed = 0
+        for row_index in range(0, 7, 2):
+            day_cols = st.columns(2, gap="medium")
+            for offset, day in enumerate(day_names[row_index:row_index + 2]):
+                with day_cols[offset]:
+                    day_date = monday + timedelta(days=day_names.index(day))
+                    entries = calendar[day]
+                    st.markdown(
+                        f'<div class="week-day"><div class="day-label">{day} · {day_date.strftime("%d %b")}</div>'
+                        f'<div class="day-count">{len(entries)} <span style="font-size:12px;font-weight:600">focus block(s)</span></div>'
+                        f'<div class="day-empty">{"Your suggested focus blocks are listed below." if entries else "Open space — keep it flexible."}</div></div>',
+                        unsafe_allow_html=True,
+                    )
+                    if entries:
+                        for block_index, block in enumerate(entries):
+                            key = f"planner_done_{monday.isoformat()}_{day}_{block_index}"
+                            st.checkbox(
+                                f"{block['subject']} · 1 hour",
+                                key=key,
+                                help=block["activity"],
+                            )
+                            completed += int(bool(st.session_state.get(key, False)))
+        st.markdown('<div class="planner-progress"><strong>Your session checklist</strong><br><span class="small-muted">Checked blocks: the count below reflects this browser session only. It is not saved study history.</span></div>', unsafe_allow_html=True)
+        progress_cols = st.columns(2)
+        progress_cols[0].metric("Blocks checked", f"{completed} / {len(blocks)}")
+        progress_cols[1].metric("Checklist completion", f"{(completed / len(blocks) * 100):.0f}%" if blocks else "0%")
+        st.progress(completed / len(blocks) if blocks else 0.0)
+        st.markdown("### Your focus routine")
+        for row in plan:
+            with st.expander(f"{row['subject']} · {row['hours']} suggested hour(s)"):
+                st.write(row["activity"])
+                st.caption("Try a short review, a practice activity and a quick reflection. Take breaks and adapt the plan when needed.")
+        st.caption("Your plan is generated from your saved learning profile. Checklist ticks are temporary and clear when the browser session ends.")
 
 elif page == "Research insights":
     hero("The science behind the guidance.", "Explore transparent machine-learning experiments separately from your personal learning profile.", "RESEARCH LAB")
@@ -465,11 +607,11 @@ elif page == "Research insights":
         st.markdown("- [Engineering student performance dataset](https://data.mendeley.com/datasets/83tcx8psxv/1) — a separate engineering-focused dataset; its schema and licence must be reviewed before integration.")
 
 elif page == "Account & privacy":
-    hero("Your account, your learning space.", "Create an account or sign in to save your learning profile across visits.", "ACCOUNT & PRIVACY")
+    hero("Your account, your learning space.", "Understand how sign-in works, what is saved and how to troubleshoot verification safely.", "ACCOUNT & PRIVACY")
     if not supabase:
-        st.error("Supabase is not connected yet. Create a Supabase project, run supabase/schema.sql, then add the project URL and publishable/anon key to Streamlit Community Cloud Secrets.")
+        st.error("Supabase is not connected. Check the [deployment guide](https://github.com/MuhammadRafiq215/EduBridge-AI/blob/main/docs/DEPLOYMENT.md) and Streamlit Secrets.")
         st.code('[supabase]\nurl = "https://YOUR-PROJECT.supabase.co"\nanon_key = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"', language="toml")
-        st.warning("Never use a service-role key in this app. The publishable/anon key is safe only when row-level security is enabled.")
+        st.warning("Never use a service-role key in this app. Keep row-level security enabled.")
     elif user:
         st.success(f"Signed in as {user.email}")
         st.write("Your profile is stored in the private student_profiles table and protected by row-level security.")
@@ -479,8 +621,8 @@ elif page == "Account & privacy":
                 st.session_state.learner_profile = None
                 st.success("Your saved profile has been deleted.")
                 st.rerun()
-            except Exception:
-                st.error("Could not delete your profile. Check database policies.")
+            except Exception as exc:
+                st.error(auth_error_message(exc, "storage"))
         st.caption("Deleting the profile does not delete the login account; full account deletion needs a separately secured server-side process.")
     else:
         sign_in_tab, create_tab = st.tabs(["Sign in", "Create account"])
@@ -490,14 +632,17 @@ elif page == "Account & privacy":
                 password = st.text_input("Password", type="password")
                 login = st.form_submit_button("Sign in", type="primary", use_container_width=True)
             if login:
-                try:
-                    response = supabase.auth.sign_in_with_password({"email": email.strip(), "password": password})
-                    if response.session:
-                        save_auth_session(response.session)
-                        st.rerun()
-                    st.error("No active session was returned. Verify your email if required.")
-                except Exception:
-                    st.error("Sign-in failed. Check your email, password and email-verification status.")
+                if not email.strip() or not password:
+                    st.error("Enter both your email address and password.")
+                else:
+                    try:
+                        response = supabase.auth.sign_in_with_password({"email": email.strip(), "password": password})
+                        if response.session:
+                            save_auth_session(response.session)
+                            st.rerun()
+                        st.error("No active session was returned. Your email may still need confirmation.")
+                    except Exception as exc:
+                        st.error(auth_error_message(exc, "signin"))
         with create_tab:
             st.write("Use an email address you can access. Do not enter identity numbers, home addresses or private documents.")
             with st.form("create_account_form"):
@@ -509,6 +654,8 @@ elif page == "Account & privacy":
             if signup:
                 if not accepted:
                     st.error("Please confirm the profile-storage notice.")
+                elif "@" not in new_email or "." not in new_email.rsplit("@", 1)[-1]:
+                    st.error("Enter a valid email address.")
                 elif len(new_password) < 10:
                     st.error("Use a password with at least 10 characters.")
                 elif new_password != confirm:
@@ -518,14 +665,30 @@ elif page == "Account & privacy":
                         response = supabase.auth.sign_up({"email": new_email.strip(), "password": new_password})
                         if response.session:
                             save_auth_session(response.session)
+                            st.success("Your account is ready.")
                             st.rerun()
-                        st.success("Check your inbox to verify your email, then sign in.")
-                    except Exception:
-                        st.error("Account creation failed. Check the email and Supabase Auth settings.")
+                        st.success("If this address is eligible for registration, Supabase will send a confirmation email. Check Inbox, Spam and Promotions before requesting another message.")
+                        st.info("Important: Supabase's built-in email service is limited to authorised project-team addresses and currently allows only two emails per hour across the project. For other recipients, the project owner must configure a supported custom SMTP provider.")
+                    except Exception as exc:
+                        st.error(auth_error_message(exc, "signup"))
+            st.markdown("#### Didn't receive a confirmation email?")
+            with st.form("resend_confirmation_form"):
+                resend_email = st.text_input("Email address used for registration", key="resend_signup_email")
+                resend = st.form_submit_button("Request another confirmation email", use_container_width=True)
+            if resend:
+                if "@" not in resend_email or "." not in resend_email.rsplit("@", 1)[-1]:
+                    st.error("Enter the email address used during registration.")
+                else:
+                    try:
+                        supabase.auth.resend({"type": "signup", "email": resend_email.strip()})
+                        st.success("If a confirmation message can be sent for this address, Supabase will send a fresh one. Check Inbox, Spam and Promotions.")
+                    except Exception as exc:
+                        st.error(auth_error_message(exc, "resend"))
+            st.caption("If the message still does not arrive, the project owner should check Supabase → Authentication → Logs and configure custom SMTP. Do not disable email confirmation as a workaround.")
     st.markdown("### Privacy")
     st.markdown("- Passwords are managed by Supabase Auth, not stored in learner profiles.")
     st.markdown("- Only enter education information needed for guidance; avoid sensitive personal details.")
-    st.markdown("- Run the supplied SQL so row-level security limits each account to its own profile.")
+    st.markdown("- Row-level security limits each account to its own profile.")
     st.markdown("- If you are under 18, involve a parent or guardian before creating an online account.")
 
 elif page == "About EduBridge":
