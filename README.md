@@ -40,14 +40,15 @@ The main Streamlit app is designed around the learner rather than development mi
 
 | Workspace | What a learner can do |
 |---|---|
-| Home | Understand the platform and continue to a learning profile |
+| Dashboard | Review your saved learning snapshot, subject confidence and next priorities |
 | My learning profile | Select an education level from middle school through BS, record subjects, choose a field and self-rate confidence |
 | Career pathways | Explore preparation areas, degree families and small project ideas across engineering, computing/AI, medicine/health, economics/business, sciences, social sciences and design |
 | Study planner | Turn self-reported priorities and available weekly time into a simple study allocation |
 | Research insights | Inspect public-dataset experiments and compare machine-learning model families |
+| Account & privacy | Create an account, sign in, reset a password and manage saved profile data |
 | About EduBridge | Review the platform's scope, privacy and limitations |
 
-The profile is a session-based learning aid at present. It is not a permanent account. Secure registration, sign-in and cross-device profile storage require an authentication provider and private database configuration; the app does not collect passwords or pretend that a local form is secure authentication.
+Student accounts use Supabase Auth for email/password registration, sign-in and password reset. Learner profiles are stored in PostgreSQL and protected by row-level security. Run supabase/schema.sql and add the project URL and publishable/anon key to Streamlit secrets before enabling account features. The app never needs the service-role key.
 
 The confidence snapshot is based only on the learner's own ratings. It is not an objective grade, admissions probability, diagnosis or AI prediction.
 
@@ -124,10 +125,11 @@ EduBridge-AI/
 │   ├── PHASE4.md
 │   ├── PHASE5.md
 │   └── PROJECT_PLAN.md
-├── pages/
-│   ├── 2_Phase_3_Exploration.py
-│   ├── 3_Phase_4_Robustness.py
-│   └── 4_Phase_5_Explainability.py
+├── supabase/
+│   └── schema.sql
+├── src/
+│   ├── account_store.py
+│   └── student_guidance.py
 ├── src/
 │   ├── __init__.py
 │   ├── data.py
@@ -198,7 +200,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open the local address printed in the terminal. In the app sidebar, select **Run / refresh experiment** to download the dataset, train and evaluate the baselines, and generate the artifacts.
+Open the local address printed in the terminal. Configure Supabase secrets before testing account creation and persistent profile storage. Use **Research insights** to run the public-dataset benchmark.
 
 To run the experiment without opening the dashboard:
 
@@ -223,7 +225,7 @@ The final public app URL is assigned/confirmed by Streamlit during deployment. A
 Run the local test suite:
 
 ```bash
-python -m compileall -q app.py phase3.py phase4.py phase5.py train.py src tests pages
+python -m compileall -q app.py phase3.py phase4.py phase5.py train.py src tests
 python -m unittest discover -s tests -v
 ```
 
@@ -239,6 +241,8 @@ GitHub Actions runs the same compilation and unit-test checks on pushes and pull
 6. Never use this prototype to rank, punish, diagnose, admit, exclude or determine access to support for a learner.
 7. Any future real-world study requires local data governance, appropriate consent, privacy protection, expert review and independent evaluation.
 8. Never commit passwords, API keys, identifiable student records or other private information.
+9. Use only the Supabase publishable/anon key in Streamlit secrets; never expose the service-role key.
+10. Keep row-level security enabled on student_profiles so each learner can access only their own row.
 
 ## References
 
