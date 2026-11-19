@@ -685,13 +685,18 @@ elif page == "Study planner":
         week_start = st.date_input("Choose the first day of your planning week", value=date.today(), key="planner_week_start")
         day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         monday = week_start - timedelta(days=week_start.weekday())
+        available_days = [day for day in day_names if day in profile.get("study_days", day_names)]
+        session_minutes = max(15, min(120, int(profile.get("session_minutes", 60))))
         blocks = []
         for row in plan:
-            for _ in range(int(row["hours"])):
-                blocks.append({"subject": row["subject"], "activity": row["activity"]})
+            remaining_minutes = int(row["hours"]) * 60
+            while remaining_minutes > 0:
+                duration = min(session_minutes, remaining_minutes)
+                blocks.append({"subject": row["subject"], "activity": row["activity"], "minutes": duration})
+                remaining_minutes -= duration
         calendar = {day: [] for day in day_names}
         for index, block in enumerate(blocks):
-            calendar[day_names[index % 7]].append(block)
+            calendar[available_days[index % len(available_days)]].append(block)
         completed = 0
         for row_index in range(0, 7, 2):
             day_cols = st.columns(2, gap="medium")
@@ -701,7 +706,7 @@ elif page == "Study planner":
                     entries = calendar[day]
                     st.markdown(
                         f'<div class="week-day"><div class="day-label">{day} · {day_date.strftime("%d %b")}</div>'
-                        f'<div class="day-count">{len(entries)} <span style="font-size:12px;font-weight:600">focus block(s)</span></div>'
+                        f'<div class="day-count">{len(entries)} <span style="font-size:12px;font-weight:600">study session(s)</span></div>'
                         f'<div class="day-empty">{"Your suggested focus blocks are listed below." if entries else "Open space — keep it flexible."}</div></div>',
                         unsafe_allow_html=True,
                     )
@@ -709,7 +714,7 @@ elif page == "Study planner":
                         for block_index, block in enumerate(entries):
                             key = f"planner_done_{monday.isoformat()}_{day}_{block_index}"
                             st.checkbox(
-                                f"{block['subject']} · 1 hour",
+                                f"{block['subject']} · {block['minutes']} min",
                                 key=key,
                                 help=block["activity"],
                             )
@@ -897,14 +902,15 @@ elif page == "Student feedback":
 elif page == "About EduBridge":
     hero("Education is a journey, not a single score.", "EduBridge AI brings learning reflection, career exploration and transparent educational data science into one student-friendly space.", "ABOUT")
     st.markdown("### What this platform does")
-    st.markdown("- Helps learners organise subjects and self-assess confidence.")
+    st.markdown("- Supports learners across a broad international country and qualification catalogue, with custom curriculum options.")
+    st.markdown("- Helps learners organise a wide range of subjects and self-assess confidence.")
     st.markdown("- Suggests study priorities and manageable weekly plans.")
     st.markdown("- Explains broad academic and career pathways.")
     st.markdown("- Demonstrates reproducible machine-learning research on public datasets.")
     st.markdown("### What it does not do")
     st.markdown("- It does not calculate admission chances, rank students or issue diagnoses.")
     st.markdown("- It does not use your profile to train a model.")
-    st.markdown("- It does not claim that overseas datasets represent Pakistani students.")
+    st.markdown("- It does not claim that one research dataset represents every country, curriculum or learner.")
     st.markdown("### Privacy")
     st.write("Do not enter passwords, identity numbers, private records or sensitive personal details. Your saved learning profile is stored in your Supabase account when the database is configured. Do not enter passwords, identity numbers, private records or sensitive personal details.")
     st.markdown("### Account registration")
