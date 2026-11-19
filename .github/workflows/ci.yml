@@ -22,6 +22,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Compile Python files
-        run: python -m compileall -q app.py phase3.py phase4.py train.py src tests
+        run: python -m compileall -q app.py phase3.py phase4.py phase5.py train.py src tests pages
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
