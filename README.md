@@ -37,105 +37,47 @@ EduBridge AI is a research and learning prototype. Its purpose is to demonstrate
 
 **It is not a student diagnosis, grading, admissions, ranking or intervention system.** It must not be used to make decisions about individual learners.
 
-## Development history
+## Student-facing experience
 
-The project is documented in chronological order so readers can understand how it evolved.
+The main Streamlit app is designed around the learner rather than development milestones. Its workspaces are:
 
-### Phase 1 — Initial application prototype
-
-**Goal:** establish the first Streamlit application and the project's educational-analytics direction.
-
-The initial prototype established:
-- The EduBridge AI identity and Streamlit application entry point.
-- A research-dashboard layout and navigation concept.
-- The initial project structure and a foundation for later data-science work.
-- The principle that the application should communicate educational data responsibly.
-
-**Phase 1 outcome:** a working interface concept and a foundation for the research workflow. It did not yet constitute a complete, validated machine-learning experiment.
-
-### Phase 2 — Reproducible machine-learning workflow
-
-**Goal:** turn the initial interface into a documented, reproducible baseline ML research application.
-
-Implemented capabilities:
-- Download the official UCI Student Performance archive at experiment time.
-- Load the Mathematics cohort and audit dimensions, duplicates and missing values.
-- Define an explicit binary research target from final grade G3.
-- Exclude G1, G2 and G3 from model predictors.
-- Apply numeric and categorical preprocessing inside scikit-learn pipelines.
-- Compare a Dummy baseline, Logistic Regression and Random Forest.
-- Use stratified five-fold cross-validation on training data.
-- Select a model using mean cross-validation F1, with balanced accuracy as a tie-breaker.
-- Evaluate the selected pipeline on one held-out test partition.
-- Report classification, ranking and probability metrics.
-- Inspect feature permutation importance after model selection.
-- Produce descriptive subgroup diagnostics with clear cautions.
-- Save experiment outputs locally and offer dashboard downloads.
-- Run automated compilation and unit-test checks with GitHub Actions.
-
-**Phase 2 outcome:** the code for an end-to-end baseline research workflow is implemented. Actual experiment results are generated only when the experiment is run; no performance scores are fabricated or pre-filled.
-
-### Phase 3 — Deeper exploratory analysis and target-definition sensitivity
-
-**Goal:** examine descriptive patterns and test whether baseline conclusions depend on the definition of the positive class.
-
-Implemented in `src/exploration.py` with a separate Streamlit workspace in `phase3.py`:
-- Descriptive final-grade distribution, numeric summaries, feature/grade correlations and categorical distributions.
-- Sensitivity scenarios `G3 < 8`, `G3 < 10`, and `G3 < 12` on the original 0–20 scale.
-- Separate model selection for each target using the same stratified 75/25 split seed and five-fold training CV.
-- G1, G2 and G3 remain excluded from predictors in every scenario.
-- Reports class prevalence, selected model, CV metrics and held-out metrics without declaring a preferred cut-off.
-- Unit tests and a detailed methodology note in `docs/PHASE3.md`.
-
-Run with `streamlit run phase3.py`. These cut-offs are analytical scenarios, not diagnoses or school-policy recommendations.
-
-### Phase 4 — Calibration, uncertainty, robustness and error analysis
-
-Implemented in `src/phase4.py` with a separate Streamlit workspace in `phase4.py`:
-- Pre-specified sigmoid probability calibration fitted using training-only cross-validation.
-- Raw-versus-calibrated reliability bins, Brier score, log loss and expected calibration error.
-- Percentile-bootstrap confidence intervals for held-out metrics.
-- False-positive/false-negative counts and descriptive subgroup error summaries.
-- Repeated stratified five-fold training-CV stability comparisons.
-- JSON research export, methodology documentation and automated tests.
-
-Run with `streamlit run phase4.py`. Test-set metrics are not used to tune the model or select calibration. See `docs/PHASE4.md` for the complete design and cautions.
-
-
-
-### Phase 5 — Explainable AI with SHAP
-
-Implemented in `src/explainability.py` with a dedicated Streamlit workspace in `phase5.py`:
-- Model-agnostic SHAP permutation explanations for a small held-out sample.
-- Global mean-absolute contribution summaries and signed record-level contributions.
-- Model selection and fitting restricted to the training partition; SHAP background sampled from training rows.
-- Leakage exclusions for G1, G2 and G3 remain enforced.
-- Interpretation notes distinguish model attribution from causation and educational decisions.
-
-Run the standalone workspace with `streamlit run phase5.py`, or open **Phase 5 — Explainability** from the multipage navigation when running `streamlit run app.py`. See `docs/PHASE5.md` for methodology and safeguards.
-
-### Next research priorities
-
-- [ ] Run Phases 3–5 against the live UCI dataset in the hosted app and review outputs.
-- [ ] Seek independent educator/researcher review.
-- [ ] Investigate an appropriate local dataset only with consent, governance and privacy safeguards.
-- [ ] Do not present the prototype as deployment-ready for real student decisions.
-
-## Current application features
-
-The Streamlit dashboard contains seven workspaces:
-
-| Workspace | Purpose |
+| Workspace | What a learner can do |
 |---|---|
-| Research Overview | Dataset and experiment summary, model comparison and headline metrics |
-| Dataset Explorer | Dataset audit, preview, grade distribution and missingness |
-| Model Lab | Cross-validation comparison of baseline estimators |
-| Evaluation | Held-out metrics, confusion matrix, ROC curve, classification report and threshold-sensitivity diagnostics |
-| Explainability | Permutation-importance inspection |
-| Responsible AI | Descriptive subgroup diagnostics and safeguards |
-| Methodology | Experiment settings, limitations and downloadable artifacts |
+| Home | Understand the platform and continue to a learning profile |
+| My learning profile | Select an education level from middle school through BS, record subjects, choose a field and self-rate confidence |
+| Career pathways | Explore preparation areas, degree families and small project ideas across engineering, computing/AI, medicine/health, economics/business, sciences, social sciences and design |
+| Study planner | Turn self-reported priorities and available weekly time into a simple study allocation |
+| Research insights | Inspect public-dataset experiments and compare machine-learning model families |
+| About EduBridge | Review the platform's scope, privacy and limitations |
 
-The first launch intentionally displays instructions until the user runs the experiment from the sidebar.
+The profile is a session-based learning aid at present. It is not a permanent account. Secure registration, sign-in and cross-device profile storage require an authentication provider and private database configuration; the app does not collect passwords or pretend that a local form is secure authentication.
+
+The confidence snapshot is based only on the learner's own ratings. It is not an objective grade, admissions probability, diagnosis or AI prediction.
+
+## Machine-learning research
+
+The current secondary-school benchmark uses the [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance). Its mathematics cohort represents two Portuguese schools, so it is a methodological benchmark—not a validated model for Pakistani students.
+
+The benchmark compares:
+- Dummy baseline
+- Logistic Regression
+- Random Forest
+- Extra Trees
+- Gradient Boosting
+- RBF Support Vector Machine
+- K-Nearest Neighbours
+
+All preprocessing remains inside scikit-learn pipelines. Model selection uses stratified cross-validation on training data, followed by one held-out evaluation. The user-facing learner profile is not passed into these research models.
+
+### Additional datasets under evaluation
+
+These sources have different populations, features and outcomes. They must be modelled and evaluated separately rather than concatenated into one misleading training table.
+
+- [Open University Learning Analytics Dataset (OULAD)](https://archive.ics.uci.edu/dataset/349/open+university+learning+analytics+dataset): more than 30,000 higher-education registrations with course and online-learning activity; suitable for a separate higher-education learning-analytics experiment.
+- [Higher Education Students Performance Evaluation](https://archive.ics.uci.edu/dataset/856/higher+education+students+performance+evaluation): 145 records from engineering and educational-science faculties; a small exploratory benchmark, not a basis for broad claims.
+- [Engineering student performance dataset](https://data.mendeley.com/datasets/83tcx8psxv/1): a separate engineering-focused dataset of 12,411 students; review schema, licence and target definitions before integration.
+
+No benchmark listed above represents every medical, economics, engineering or BS programme. Career pathway content is orientation guidance, not a claim that the ML models have been trained for those disciplines.
 
 ## Dataset, target and feature policy
 
