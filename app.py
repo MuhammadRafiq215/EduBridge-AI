@@ -149,6 +149,14 @@ input:focus-visible,textarea:focus-visible {
     transform:none!important;
   }
 }
+
+/* Hide Streamlit-hosted developer chrome and repository shortcuts in the public viewer UI.
+   This is a presentation change only; repository permissions remain the security boundary. */
+#GithubIcon,
+header[data-testid="stHeader"] [data-testid="stToolbar"] {
+  display: none !important;
+  visibility: hidden !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
