@@ -14,6 +14,7 @@ from src.modeling import ARTIFACTS, run_experiment
 from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
+from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -489,18 +490,28 @@ elif page == "My learning profile":
     st.markdown("### Education and interests")
     with st.form("learner_profile_form"):
         col1, col2 = st.columns(2)
+        countries = get_countries()
         with col1:
-            level = st.selectbox("Current education level", LEVELS, index=2)
+            country_default = "Pakistan" if "Pakistan" in countries else countries[0]
+            country = st.selectbox("Country or territory", countries, index=countries.index(country_default), help="Country list uses ISO country names. Choose the country where you currently study.")
+            level = st.selectbox("Current education level", LEVELS + ["Primary school", "Upper secondary / college", "Postgraduate", "Doctoral", "Technical / vocational"], index=2)
             institution = st.text_input("School, college or university (optional)", max_chars=100)
-            board = st.selectbox("Curriculum / programme", ["Cambridge", "FBISE", "Sindh Board", "Punjab Board", "Other board", "University semester", "Other / not sure"])
+            qualification_options = get_qualification_options(country)
+            qualification = st.selectbox("Education system / qualification", qualification_options)
+            custom_qualification = st.text_input("If not listed, enter your curriculum or awarding body (optional)", max_chars=100)
         with col2:
-            pathway = st.selectbox("Field you're exploring", list(PATHWAYS.keys()))
-            programme = st.text_input("Programme / group (optional)", placeholder="e.g. Pre-Medical, Pre-Engineering, BS Computer Science")
-            current_year = st.text_input("Current class, year or semester", placeholder="e.g. A2, Grade 11, BS Year 2 / Semester 3")
-            weekly_hours = st.slider("Hours you can study each week", 1, 40, 8)
-        available = LEVEL_SUBJECTS[level]
-        suggested = [subject for subject in PATHWAYS[pathway]["focus"] if subject in available]
-        subjects = st.multiselect("Subjects you're currently studying", available, default=suggested[:min(3, len(suggested))])
+            pathway = st.selectbox("Field you're exploring", FIELDS_OF_INTEREST + list(PATHWAYS.keys()))
+            programme = st.text_input("Programme / group (optional)", placeholder="e.g. Pre-Medical, A Levels, IB Diploma, BS Computer Science")
+            current_year = st.text_input("Current class, year or semester", placeholder="e.g. Grade 11, A2, Year 2 / Semester 3")
+            weekly_hours = st.slider("Available study hours per week", 1, 60, 8, help="Choose a realistic total. The planner will distribute this time; it is not a target.")
+        available = get_subject_options()
+        suggested = [subject for subject in PATHWAYS.get(pathway, PATHWAYS["Computer Science & AI"])["focus"] if subject in available]
+        subjects = st.multiselect("Subjects you're currently studying", available, default=suggested[:min(3, len(suggested))], help="Search the catalogue or add a custom subject below.")
+        custom_subject_text = st.text_input("Add another subject (optional)", max_chars=80, placeholder="Type a subject not shown above")
+        if custom_subject_text.strip() and custom_subject_text.strip() not in subjects:
+            subjects = subjects + [custom_subject_text.strip()]
+        study_days = st.multiselect("Days you usually have time to study", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], default=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+        session_minutes = st.select_slider("Preferred study-session length", options=[15, 20, 25, 30, 40, 45, 50, 60, 75, 90, 120], value=45, format_func=lambda value: f"{value} min")
         st.markdown("#### How confident do you currently feel?")
         st.caption("Rate your own confidence from 1 (need more support) to 5 (comfortable). This is for planning, not grading.")
         ratings = {}
@@ -516,9 +527,12 @@ elif page == "My learning profile":
             st.error("Please choose at least one subject.")
         else:
             new_profile = {
-                "level": level, "institution": institution.strip(), "board": board,
+                "country": country, "level": level, "institution": institution.strip(),
+                "qualification": qualification, "custom_qualification": custom_qualification.strip(),
+                "board": custom_qualification.strip() or qualification,
                 "pathway": pathway, "programme": programme.strip(), "current_year": current_year.strip(),
-                "weekly_hours": weekly_hours, "subjects": subjects,
+                "weekly_hours": weekly_hours, "study_days": study_days,
+                "session_minutes": session_minutes, "subjects": subjects,
                 "confidence": ratings, "latest_results": latest_results, "updated": date.today().isoformat(),
             }
             if not user:
