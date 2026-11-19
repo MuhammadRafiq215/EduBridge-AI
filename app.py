@@ -90,7 +90,8 @@ elif page == "My learning profile":
             board = st.selectbox("Curriculum / programme", ["Cambridge", "FBISE", "Sindh Board", "Punjab Board", "Other board", "University semester", "Other / not sure"])
         with col2:
             pathway = st.selectbox("Field you're exploring", list(PATHWAYS.keys()))
-            programme = st.text_input("Class, group or BS programme (optional)", placeholder="e.g. A2, Pre-Medical, BS Computer Science")
+            programme = st.text_input("Programme / group (optional)", placeholder="e.g. Pre-Medical, Pre-Engineering, BS Computer Science")
+            current_year = st.text_input("Current class, year or semester", placeholder="e.g. A2, Grade 11, BS Year 2 / Semester 3")
             weekly_hours = st.slider("Hours you can study each week", 1, 40, 8)
         available = LEVEL_SUBJECTS[level]
         suggested = [subject for subject in PATHWAYS[pathway]["focus"] if subject in available]
@@ -98,10 +99,12 @@ elif page == "My learning profile":
         st.markdown("#### How confident do you currently feel?")
         st.caption("Rate your own confidence from 1 (need more support) to 5 (comfortable). This is for planning, not grading.")
         ratings = {}
+        latest_results = {}
         rating_cols = st.columns(2)
         for index, subject in enumerate(subjects):
             with rating_cols[index % 2]:
-                ratings[subject] = st.slider(subject, 1, 5, 3, key=f"profile_rating_{subject}")
+                ratings[subject] = st.slider(subject + " · confidence", 1, 5, 3, key=f"profile_rating_{subject}")
+                latest_results[subject] = st.text_input(subject + " · latest result (optional)", max_chars=30, key=f"profile_result_{subject}", placeholder="e.g. A, B, 82%, 3.4 GPA")
         submitted = st.form_submit_button("Save my learning profile", type="primary", use_container_width=True)
     if submitted:
         if not subjects:
@@ -109,9 +112,9 @@ elif page == "My learning profile":
         else:
             st.session_state.learner_profile = {
                 "level": level, "institution": institution.strip(), "board": board,
-                "pathway": pathway, "programme": programme.strip(),
+                "pathway": pathway, "programme": programme.strip(), "current_year": current_year.strip(),
                 "weekly_hours": weekly_hours, "subjects": subjects,
-                "confidence": ratings, "updated": date.today().isoformat(),
+                "confidence": ratings, "latest_results": latest_results, "updated": date.today().isoformat(),
             }
             st.success("Your learning profile is ready.")
             st.rerun()
@@ -122,6 +125,10 @@ elif page == "My learning profile":
         a.metric("Subjects reviewed", snapshot["subjects_rated"])
         b.metric("Average self-rating", f'{snapshot["average_confidence"]:.1f} / 5')
         c.metric("Learning stage", snapshot["confidence_label"])
+        if any(value.strip() for value in st.session_state.learner_profile.get("latest_results", {}).values()):
+            st.markdown("#### Your latest self-reported results")
+            result_rows = [{"Subject": subject, "Result": value or "Not entered", "Confidence": f"{st.session_state.learner_profile['confidence'][subject]}/5"} for subject, value in st.session_state.learner_profile["latest_results"].items()]
+            st.dataframe(pd.DataFrame(result_rows), use_container_width=True, hide_index=True)
         st.caption("This profile is stored only in the active Streamlit session. It is not a permanent account.")
         st.download_button("Download my profile (JSON)", json.dumps(st.session_state.learner_profile, indent=2), file_name="edubridge_learning_profile.json", mime="application/json")
 
