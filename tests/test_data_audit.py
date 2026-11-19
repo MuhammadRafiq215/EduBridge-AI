@@ -22,5 +22,18 @@ class DatasetAuditTests(unittest.TestCase):
         self.assertEqual(result["excluded_grade_columns"], ["G1", "G2", "G3"])
 
 
+class ThresholdSensitivityTests(unittest.TestCase):
+    def test_threshold_tradeoffs_are_reported_without_selecting_a_winner(self):
+        from src.modeling import threshold_sensitivity
+
+        rows = threshold_sensitivity([0, 0, 1, 1], [0.1, 0.6, 0.4, 0.9], thresholds=(0.5,))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["threshold"], 0.5)
+        self.assertAlmostEqual(rows[0]["precision"], 0.5)
+        self.assertAlmostEqual(rows[0]["recall"], 0.5)
+        self.assertIn("balanced_accuracy", rows[0])
+        self.assertIn("predicted_positive_rate", rows[0])
+
+
 if __name__ == "__main__":
     unittest.main()
