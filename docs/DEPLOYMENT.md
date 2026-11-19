@@ -9,7 +9,7 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
 - Permission to authorize Streamlit to read the repository.
 - The repository's default branch is `main`.
 
-**Repository visibility:** the repository has previously been configured as private. If it is still private, select the private-repository deployment option and grant Streamlit access when prompted. Do not change repository visibility merely to deploy; public visibility is a separate decision.
+**Repository visibility:** the repository is currently private. Streamlit Community Cloud can be authorized to access a private repository; public visibility is not technically required. If you still want the code public, change it separately in GitHub under **Settings → General → Danger Zone → Change repository visibility → Make public**. Review the entire repository first: public means anyone can read and copy its code and history. Never commit passwords, tokens, private records or personal documents.
 
 ## Deploy from a phone or computer
 
@@ -21,7 +21,9 @@ This guide deploys the Streamlit dashboard in `app.py`. The GitHub repository st
 6. Enter:
    - **Repository:** `MuhammadRafiq215/EduBridge-AI`
    - **Branch:** `main`
-   - **Main file path:** `app.py`
+   - **Main file path:** `app.py` (the main dashboard)
+
+The app also exposes Phase 3, Phase 4 and Phase 5 in Streamlit's multipage navigation. The page scripts are in `pages/`; Phase 5 uses `phase5.py` and the SHAP dependency listed in `requirements.txt`.
 7. Open advanced settings and choose **Python 3.12**.
 8. Select **Deploy** and wait for package installation and app startup.
 9. When Streamlit displays the app, copy the exact URL shown in the app workspace. That is the deployed address to share.
