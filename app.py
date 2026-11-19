@@ -66,6 +66,22 @@ div[data-testid="stAlert"] {border-radius:14px;}
  .hero p {font-size:14px;}
 }
 @media (max-width:520px) {.hero-art {display:none;}}
+
+/* Phase 2 dashboard system */
+.dash-kicker {display:inline-flex;align-items:center;gap:8px;color:#6255e9;font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;margin:2px 0 10px;}
+.dash-heading {font-family:'Space Grotesk',sans-serif;font-size:clamp(25px,3vw,36px);font-weight:700;letter-spacing:-1.4px;color:#1b1d3d;line-height:1.12;margin:0 0 8px;}
+.dash-subheading {font-size:15px;color:#69718f;line-height:1.65;margin:0 0 20px;}
+.dash-card {height:100%;background:linear-gradient(145deg,#fff 0%,#fbfbff 100%);border:1px solid #e7e9f5;border-radius:20px;padding:22px;box-shadow:0 10px 28px rgba(35,38,85,.055);}
+.dash-card .card-icon {display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#efedff;color:#6255e9;font-size:21px;margin-bottom:15px;}
+.dash-card h3 {font-family:'Space Grotesk',sans-serif;font-size:18px;color:#202247;margin:0 0 8px;letter-spacing:-.4px;}
+.dash-card p {font-size:13px;line-height:1.6;color:#6c7390;margin:0;}
+.dash-card .card-meta {display:inline-block;margin-top:15px;padding:5px 9px;border-radius:999px;background:#f0efff;color:#6255e9;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;}
+.dash-band {border-radius:22px;padding:23px 25px;background:linear-gradient(105deg,#f0efff 0%,#e9fbfc 100%);border:1px solid #e2e5fa;}
+.dash-band strong {color:#262858;}
+.dash-divider {height:1px;background:#e9eaf5;margin:22px 0;}
+.dash-stat-note {font-size:11px;color:#7c829d;margin-top:4px;}
+div[data-testid="stPlotlyChart"] {background:#fff;border:1px solid #e9eaf5;border-radius:18px;padding:8px 8px 0;box-shadow:0 8px 24px rgba(34,38,82,.035);}
+@media (max-width:800px) {.dash-card {padding:17px;border-radius:17px;} .dash-heading {font-size:27px;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -145,71 +161,158 @@ def profile_ready() -> bool:
 profile = st.session_state.learner_profile
 
 if page == "Dashboard":
-    hero("Your learning journey, in one place.", "See where you are today, understand your next priorities and turn your goals into a realistic weekly plan.", "STUDENT DASHBOARD")
-    if not user:
-        left, right = st.columns([1.25, 1])
-        with left:
-            st.markdown("### A personal space for learning")
-            st.write("Create an account to save your subjects and self-reflection securely, then return to your dashboard from another session.")
-            st.markdown("""
-            <div class="section-card"><b>01 · Understand your position</b><br><span class="small-muted">Add your education level, subjects and confidence ratings.</span></div>
-            <div class="section-card"><b>02 · Explore your direction</b><br><span class="small-muted">Compare pathways across engineering, computing, health, economics and more.</span></div>
-            <div class="section-card"><b>03 · Turn goals into action</b><br><span class="small-muted">Build a manageable weekly plan and revisit your progress.</span></div>
-            """, unsafe_allow_html=True)
-            if st.button("Create my student account", type="primary", use_container_width=True):
-                st.session_state["navigate_to_account"] = True
-                st.rerun()
-        with right:
-            st.markdown("### Explore learning pathways")
-            st.markdown('<div class="section-card"><b>Engineering</b><br><span class="small-muted">Mathematics · Physics · Design</span></div><div class="section-card"><b>Computing & AI</b><br><span class="small-muted">Logic · Programming · Mathematics</span></div><div class="section-card"><b>Medicine & health</b><br><span class="small-muted">Biology · Chemistry · Evidence</span></div><div class="section-card"><b>Economics & business</b><br><span class="small-muted">Mathematics · Economics · Analysis</span></div>', unsafe_allow_html=True)
-        st.info("You can explore pathways and research without an account. Sign-in is required to save a personal profile.")
-    elif not profile_ready():
-        st.markdown("### Welcome to your learning dashboard")
-        st.write("Your account is ready. Add your education stage, subjects and self-ratings to build your first learning snapshot.")
-        if st.button("Set up my learning profile", type="primary"):
-            st.session_state["navigate_to_profile"] = True
-            st.rerun()
-        st.caption("Only enter education information needed for guidance. Avoid identity numbers, exact birth dates and home addresses.")
-    else:
+    if user and profile_ready():
         snapshot = build_learning_snapshot(profile)
+        hero("Your next move starts here.", "A clearer view of what you're learning, what needs attention and what you can do next.", "YOUR LEARNING HQ")
+        st.markdown(f'<div class="dash-kicker">✦ PERSONAL LEARNING SNAPSHOT</div><div class="dash-heading">Welcome back to your workspace.</div><p class="dash-subheading">Your dashboard reflects the subjects and goals you entered. Update your profile whenever your priorities change.</p>', unsafe_allow_html=True)
         metrics = st.columns(4)
         metrics[0].metric("Subjects reviewed", snapshot["subjects_rated"])
-        metrics[1].metric("Confidence reflection", f'{snapshot["average_confidence"]:.1f} / 5')
-        metrics[2].metric("Study time", f'{profile.get("weekly_hours", 0)} hrs / week')
-        metrics[3].metric("Learning stage", snapshot["level"])
-        st.markdown("### Your learning overview")
-        left, right = st.columns([1.2, 1])
+        metrics[1].metric("Average confidence", f'{snapshot["average_confidence"]:.1f} / 5')
+        metrics[2].metric("Weekly study budget", f'{int(profile.get("weekly_hours", 0))} hrs')
+        metrics[3].metric("Learning stage", snapshot["confidence_label"])
+        st.markdown('<div class="dash-divider"></div>', unsafe_allow_html=True)
+        left, right = st.columns([1.25, 0.9], gap="large")
         with left:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown(f'**Current direction:** {snapshot["pathway"]}')
-            st.markdown(f'**Programme:** {profile.get("programme") or "Not specified"}')
-            st.markdown(f'**Institution:** {profile.get("institution") or "Not specified"}')
-            st.markdown(f'**Current year:** {profile.get("current_year") or "Not specified"}')
-            st.markdown(f'**Self-reflection:** {snapshot["confidence_label"]}')
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown("#### Subject confidence")
-            ratings_frame = pd.DataFrame([{"Subject": name, "Confidence": int(score)} for name, score in profile["confidence"].items()]).sort_values("Confidence")
-            chart = px.bar(ratings_frame, x="Confidence", y="Subject", orientation="h", range_x=[0, 5], text="Confidence", title="Your own confidence ratings (1–5)")
-            chart.update_layout(height=max(260, 55 * len(ratings_frame)), margin=dict(l=5, r=15, t=50, b=10))
-            st.plotly_chart(chart, use_container_width=True)
+            st.markdown("### Your subject pulse")
+            st.caption("A visual summary of your own confidence ratings — not exam grades.")
+            ratings_frame = pd.DataFrame(
+                [{"Subject": name, "Confidence": int(score)} for name, score in profile["confidence"].items()]
+            ).sort_values(["Confidence", "Subject"])
+            chart = px.bar(
+                ratings_frame, x="Confidence", y="Subject", orientation="h",
+                range_x=[0, 5], text="Confidence",
+                color="Confidence", color_continuous_scale=["#ff9b83", "#9a8cf8", "#27c9d2"],
+            )
+            chart.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0)
+            chart.update_layout(
+                height=max(280, 48 * len(ratings_frame)), margin=dict(l=8, r=28, t=12, b=12),
+                coloraxis_showscale=False, xaxis_title="Self-rated confidence (1–5)",
+                yaxis_title="", plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(family="DM Sans", color="#525a78"),
+                xaxis=dict(range=[0, 5.6], dtick=1, gridcolor="#eef0f8", zeroline=False),
+                yaxis=dict(automargin=True),
+            )
+            st.plotly_chart(chart, use_container_width=True, config={"displayModeBar": False})
         with right:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown("#### Focus areas")
-            if snapshot["focus_subjects"]:
-                for subject in snapshot["focus_subjects"]:
-                    st.markdown(f"- **{subject}** — choose one topic to practise this week")
-            else:
-                st.write("No low-confidence subjects selected. Try an advanced topic in an area you enjoy.")
-            st.markdown("#### Current strengths")
-            st.write(", ".join(snapshot["strength_subjects"]) if snapshot["strength_subjects"] else "Your ratings will help identify strengths over time.")
-            st.markdown("#### Recommended next steps")
-            for item in snapshot["next_steps"]:
-                st.markdown(f"- {item}")
-            st.markdown('</div>', unsafe_allow_html=True)
-            if st.button("Open my weekly study plan", type="primary", use_container_width=True):
-                st.session_state["workspace"] = "Study planner"
-                st.rerun()
-        st.caption("This dashboard is based on your own entries. It is not a grade, diagnosis, admissions assessment or AI prediction.")
+            st.markdown("### Your next best moves")
+            with st.container(border=True):
+                st.markdown(f"**Current direction**  \n{snapshot['pathway']}")
+                st.caption(f"{profile.get('level', 'Learning stage not set')} · {profile.get('programme') or 'Programme not specified'}")
+                if snapshot["focus_subjects"]:
+                    st.markdown("**Give a little extra attention to**")
+                    for subject in snapshot["focus_subjects"]:
+                        st.markdown(f"- {subject}")
+                else:
+                    st.markdown("**Keep your momentum**")
+                    st.write("Your self-ratings show no immediate low-confidence focus area. Choose a stretch topic that interests you.")
+                st.divider()
+                if st.button("Open my study planner", type="primary", use_container_width=True, key="dash_open_planner"):
+                    st.session_state["workspace"] = "Study planner"
+                    st.rerun()
+                if st.button("Update my learning profile", use_container_width=True, key="dash_edit_profile"):
+                    st.session_state["workspace"] = "My learning profile"
+                    st.rerun()
+        st.markdown("### Your weekly game plan")
+        plan = build_weekly_plan(profile)
+        plan_cols = st.columns(min(3, len(plan)))
+        for index, row in enumerate(plan):
+            with plan_cols[index % len(plan_cols)]:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">◷</div><h3>{row["subject"]}</h3>'
+                    f'<p>{row["activity"]}</p><span class="card-meta">{row["hours"]} hour(s) this week</span></div>',
+                    unsafe_allow_html=True,
+                )
+        st.caption("Ticking a focus block below is a temporary browser-session checklist; it is not stored as completed study history.")
+        with st.expander("Track today's focus blocks"):
+            for row in plan:
+                st.checkbox(
+                    f"{row['subject']} focus block ({row['hours']} hour(s))",
+                    key=f"dash_focus_{row['subject']}",
+                )
+        st.markdown("### Keep exploring")
+        action_cols = st.columns(3)
+        actions = [
+            ("Career pathways", "Explore degree families, preparation areas and starter projects.", "Explore pathways"),
+            ("Research insights", "Inspect reproducible machine-learning experiments and their limits.", "Visit research lab"),
+            ("My learning profile", "Refresh your subjects, interests and confidence reflections.", "Edit profile"),
+        ]
+        for col, (destination, description, label) in zip(action_cols, actions):
+            with col:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">✦</div><h3>{destination}</h3><p>{description}</p></div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button(label, use_container_width=True, key=f"dash_go_{destination}"):
+                    st.session_state["workspace"] = destination
+                    st.rerun()
+        st.caption("Everything above is derived from your saved profile or clearly marked session-only interactions. EduBridge AI does not predict grades, admissions or individual outcomes.")
+
+    elif user:
+        hero("Your learning HQ is ready.", "Start with a few learning details. EduBridge will organise your subjects and turn your priorities into a practical plan.", "LET'S GET STARTED")
+        st.markdown('<div class="dash-kicker">✦ YOUR FIRST STEPS</div><div class="dash-heading">Build a workspace that feels like yours.</div><p class="dash-subheading">Your account is signed in, but you have not saved a learning snapshot yet. Add only the education details you need for guidance.</p>', unsafe_allow_html=True)
+        setup_cols = st.columns(3)
+        setup_cards = [
+            ("01", "Set your learning profile", "Choose your level, subjects, field of interest and confidence ratings.", "My learning profile"),
+            ("02", "Explore possible directions", "Compare broad degree families, preparation areas and project ideas.", "Career pathways"),
+            ("03", "Turn priorities into a plan", "Create a realistic weekly allocation from your own study-time estimate.", "Study planner"),
+        ]
+        for col, (number, title, description, destination) in zip(setup_cols, setup_cards):
+            with col:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">{number}</div><h3>{title}</h3><p>{description}</p></div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("Open workspace", use_container_width=True, key=f"setup_{number}"):
+                    st.session_state["workspace"] = destination
+                    st.rerun()
+        st.info("Your dashboard will show personal analytics after you add a learning profile. No sample scores or made-up progress are displayed.")
+
+    else:
+        hero("Your learning journey, upgraded.", "Explore your next direction, build better study habits and understand the data behind education — all in one student-first space.", "WELCOME TO EDUBRIDGE")
+        st.markdown('<div class="dash-kicker">✦ ONE SPACE. MORE POSSIBILITIES.</div><div class="dash-heading">Less guesswork. More direction.</div><p class="dash-subheading">A learning companion for curious students — designed to make academic planning feel clearer, more visual and more actionable.</p>', unsafe_allow_html=True)
+        feature_cols = st.columns(3, gap="large")
+        feature_cards = [
+            ("01", "Know your learning style", "Organise your subjects and reflect on where you feel confident or want more practice.", "PERSONAL PROFILE"),
+            ("02", "Explore what comes next", "Browse broad degree pathways, useful preparation areas and small projects to try.", "CAREER DISCOVERY"),
+            ("03", "Make your time count", "Turn your own priorities and available hours into a manageable weekly plan.", "STUDY PLANNING"),
+        ]
+        for col, (number, title, description, meta) in zip(feature_cols, feature_cards):
+            with col:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">{number}</div><h3>{title}</h3><p>{description}</p><span class="card-meta">{meta}</span></div>',
+                    unsafe_allow_html=True,
+                )
+        st.markdown("### Explore a few pathways")
+        pathway_cols = st.columns(4, gap="medium")
+        pathway_preview = [
+            ("Computer Science & AI", "Logic · Programming · Data"),
+            ("Engineering", "Mathematics · Physics · Design"),
+            ("Medicine & Health Sciences", "Biology · Chemistry · Evidence"),
+            ("Economics & Business", "Analysis · Markets · Decisions"),
+        ]
+        for col, (name, tags) in zip(pathway_cols, pathway_preview):
+            with col:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">✧</div><h3>{name}</h3><p>{tags}</p></div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("Explore", use_container_width=True, key=f"guest_path_{name}"):
+                    st.session_state["workspace"] = "Career pathways"
+                    st.session_state["selected_pathway"] = name
+                    st.rerun()
+        st.markdown('<div class="dash-band"><strong>Built around real learning inputs.</strong><br><span class="small-muted">Personal dashboards use the learner’s own profile. Research results come from documented public datasets. Empty states stay honest — no fabricated streaks, scores or activity counts.</span></div>', unsafe_allow_html=True)
+        st.markdown("### Jump into the platform")
+        jump_cols = st.columns(3)
+        for col, destination, label in zip(
+            jump_cols,
+            ["Career pathways", "Research insights", "About EduBridge"],
+            ["Discover careers", "Explore the research", "See how it works"],
+        ):
+            with col:
+                if st.button(label, use_container_width=True, key=f"guest_jump_{destination}"):
+                    st.session_state["workspace"] = destination
+                    st.rerun()
+        st.caption("You can explore public learning and research features without signing in. Account features are subject to the service's eligibility requirements.")
 
 elif page == "My learning profile":
     if not user:
