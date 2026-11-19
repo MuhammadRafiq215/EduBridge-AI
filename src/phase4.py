@@ -284,6 +284,8 @@ def run_phase4_analysis(
         "methodology": {
             "split": "Stratified 75/25 train/test, random_state=42",
             "predictors": "All available columns except G1, G2 and G3",
+            "predictor_columns": X.columns.tolist(),
+            "excluded_columns": [column for column in LEAKAGE_COLUMNS if column in frame.columns],
             "model_selection": "Training-only stratified 5-fold CV; mean F1, balanced accuracy tie-breaker",
             "calibration": "Pre-specified sigmoid calibration using 5-fold CV within training data",
             "test_policy": "Held-out test data is used once for final raw and calibrated evaluation; no threshold or model selection on test data",
