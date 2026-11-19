@@ -67,6 +67,25 @@ def build_models(X: pd.DataFrame) -> dict:
     }
 
 
+
+def threshold_sensitivity(y_true, probabilities, thresholds=(0.30, 0.40, 0.50, 0.60, 0.70)) -> list[dict]:
+    """Summarize classification trade-offs; never select a threshold automatically."""
+    rows = []
+    y_true = np.asarray(y_true, dtype=int)
+    probabilities = np.asarray(probabilities, dtype=float)
+    for threshold in thresholds:
+        predicted = (probabilities >= threshold).astype(int)
+        rows.append({
+            "threshold": float(threshold),
+            "precision": float(precision_score(y_true, predicted, zero_division=0)),
+            "recall": float(recall_score(y_true, predicted, zero_division=0)),
+            "f1": float(f1_score(y_true, predicted, zero_division=0)),
+            "balanced_accuracy": float(balanced_accuracy_score(y_true, predicted)),
+            "predicted_positive_rate": float(predicted.mean()),
+        })
+    return rows
+
+
 def run_experiment() -> dict:
     """Download data, train baselines, evaluate once on a held-out test set."""
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
@@ -144,6 +163,7 @@ def run_experiment() -> dict:
         },
         "positive_class_definition": "G3 < 10 on the original 0–20 grade scale",
         "decision_threshold": 0.5,
+        "threshold_sensitivity": threshold_sensitivity(y_test, probabilities),
         "random_state": RANDOM_STATE,
         "cv_folds": 5,
         "predictor_columns": X.columns.tolist(),
@@ -180,6 +200,7 @@ def run_experiment() -> dict:
                 })
             group_audit[group_column] = group_rows
 
+    pd.DataFrame(metrics["threshold_sensitivity"]).to_csv(ARTIFACTS / "threshold_sensitivity.csv", index=False)
     comparison_frame.to_csv(ARTIFACTS / "model_comparison.csv", index=False)
     importance_frame.to_csv(ARTIFACTS / "permutation_importance.csv", index=False)
     pd.DataFrame({
