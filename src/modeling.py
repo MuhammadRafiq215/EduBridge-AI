@@ -241,6 +241,24 @@ def run_experiment() -> dict:
         "dataset": "UCI Student Performance — Mathematics cohort (student-mat.csv)",
         "dataset_url": "https://archive.ics.uci.edu/dataset/320/student+performance",
         "dataset_audit": audit,
+        "research_overview": {
+            "grade_distribution": [
+                {"grade": int(grade), "count": int(count)}
+                for grade, count in frame[TARGET_COLUMN].value_counts().sort_index().items()
+            ],
+            "top_numeric_correlations": [
+                {"feature": str(feature), "correlation": float(value)}
+                for feature, value in frame.select_dtypes(include=["number", "bool"])
+                    .corr(numeric_only=True)[TARGET_COLUMN].drop(TARGET_COLUMN)
+                    .reindex(
+                        frame.select_dtypes(include=["number", "bool"])
+                        .corr(numeric_only=True)[TARGET_COLUMN].drop(TARGET_COLUMN)
+                        .abs().sort_values(ascending=False).index
+                    ).head(8).items()
+                if pd.notna(value)
+            ],
+            "predictor_count_after_exclusion": int(X.shape[1]),
+        },
         "model_comparison": comparison_frame.to_dict(orient="records"),
         "test_metrics": metrics,
         "group_audit": group_audit,
