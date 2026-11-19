@@ -24,6 +24,12 @@ class StudentGuidanceTests(unittest.TestCase):
         self.assertEqual(sum(row["hours"] for row in plan), 8)
         self.assertLessEqual(len(plan), 3)
 
+    def test_weekly_plan_prioritises_lower_confidence_subject(self):
+        plan = build_weekly_plan(self.profile)
+        allocations = {row["subject"]: row["hours"] for row in plan}
+        self.assertGreater(allocations["Mathematics"], allocations["Chemistry"])
+        self.assertIn("allocation_reason", plan[0])
+
     def test_empty_confidence_is_rejected(self):
         with self.assertRaises(ValueError):
             build_learning_snapshot({"pathway": "Engineering", "confidence": {}})
