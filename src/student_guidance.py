@@ -118,3 +118,55 @@ def build_weekly_plan(profile: dict) -> list[dict]:
         {"subject": subject, "hours": allocation, "activity": "Review one concept, practise questions, then note what remains unclear."}
         for subject, allocation in zip(subjects, allocations)
     ]
+
+def build_personalised_recommendations(profile: dict) -> dict:
+    """Create transparent, profile-based learning priorities and explain their rationale.
+
+    This is a deterministic recommendation system, not a trained predictive model.
+    It uses only the learner's self-reported confidence, selected pathway and subjects.
+    """
+    snapshot = build_learning_snapshot(profile)
+    pathway_info = PATHWAYS.get(snapshot["pathway"], PATHWAYS["Computer Science & AI"])
+    ratings = {
+        str(subject): max(1, min(5, int(score)))
+        for subject, score in profile.get("confidence", {}).items()
+        if score is not None
+    }
+    pathway_focus = pathway_info["focus"]
+    ranked = []
+    for subject, confidence in ratings.items():
+        pathway_match = subject in pathway_focus
+        # Lower confidence increases support priority; pathway relevance breaks ties.
+        score = (6 - confidence) * 2 + (1.5 if pathway_match else 0)
+        if confidence <= 2:
+            priority = "High support"
+            action = f"Review one core {subject} concept, then complete a short set of practice questions and note what is still unclear."
+        elif confidence == 3:
+            priority = "Build consistency"
+            action = f"Practise {subject} in two short sessions: one for concept review and one for applying it to questions or a small task."
+        else:
+            priority = "Maintain and extend"
+            action = f"Keep {subject} active with a mixed practice task or a small project that connects it to your chosen field."
+        reasons = [f"your confidence rating is {confidence}/5"]
+        if pathway_match:
+            reasons.append(f"{subject} is one of the preparation themes listed for {snapshot['pathway']}")
+        ranked.append({
+            "subject": subject,
+            "confidence": confidence,
+            "priority": priority,
+            "score": round(score, 1),
+            "reason": "; ".join(reasons),
+            "action": action,
+        })
+    ranked.sort(key=lambda item: (-item["score"], item["subject"].casefold()))
+    gaps = [subject for subject in pathway_focus if subject not in ratings]
+    weekly_hours = max(1, min(40, int(profile.get("weekly_hours", 5))))
+    return {
+        "pathway": snapshot["pathway"],
+        "recommendations": ranked[:3],
+        "pathway_gaps": gaps,
+        "weekly_hours": weekly_hours,
+        "method": "Transparent profile-based ranking",
+        "note": "Recommendations use your self-reported confidence and selected pathway. They are study-planning suggestions, not grades, admissions predictions or a trained ML model.",
+    }
+
