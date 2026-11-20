@@ -34,8 +34,8 @@ def validate_image(image_bytes: bytes, mime_type: str) -> None:
     if not image_bytes:
         raise ValueError("The selected image is empty.")
     signatures = {
-        "image/png": image_bytes.startswith(b"\\x89PNG\\r\\n\\x1a\\n"),
-        "image/jpeg": image_bytes.startswith(b"\\xff\\xd8\\xff"),
+        "image/png": image_bytes.startswith(b"\x89PNG\r\n\x1a\n"),
+        "image/jpeg": image_bytes.startswith(b"\xff\xd8\xff"),
         "image/webp": len(image_bytes) >= 12 and image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP",
     }
     if not signatures[mime_type]:
