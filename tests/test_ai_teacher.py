@@ -95,8 +95,10 @@ class AITeacherTests(unittest.TestCase):
         with patch("src.ai_teacher.urllib.request.urlopen", return_value=FakeResponse()) as mocked:
             provider = LocalModelProvider("demo-model")
             answer = provider.answer([{"role": "user", "content": "Explain arrays"}])
+        request = mocked.call_args.args[0]
         self.assertEqual(answer, "Local answer")
-        self.assertEqual(mocked.call_args.args[0].full_url, "http://127.0.0.1:11434/api/chat")
+        self.assertEqual(request.full_url, "http://127.0.0.1:11434/api/chat")
+        self.assertNotIn("Authorization", request.headers)
 
 
 if __name__ == "__main__":
