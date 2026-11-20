@@ -61,6 +61,14 @@ References:
 - [Supabase troubleshooting: not receiving Auth emails](https://supabase.com/kb/troubleshooting/not-receiving-auth-emails-from-the-supabase-project-OFSNzw)
 - [Supabase Python: resend signup confirmation](https://supabase.com/docs/reference/python/auth-resend)
 
+## Configure AI Teacher runtime
+
+For local AI Teacher testing on the same Windows computer as Streamlit, follow [docs/AI_TEACHER_RUNTIME.md](AI_TEACHER_RUNTIME.md). A local model server is not reachable from Streamlit Community Cloud through `localhost`.
+
+For hosted AI, configure the provider only through Streamlit Secrets after checking the provider's terms and data-handling requirements. Never put a provider key in GitHub or the app source.
+
+To enable optional persistent AI Teacher history, run `supabase/chat_history_schema.sql` in the same Supabase project used by EduBridge. The app keeps permanent history off by default and requires a signed-in learner to opt in. Screenshots are not stored in the history table.
+
 ## Choose an app URL
 
 Streamlit may let you choose an available app subdomain during setup or app settings. A suitable name to try is:
