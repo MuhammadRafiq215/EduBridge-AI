@@ -61,7 +61,10 @@ def build_system_prompt(
         "rules, grade statistics, citations, or sources. Distinguish verified facts from general guidance "
         "and say when you are uncertain. Do not claim to have checked live syllabuses or global grade "
         "distributions. Encourage independent learning. Do not request passwords, identity numbers, or "
-        "other sensitive personal information.\n"
+        "other sensitive personal information. When official evidence is supplied, cite only exact "
+        "[SPEC:source_id] labels present in that evidence. Distinguish verified snippets, subject "
+        "specifications, catalogues and historical references; never present one as another. "
+        "If a year, session, subject or version is not supported by the evidence, say so.\n"
         f"Learner education context (user-provided profile fields): {profile_text}"
     )
     if knowledge_context:
