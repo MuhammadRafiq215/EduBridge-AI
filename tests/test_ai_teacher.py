@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src.ai_teacher import OpenAICompatibleProvider, build_profile_context, build_request_messages, build_system_prompt, extract_response_text, validate_image
+from src.ai_teacher import (OpenAICompatibleProvider, LocalModelProvider, build_provider_from_settings, build_profile_context, build_request_messages, build_system_prompt, extract_response_text, validate_image)
 
 
 class AITeacherTests(unittest.TestCase):
@@ -59,6 +59,46 @@ class AITeacherTests(unittest.TestCase):
             result = provider.answer([{"role": "user", "content": "Hello"}])
         self.assertEqual(result, "Test answer")
         self.assertEqual(mocked.call_args.args[0].full_url, "https://example.invalid/v1/chat/completions")
+
+
+    def test_local_provider_can_be_configured_without_an_api_key(self):
+        provider = build_provider_from_settings({
+            "provider": "local",
+            "model": "demo-model",
+            "base_url": "http://127.0.0.1:11434",
+            "supports_vision": True,
+        })
+        self.assertIsInstance(provider, LocalModelProvider)
+        self.assertEqual(provider.model, "demo-model")
+        self.assertTrue(provider.supports_vision)
+
+    def test_local_provider_rejects_non_loopback_hosts(self):
+        with self.assertRaises(ValueError):
+            build_provider_from_settings({
+                "provider": "local",
+                "model": "demo-model",
+                "base_url": "https://example.invalid",
+            })
+
+    def test_hosted_provider_requires_an_api_key(self):
+        self.assertIsNone(build_provider_from_settings({
+            "provider": "openai_compatible",
+            "model": "demo-model",
+            "base_url": "https://example.invalid/v1",
+        }))
+
+    def test_local_provider_uses_native_chat_endpoint(self):
+        class FakeResponse:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return b'{"message":{"content":"Local answer"}}'
+        with patch("src.ai_teacher.urllib.request.urlopen", return_value=FakeResponse()) as mocked:
+            provider = LocalModelProvider("demo-model")
+            answer = provider.answer([{"role": "user", "content": "Explain arrays"}])
+        request = mocked.call_args.args[0]
+        self.assertEqual(answer, "Local answer")
+        self.assertEqual(request.full_url, "http://127.0.0.1:11434/api/chat")
+        self.assertNotIn("Authorization", request.headers)
 
 
 if __name__ == "__main__":

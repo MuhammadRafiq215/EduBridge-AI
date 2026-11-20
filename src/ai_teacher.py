@@ -5,6 +5,7 @@ import base64
 import json
 import urllib.error
 import urllib.request
+from urllib.parse import urlparse
 from typing import Any, Protocol
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
@@ -150,3 +151,108 @@ class OpenAICompatibleProvider:
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise RuntimeError("The AI provider returned an unreadable response.") from exc
         return extract_response_text(payload)
+
+
+class LocalModelProvider:
+    """Connect to a local Ollama-compatible server without an API account or key.
+
+    The server must run on the same machine as Streamlit. Loopback-only URLs
+    prevent this setting from becoming a general server-side request proxy.
+    """
+    def __init__(self, model: str, base_url: str = "http://127.0.0.1:11434", timeout: int = 120):
+        parsed = urlparse(base_url.strip())
+        if parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
+            raise ValueError("Local AI must use an http://localhost, 127.0.0.1 or ::1 address.")
+        if not model.strip():
+            raise ValueError("Enter the name of a model already installed in your local model server.")
+        self.model = model.strip()
+        self.base_url = base_url.rstrip("/")
+        self.timeout = max(15, min(int(timeout), 240))
+        self.supports_vision = False
+        self.provider_name = "Local AI model"
+
+    def answer(
+        self,
+        messages: list[dict[str, Any]],
+        profile_context: dict[str, Any] | None = None,
+        image: tuple[bytes, str] | None = None,
+        knowledge_context: str | None = None,
+    ) -> str:
+        request_messages = build_request_messages(messages, profile_context, image, knowledge_context)
+        local_messages = []
+        for item in request_messages:
+            content = item.get("content", "")
+            row = {"role": item["role"], "content": content if isinstance(content, str) else ""}
+            if isinstance(content, list):
+                texts, images = [], []
+                for part in content:
+                    if not isinstance(part, dict):
+                        continue
+                    if part.get("type") == "text":
+                        texts.append(str(part.get("text", "")))
+                    elif part.get("type") == "image_url":
+                        url = part.get("image_url", {}).get("url", "")
+                        if isinstance(url, str) and url.startswith("data:") and "," in url:
+                            images.append(url.split(",", 1)[1])
+                row["content"] = "\\n".join(texts)
+                if images:
+                    row["images"] = images
+            local_messages.append(row)
+
+        body = json.dumps({
+            "model": self.model,
+            "messages": local_messages,
+            "stream": False,
+            "options": {"temperature": 0.3},
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            f"{self.base_url}/api/chat",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            raise RuntimeError(f"Local AI server returned HTTP {exc.code}. Check that the model server is running.") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            raise RuntimeError(
+                "EduBridge cannot reach the local AI server. Start the local model service and run Streamlit on the same computer."
+            ) from exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise RuntimeError("The local AI server returned an unreadable response.") from exc
+        answer = payload.get("message", {}).get("content") if isinstance(payload, dict) else None
+        if not isinstance(answer, str) or not answer.strip():
+            raise RuntimeError("The local AI model returned an empty response.")
+        return answer.strip()
+
+
+def build_provider_from_settings(settings: dict[str, Any] | None):
+    """Build an explicitly configured local or OpenAI-compatible provider."""
+    if not isinstance(settings, dict):
+        return None
+    provider_type = str(settings.get("provider", "openai_compatible")).strip().lower()
+    model = str(settings.get("model", "")).strip()
+    if not model:
+        return None
+    try:
+        timeout = int(settings.get("timeout", 60))
+    except (TypeError, ValueError):
+        timeout = 60
+
+    if provider_type == "local":
+        base_url = str(settings.get("base_url", "http://127.0.0.1:11434")).strip()
+        provider = LocalModelProvider(model=model, base_url=base_url, timeout=timeout)
+        provider.supports_vision = bool(settings.get("supports_vision", False))
+        return provider
+    if provider_type == "openai_compatible":
+        api_key = str(settings.get("api_key", "")).strip()
+        if not api_key:
+            return None
+        base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
+        provider = OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
+        provider.supports_vision = bool(settings.get("supports_vision", False))
+        provider.provider_name = "Configured AI provider"
+        return provider
+    raise ValueError("AI provider must be 'local' or 'openai_compatible'.")

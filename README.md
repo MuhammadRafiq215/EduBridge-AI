@@ -55,7 +55,7 @@ The confidence snapshot is based only on the learner's own ratings. It is not an
 
 ### AI Teacher, Student Navigator and adaptive progress
 
-EduBridge includes a specification-aware AI Teacher interface, a Student Navigator, and opt-in topic-progress tracking. The tutor uses retrieved official-source context and a configured external provider; it does not fine-tune the public-dataset benchmark models. Topic progress uses a transparent student-entered indicator, not a trained mastery predictor. See [Phase 7 documentation](docs/PHASE7_ADAPTIVE_INTELLIGENCE.md) for evidence, privacy and setup requirements.
+EduBridge includes a specification-aware AI Teacher, a Student Navigator, opt-in topic-progress tracking and private chat-history controls. The AI Teacher supports a local model runtime for same-computer use and an explicitly configured hosted OpenAI-compatible provider. A live response requires a running/configured model; the interface never fabricates connectivity. See [AI Teacher runtime setup](docs/AI_TEACHER_RUNTIME.md) and [Phase 7 documentation](docs/PHASE7_ADAPTIVE_INTELLIGENCE.md).
 
 ## Machine-learning research
 

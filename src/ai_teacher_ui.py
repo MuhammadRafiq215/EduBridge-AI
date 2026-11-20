@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.ai_teacher import OpenAICompatibleProvider, build_profile_context
+from src.ai_teacher import build_profile_context, build_provider_from_settings, LocalModelProvider
 from src.account_store import save_learner_profile
 from src.adaptive_learning import normalise_topic_entry, summarise_topic_progress, build_adaptive_plan
 from src.chat_history_store import load_chat_history, save_chat_history, delete_chat_history
@@ -20,16 +20,12 @@ from src.student_navigator import build_navigation_plan, build_student_snapshot
 def _configured_provider():
     try:
         settings = st.secrets.get("ai", {})
-        api_key = str(settings.get("api_key", "")).strip()
-        model = str(settings.get("model", "")).strip()
-        base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
     except Exception:
         return None
-    if not api_key or not model:
-        return None
     try:
-        return OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url)
-    except ValueError:
+        return build_provider_from_settings(dict(settings))
+    except Exception as exc:
+        st.session_state["ai_provider_configuration_error"] = str(exc)
         return None
 
 
@@ -148,70 +144,117 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
 
 
 def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
-    st.markdown("## 🤖 EduBridge AI Teacher")
-    st.write("Ask a question about your studies, qualification, examination structure or subject content. Attach a screenshot when image input is supported by the configured provider.")
-    coverage = specification_coverage_summary()
-    st.caption(
-        f"Knowledge registry: {coverage['source_records']} source records · "
-        f"{coverage['specification_verified']} verified subject specifications."
-    )
-    st.caption("The number of source records does not mean complete coverage of any board.")
-    provider = _configured_provider()
-    if provider is None:
-        st.info(
-            "The AI Teacher interface is ready, but no AI provider is configured. "
-            "It will not fabricate answers. Provider setup remains disabled until "
-            "eligibility, privacy and data-handling terms have been checked."
-        )
-        st.write("The specification engine and Student Navigator can be explored without enabling an external AI provider.")
-        return
+    st.markdown("""
+    <style>
+    .eb-ai-hero{position:relative;overflow:hidden;padding:30px 32px;border-radius:26px;background:linear-gradient(118deg,#171a35 0%,#343579 58%,#168d9a 100%);color:#fff;margin:2px 0 18px;box-shadow:0 18px 42px rgba(39,39,105,.16)}
+    .eb-ai-hero:after{content:"";position:absolute;width:230px;height:230px;right:-65px;top:-135px;border:1px solid rgba(255,255,255,.22);border-radius:50%;box-shadow:0 0 0 25px rgba(255,255,255,.045),0 0 0 52px rgba(255,255,255,.03)}
+    .eb-ai-kicker{font-size:10px;font-weight:800;letter-spacing:1.8px;color:#d8fa83;text-transform:uppercase}
+    .eb-ai-hero h1{color:#fff!important;font-size:clamp(27px,3.8vw,42px);line-height:1.08;margin:10px 0}
+    .eb-ai-hero p{color:#e5e8ff;max-width:760px;line-height:1.6;margin:0;font-size:14px}
+    .eb-ai-pill{display:inline-block;padding:7px 11px;margin:14px 6px 0 0;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(255,255,255,.1);color:#f5f6ff;font-size:11px;font-weight:700}
+    .eb-ai-prompt{height:100%;min-height:94px;padding:14px 15px;border:1px solid #e5e7f5;border-radius:16px;background:linear-gradient(145deg,#fff,#f8f8ff);box-shadow:0 6px 18px rgba(36,39,85,.04)}
+    .eb-ai-prompt strong{display:block;color:#292b67;font-size:13px;margin-bottom:5px}
+    .eb-ai-prompt span{display:block;color:#737b98;font-size:11px;line-height:1.5}
+    .eb-ai-note{padding:13px 15px;border:1px solid #e3e7f5;border-radius:14px;background:#f8f9ff;color:#505875;font-size:12px;line-height:1.55}
+    div[data-testid="stChatMessage"]{border:1px solid #e9eaf5;border-radius:17px;padding:14px 16px;background:#fff;box-shadow:0 5px 18px rgba(38,40,88,.035)}
+    @media(max-width:700px){.eb-ai-hero{padding:23px 21px;border-radius:20px}.eb-ai-hero h1{font-size:29px}}
+    </style>
+    <div class="eb-ai-hero">
+      <div class="eb-ai-kicker">✦ YOUR PERSONAL LEARNING SPACE</div>
+      <h1>Meet your AI Teacher.</h1>
+      <p>Ask freely, learn step by step, explore your exam specification and turn difficult topics into clear next actions.</p>
+      <span class="eb-ai-pill">📘 Subject explanations</span>
+      <span class="eb-ai-pill">🧭 Exam-board context</span>
+      <span class="eb-ai-pill">🖼️ Screenshot support when enabled</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    chat_owner = user_id or "anonymous-session"
+    coverage = specification_coverage_summary()
+    chat_owner = str(user_id) if user_id else "anonymous-session"
     if st.session_state.get("ai_teacher_owner") != chat_owner:
         st.session_state["ai_teacher_messages"] = []
         st.session_state.pop("ai_teacher_history_loaded_for", None)
+        st.session_state.pop("ai_teacher_persist_history", None)
+        st.session_state.pop("ai_teacher_use_profile", None)
         st.session_state["ai_teacher_owner"] = chat_owner
     if "ai_teacher_messages" not in st.session_state:
-        st.session_state.ai_teacher_messages = []
+        st.session_state["ai_teacher_messages"] = []
+
+    metrics = st.columns(3)
+    metrics[0].metric("Official source records", coverage["source_records"])
+    metrics[1].metric("Verified subject specifications", coverage["specification_verified"])
+    metrics[2].metric("Messages in this session", len(st.session_state.ai_teacher_messages))
+    st.caption(coverage["coverage_warning"])
+
     persist_history = False
-    if supabase and user_id:
+    if supabase is not None and user_id:
         persist_history = st.checkbox(
-            "Save my AI Teacher chat history to my private account",
+            "Save my chat history to my private account",
             value=False,
-            help="Off by default. When enabled, text messages and answers are saved to your own account. Uploaded images are not stored."
+            key="ai_teacher_persist_history",
+            help="Optional and off by default. Only text messages are saved; uploaded screenshots are not stored."
         )
         if persist_history and st.session_state.get("ai_teacher_history_loaded_for") != user_id:
             try:
-                st.session_state.ai_teacher_messages = load_chat_history(supabase, user_id)
+                st.session_state["ai_teacher_messages"] = load_chat_history(supabase, user_id)
                 st.session_state["ai_teacher_history_loaded_for"] = user_id
+                st.success("Your saved conversation history is available in this workspace.")
             except Exception:
-                st.warning("Saved chat history could not be loaded. Check that the Phase 7 chat-history database migration has been applied.")
-        if st.button("Delete all saved AI Teacher history", key="delete_saved_ai_teacher_history"):
+                st.warning("Saved history could not be loaded. Check that the Phase 7 database migration has been applied.")
+        if persist_history and st.button("Delete all saved chat history", key="delete_saved_ai_teacher_history"):
             try:
                 delete_chat_history(supabase, user_id)
-                st.session_state.ai_teacher_messages = []
+                st.session_state["ai_teacher_messages"] = []
                 st.session_state["ai_teacher_history_loaded_for"] = user_id
-                st.success("Saved chat history deleted.")
+                st.success("Saved chat history deleted from your account.")
                 st.rerun()
             except Exception:
                 st.error("Saved history could not be deleted. Check the database migration and account connection.")
-    elif not user_id:
-        st.caption("Sign in to use optional cross-session chat history. This feature is off by default.")
+    else:
+        st.caption("Sign in to use optional cross-session history. Without sign-in, the conversation stays in this browser session.")
 
     use_profile = False
     if isinstance(profile, dict) and profile:
-        use_profile = st.checkbox("Use my saved education profile for personalised explanations", value=True)
+        use_profile = st.checkbox(
+            "Use my saved learning profile to personalise explanations",
+            value=False,
+            key="ai_teacher_use_profile",
+        )
     context = build_profile_context(profile) if use_profile else {}
     context = context or {}
-    with st.expander("Examination context", expanded=not bool(context.get("qualification"))):
-        qualification = st.text_input("Qualification", value=str(context.get("qualification") or context.get("custom_qualification") or ""), placeholder="e.g. Cambridge A Levels, WAEC WASSCE, IB Diploma")
-        jurisdiction = st.text_input("Country / jurisdiction", value=str(context.get("country", "")), placeholder="e.g. Pakistan, Nigeria, Türkiye")
-        awarding_body = st.text_input("Awarding body / examination authority", value=str(context.get("board", "")), placeholder="e.g. Cambridge International, Pearson Edexcel, FBISE")
+
+    with st.expander("🎯 Examination and subject context", expanded=not bool(context.get("qualification"))):
+        col_a, col_b = st.columns(2)
+        qualification = col_a.text_input(
+            "Qualification",
+            value=str(context.get("qualification") or context.get("custom_qualification") or ""),
+            placeholder="e.g. Cambridge A Levels, WAEC WASSCE, IB Diploma",
+            key=f"ai_teacher_qualification_{chat_owner}",
+        )
+        jurisdiction = col_b.text_input(
+            "Country / jurisdiction",
+            value=str(context.get("country", "")),
+            placeholder="e.g. Pakistan, Nigeria, Türkiye",
+            key=f"ai_teacher_jurisdiction_{chat_owner}",
+        )
+        col_c, col_d = st.columns(2)
+        awarding_body = col_c.text_input(
+            "Awarding body / examination authority",
+            value=str(context.get("board", "")),
+            placeholder="e.g. Cambridge International, Pearson Edexcel, FBISE",
+            key=f"ai_teacher_awarding_body_{chat_owner}",
+        )
         subject_values = context.get("subjects", [])
         default_subject = subject_values[0] if isinstance(subject_values, list) and subject_values else ""
-        subject = st.text_input("Subject (optional)", value=default_subject, placeholder="e.g. Mathematics, Biology, Computer Science")
-        exam_year = st.text_input("Exam year (optional)", placeholder="e.g. 2027")
-        exam_series = st.text_input("Exam series (optional)", placeholder="e.g. May/June, October/November")
+        subject = col_d.text_input(
+            "Subject",
+            value=default_subject,
+            placeholder="e.g. Mathematics, Biology, Computer Science",
+            key=f"ai_teacher_subject_{chat_owner}",
+        )
+        col_e, col_f = st.columns(2)
+        exam_year = col_e.text_input("Exam year (optional)", placeholder="e.g. 2027", key=f"ai_teacher_year_{chat_owner}")
+        exam_series = col_f.text_input("Exam series (optional)", placeholder="e.g. May/June, October/November", key=f"ai_teacher_series_{chat_owner}")
     context.update({
         "qualification": qualification.strip(),
         "country": jurisdiction.strip(),
@@ -220,23 +263,69 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         "exam_year": exam_year.strip(),
         "exam_series": exam_series.strip(),
     })
-    context = {k: v for k, v in context.items() if v not in ("", None, [], {})}
+    context = {key: value for key, value in context.items() if value not in ("", None, [], {})}
 
     for message in st.session_state.ai_teacher_messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-    st.info(
-        "Privacy: when you send a question, the latest 12 text turns and any attached screenshot are sent to the configured AI provider. "
-        "Saved profile fields are sent only when you separately opt in. The provider's own privacy and retention terms apply. "
-        "Uploaded screenshots are not written to EduBridge's saved chat-history table."
+        if message.get("role") in {"user", "assistant"}:
+            with st.chat_message(message["role"]):
+                st.markdown(message.get("content", ""))
+
+    provider = _configured_provider()
+    provider_error = st.session_state.pop("ai_provider_configuration_error", None)
+    if provider is None:
+        if provider_error:
+            st.error(f"AI provider configuration needs attention: {provider_error}")
+        st.warning("The chat interface is ready, but no live model is connected yet. EduBridge will not invent an answer or pretend a provider is online.")
+        st.markdown("**Local model option**")
+        st.write("For a private local setup, run a supported local model server on the same computer as Streamlit, then configure the AI settings below. No external API key is needed for local mode.")
+        st.code(
+            '[ai]\nprovider = "local"\nmodel = "YOUR_INSTALLED_MODEL_NAME"\nbase_url = "http://127.0.0.1:11434"\ntimeout = 120\nsupports_vision = false',
+            language="toml",
+        )
+        st.caption("Important: local mode works when Streamlit and the model server run on the same computer. A Streamlit Cloud app cannot reach localhost on your laptop. For cloud hosting, use an external provider only when its account, age, privacy and service terms permit that deployment.")
+        st.caption("Never paste API keys or passwords into this chat or commit them to GitHub.")
+        return
+
+    is_local = isinstance(provider, LocalModelProvider)
+    st.success(f"AI runtime connected: {getattr(provider, 'provider_name', 'Configured AI provider')} · {provider.model}")
+    if is_local:
+        st.caption("Local mode: prompts are sent to the model server on this same machine. A cloud deployment would need a separately configured hosted runtime.")
+    else:
+        st.caption("Hosted mode: the latest 12 conversation messages and any enabled screenshot are sent to the configured provider. Review that provider's privacy and retention terms.")
+
+    prompt_cols = st.columns(3)
+    prompts = [
+        ("Explain a difficult topic", "Explain recursion in computer science step by step, with a simple example and a short practice question."),
+        ("Help me understand my syllabus", "Help me understand the key assessment requirements for my qualification. Separate verified specification facts from general guidance."),
+        ("Build a revision plan", "Help me make a realistic one-week revision plan. Ask for any missing subjects or available study time."),
+    ]
+    pending_question = st.session_state.pop("ai_teacher_pending_question", None)
+    for index, (label, prompt_text) in enumerate(prompts):
+        with prompt_cols[index]:
+            if st.button(label, key=f"ai_teacher_prompt_{index}", use_container_width=True):
+                st.session_state["ai_teacher_pending_question"] = prompt_text
+                st.rerun()
+
+    st.markdown(
+        '<div class="eb-ai-note">🔐 <strong>Privacy:</strong> profile information is only included when you opt in above. '
+        'Conversation text is saved across sessions only when you enable private chat-history saving. '
+        'Screenshots are sent to the configured model only when image support is enabled and are not saved in EduBridge chat history.</div>',
+        unsafe_allow_html=True,
     )
-    uploaded = st.file_uploader(
-        "Question screenshot (optional)",
-        type=["png", "jpg", "jpeg", "webp"],
-        key="ai_teacher_image",
-        help="PNG, JPEG or WebP, maximum 5 MB.",
-    )
-    question = st.chat_input("Ask your AI Teacher...")
+    uploaded = None
+    if getattr(provider, "supports_vision", False):
+        uploaded = st.file_uploader(
+            "Attach a question screenshot (PNG, JPEG or WebP; maximum 5 MB)",
+            type=["png", "jpg", "jpeg", "webp"],
+            key=f"ai_teacher_image_{chat_owner}",
+        )
+    else:
+        st.caption("Screenshot input is hidden because image support is not enabled for this configured model.")
+
+    question = st.chat_input("Ask your AI Teacher anything about learning...")
+    if not question:
+        question = pending_question
+
     if question:
         image = (uploaded.getvalue(), uploaded.type or "image/jpeg") if uploaded is not None else None
         user_message = {"role": "user", "content": question}
@@ -246,7 +335,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
             if uploaded is not None:
                 st.image(uploaded, caption="Attached question", use_container_width=True)
         with st.chat_message("assistant"):
-            with st.spinner("Searching reviewed sources and preparing your explanation..."):
+            with st.spinner("Checking the official-source registry and preparing your explanation..."):
                 try:
                     spec_query = SpecificationQuery(
                         question=question,
@@ -265,16 +354,16 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                     ) if spec_query.subject else []
                     evidence = build_specification_context(records, spec_query, catalogue)
                     if not records:
-                        st.info("No matching reviewed source was retrieved for this exact context. The tutor must distinguish general teaching from verified board-specific rules.")
+                        st.info("No matching reviewed source was found for this exact context. The answer will distinguish general teaching from verified board-specific rules.")
                     answer = provider.answer(
                         st.session_state.ai_teacher_messages[:-1] + [user_message],
-                        profile_context=context,
+                        profile_context=context if use_profile else None,
                         image=image,
                         knowledge_context=evidence,
                     )
                     st.markdown(answer)
                     if records:
-                        with st.expander("Official sources used"):
+                        with st.expander("📚 Official sources used"):
                             for record in records:
                                 st.markdown(
                                     f"**[{record['source_id']}] {record.get('title', 'Official source')}**  \n"
@@ -287,20 +376,17 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                         try:
                             save_chat_history(supabase, user_id, st.session_state.ai_teacher_messages)
                         except Exception:
-                            st.warning("Your answer was generated, but it could not be saved to your account. Check the Phase 7 database migration.")
+                            st.warning("Your answer was generated, but it could not be saved. Check the Phase 7 database migration.")
                 except (RuntimeError, ValueError, OSError) as exc:
                     st.error(str(exc))
         st.rerun()
+
     if st.session_state.ai_teacher_messages:
-        if st.button("Clear this browser session's chat", key="clear_ai_teacher_chat"):
-            st.session_state.ai_teacher_messages = []
-            if persist_history and supabase and user_id:
-                try:
-                    delete_chat_history(supabase, user_id)
-                except Exception:
-                    st.error("The browser chat was cleared, but saved history could not be deleted.")
+        if st.button("Clear this browser session", key="clear_ai_teacher_session"):
+            st.session_state["ai_teacher_messages"] = []
             st.rerun()
         if persist_history:
-            st.caption("Chat text is saved to your own account because you opted in. Uploaded images are not saved. You can delete the saved history above.")
+            st.caption("Private cross-session history is enabled. Use 'Delete all saved chat history' above to remove the stored copy.")
         else:
-            st.caption("Chat history is temporary in this browser session. Permanent saving is off unless you explicitly enable it.")
+            st.caption("This conversation is temporary in the current browser session.")
+
