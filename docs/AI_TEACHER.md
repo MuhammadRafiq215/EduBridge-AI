@@ -35,9 +35,18 @@ source.
 The retrieval engine is in `src/knowledge_base.py`. The data format and review
 checklist are in `data/knowledge_base/README.md`.
 
+### Current starter coverage
+
+The initial source set includes Cambridge IGCSE qualification and threshold guidance,
+Cambridge recognition in Pakistan, Pearson Edexcel International GCSE, an FBISE grading
+notification, a Türkiye MEB upper-secondary assessment overview, and a WAEC WASSCE
+subject e-Learning page. These are a small starting collection, not full board coverage.
+Subject specifications, exam series, local rules and current notices must be added
+and reviewed individually.
+
 ### Add examination sources
 
-Create `data/knowledge_base/documents.jsonl` with one JSON object per line. Required
+Add one JSON object per line to `data/knowledge_base/documents.jsonl`. Required
 metadata includes a stable source ID, title, issuer, official HTTPS URL, qualification,
 country, awarding body, topic, short factual summary, review date, status and an
 explicit `is_official` boolean.
@@ -57,11 +66,6 @@ If no matching official source exists, the tutor is instructed to say so, give o
 clearly labelled general guidance where appropriate, and ask for the official
 awarding body or source.
 
-**Current coverage status:** the retrieval engine and validation tests are present,
-but this repository does not yet contain verified exam-board records. Therefore it
-must not claim that Cambridge, Pearson Edexcel, Pakistani boards, WAEC, Turkish MEB
-or any other board's rules have already been indexed.
-
 ## What this version does
 
 - Uses a small allow-list of education fields from the saved learner profile when
@@ -78,10 +82,9 @@ or any other board's rules have already been indexed.
 - This is a provider-connected tutor prototype, not a fine-tuned model.
 - The AI provider is not configured by default. The app does not generate pretend
   answers when no provider is available.
-- The knowledge-base engine is ready, but verified examination records still need
-  to be researched, reviewed and added.
+- The current source set is deliberately small and needs systematic expansion.
 - Retrieval currently uses lightweight lexical matching. A vector/semantic search
-  layer can be added after the initial source collection and evaluation set exist.
+  layer can be added after the source collection and evaluation set grow.
 - The configured model must support image input for screenshot interpretation.
 - There are no global grade percentiles or rankings. Those require representative,
   qualification-specific, year-specific datasets and careful validation.
