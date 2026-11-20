@@ -270,7 +270,10 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                                 )
                     st.session_state.ai_teacher_messages.append({"role": "assistant", "content": answer})
                     if persist_history and supabase and user_id:
-                        save_chat_history(supabase, user_id, st.session_state.ai_teacher_messages)
+                        try:
+                            save_chat_history(supabase, user_id, st.session_state.ai_teacher_messages)
+                        except Exception:
+                            st.warning("Your answer was generated, but it could not be saved to your account. Check the Phase 7 database migration.")
                 except (RuntimeError, ValueError, OSError) as exc:
                     st.error(str(exc))
         st.rerun()
