@@ -1,10 +1,23 @@
 # EduBridge AI knowledge base
 
-This folder is reserved for small, reviewed, source-attributed knowledge records.
+This folder stores short, reviewed, source-attributed knowledge records.
+
+## Current starter coverage
+
+The initial `documents.jsonl` contains seven reviewed official-source summaries:
+
+- Cambridge IGCSE qualification overview and grade-threshold guidance
+- Cambridge qualification recognition in Pakistan
+- Pearson Edexcel International GCSE overview
+- FBISE revised grading formula notification (with its separate 2026/2027 implementation dates)
+- Türkiye Ministry of National Education upper-secondary assessment overview
+- WAEC WASSCE Data Processing e-Learning resource page
+
+This is a starter set, not comprehensive coverage of these boards or their subjects. It does not yet cover every syllabus, subject, exam series, national board or qualification.
 
 ## Add a record
 
-Create `documents.jsonl` with one JSON object per line. Do not commit full copyrighted
+Add one JSON object per line to `documents.jsonl`. Do not commit full copyrighted
 syllabuses, paid textbooks, exam papers or other materials unless redistribution is
 clearly permitted. Prefer short, carefully paraphrased facts and link to the official
 source document.
@@ -35,6 +48,3 @@ A record marked `review_required` is deliberately excluded from AI answers.
 4. Paraphrase only the facts needed; keep the source URL and a review date.
 5. Have a second reviewer check high-impact facts such as grading, eligibility, assessment and progression rules.
 6. Archive superseded records instead of silently overwriting historical rules.
-
-The repository currently contains the retrieval engine but no verified exam-board records.
-Do not describe any board's rules as indexed until approved records have been added.
