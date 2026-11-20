@@ -1,56 +1,46 @@
-# Phase 6 — Global Knowledge Base and Source-Aware Retrieval
+# Phase 6 — Global Knowledge and Academic Intelligence
 
-## Objective
-Build a traceable educational knowledge foundation across examination boards and qualifications. Prefer official awarding-body, examination-council and ministry sources; expose evidence; abstain when no reviewed source supports a result.
+## This increment
+- Expanded the source registry with Pakistan provincial and board resources, Cambridge subject directories, Pearson subject availability, Ofqual, Russia FIPI, US AP, India CBSE and Türkiye MEB.
+- Added broad subject discovery data in data/knowledge/subject_catalog.json.
+- Added transparent mark aggregation in src/academic_profile.py and the Academic Profile Analyzer Streamlit page.
+- Fixed TF-IDF tokenisation so the reviewed-source index builds.
+- Added regression tests for retrieval and academic mark calculations.
 
-## First increment
-- Versioned source registry and coverage tracker in data/knowledge/source_registry.json.
-- TF-IDF retrieval with jurisdiction and qualification filters in src/knowledge_base.py.
-- Labelled retrieval-development cases in data/knowledge/evaluation_cases.json.
-- Unit tests for evidence eligibility, ranking, filtering, abstention and metrics.
-- Streamlit Global Knowledge Hub page with source-linked search, coverage visualisation and retrieval evaluation.
+## Evidence labels
+- verified_snippet: official overview/page reviewed; concise factual notes only.
+- catalogue_verified: official subject catalogue reviewed; not a complete specification.
+- historical_reference: official historical document useful for discovery, not current rules.
+- discovery_pending: not yet verified.
+- specification_verified: reserve for a specific current subject specification actually reviewed.
 
-## Evidence policy
-A source marked verified_snippet means its official page was located and the short notes were reviewed. It does not mean the full qualification, current subject specification, examination structure or grading policy has been ingested. A discovery_pending pathway is visible in coverage but is not indexed as evidence.
+## Pakistan-first source set
+- FBISE: https://www.fbise.edu.pk/syllabus.php
+- Punjab PECTAA: https://pectaa.edu.pk/curriculum-compliance/
+- BISE Lahore: https://www.biselahore.com/notifications
+- BISE Peshawar: https://www.bisep.edu.pk/page-10098.html
+- BISE Malakand: https://bisemalakand.edu.pk/downloadforms?cat_id=9
+- Balochistan curriculum: https://sed.gob.pk/curriculum.html
+- BSEK 2025 optional subject notice: https://bsek.edu.pk/uploads/Reduced%20Syllabus%20of%20some%20optional%20subjects%20corrected%20by%20%20General%20Group%20IX-X%202025.pdf
+- AKU-EB scheme (historical/reference): https://examinationboard.aku.edu/learning-materials/documents/hssc%20-%20scheme%20of%20studies.pdf
+- BIEK reduced syllabus 2020–21 (historical only): https://biek.edu.pk/Notifications/2020/Reduce%20Syllabus%20XI%20-XII.pdf
 
-Punjab, Sindh, KPK, Balochistan, AKU-EB, ÖSYM/YKS, AQA, OCR and BTEC remain research tasks in this increment. This is intentional: verify the official source before adding claims.
+## International catalogues
+- Cambridge IGCSE: https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-upper-secondary/cambridge-igcse/subjects/
+- Cambridge AS/A Level: https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-advanced/cambridge-international-as-and-a-levels/subjects/
+- Pearson International GCSE: https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses.html
+- College Board AP: https://apstudents.collegeboard.org/courses
+- Ofqual 2026: https://www.gov.uk/government/publications/ofqual-guide-for-schools-and-colleges-2026
+- Russia FIPI: https://fipi.ru/ege and https://fipi.ru/ege/demoversii-specifikacii-kodifikatory
+- Türkiye MEB: https://tymm.meb.gov.tr/ogretim-programlari/matematik-dersi
+- India CBSE: https://www.cbse.gov.in/cbsenew/Curriculum.html
 
-## Initial official source register
-- Cambridge International awarding standards: https://www.cambridgeinternational.org/about-us/our-standards/awarding-standards/
-- Pearson Edexcel International GCSE overview: https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/about-international-gcses.html
-- FBISE syllabus and model papers: https://www.fbise.edu.pk/syllabus.php
-- WAEC Nigeria WASSCE entry regulations: https://waecnigeria.org/node/102
-- NECO SSCE Internal: https://neco.gov.ng/exams/ssce-internal
-- NECO SSCE External: https://neco.gov.ng/exams/ssce-external
-- IB Diploma Programme assessment: https://www.ibo.org/programmes/diploma-programme/assessment-and-exams/
-- College Board AP courses and exams: https://apstudents.collegeboard.org/courses
-- Türkiye MEB FAQ: https://www.meb.gov.tr/sss.php
+## Academic profile calculations
+1. Overall weighted percentage = total marks obtained / total maximum marks × 100.
+2. Equal-weight subject average = arithmetic mean of subject percentages.
+3. Subject-wise percentages and highest/lowest entered subjects.
 
-The registry records each note's scope and limitations. Session-specific dates, subject offerings, exam modes and thresholds must be checked against the current official guide before advice is given.
+The analyzer validates duplicates, missing numeric values, negative marks and marks exceeding maximum. It does not infer grades, GPA, equivalencies, admission eligibility or predicted results. Conversion requires exact official grading rules for board, qualification, subject and session. The page does not request student identity details.
 
-## Retrieval design
-The first release uses scikit-learn TfidfVectorizer with unigrams and bigrams and cosine similarity. Only reviewed source records are indexed. Each result carries its title, publisher, jurisdiction, qualification, reviewed notes, limitations and original official URL.
-
-This is a lexical-semantic baseline, not a dense-vector embedding model. Source ingestion, retrieval and answer generation are separated so later embeddings or rerankers can be evaluated without losing provenance.
-
-## Evaluation
-The development set labels each query with expected source IDs.
-- Recall@k: fraction of questions for which at least one expected source appears in the top k.
-- MRR@k: mean reciprocal rank of the first expected source in the top k.
-
-The current set is small and curated. It is a regression harness, not a representative benchmark and not a measure of answer factuality. Add hard negatives, paraphrases, cross-board confusions, subject-specific queries, expert-reviewed answer keys and a held-out test set before drawing quality conclusions.
-
-## Run and test
-Run python -m unittest discover -s tests -v, then streamlit run app.py. The Global Knowledge Hub is available through Streamlit multipage navigation.
-
-## Next increments
-1. Verify official source discovery for each pending national system and awarding body.
-2. Index current subject specifications and assessment guides where permitted; preserve title, version, effective date, page/section and URL.
-3. Structure subject content, paper/component structure, assessment weighting, grading and exam-session rules.
-4. Add source freshness checks and version-aware updates.
-5. Build expert-reviewed question/answer pairs and a held-out evaluation set.
-6. Compare TF-IDF with dense embeddings and hybrid retrieval; report Recall@k, MRR, citation correctness and answer faithfulness.
-7. Add qualification-aware answer synthesis only after retrieval quality and citation behaviour are demonstrated.
-
-## Responsible use and copyright
-Do not present overview pages as subject specifications or invent universal grade boundaries/equivalencies. Do not copy full copyrighted syllabuses, paid resources or examination papers. Store metadata, concise factual notes, permitted excerpts and links. Keep citations visible in the UI.
+## Evaluation and next steps
+The curated development set measures source retrieval only. It does not establish answer factuality. Next: current full subject catalogues for every Pakistan board; current Cambridge and Pearson subject specifications and component codes; country-specific WAEC/NECO catalogues; ÖSYM YKS; US state requirements; AQA/OCR/WJEC/CCEA; Russia OGE/EGE; then source-version-aware ingestion and expert-reviewed held-out evaluation.

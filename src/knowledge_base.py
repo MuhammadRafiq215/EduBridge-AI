@@ -1,6 +1,7 @@
 """Source-aware educational knowledge retrieval for EduBridge AI."""
 from __future__ import annotations
-import json, re
+import json
+import re
 from pathlib import Path
 from typing import Any
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -20,7 +21,7 @@ def load_registry(path=DEFAULT_REGISTRY) -> dict[str, Any]:
     return payload
 
 def _text(value):
-    return re.sub(r"\\s+", " ", str(value or "")).strip()
+    return re.sub(r"\s+", " ", str(value or "")).strip()
 
 def _document_text(row):
     values = [row.get("title"), row.get("qualification"), row.get("system"),
@@ -30,14 +31,15 @@ def _document_text(row):
 
 class EducationalKnowledgeBase:
     """TF-IDF retrieval over reviewed official-source notes, with filters."""
+    INDEXABLE = {"verified_snippet", "specification_verified", "catalogue_verified"}
     def __init__(self, registry=None):
         self.registry = registry or load_registry()
         self.documents = [x for x in self.registry.get("sources", [])
-                          if x.get("status") == "verified_snippet" and x.get("source_url") and x.get("verified_notes")]
+                          if x.get("status") in self.INDEXABLE and x.get("source_url") and x.get("verified_notes")]
         self.vectorizer = self.matrix = None
         if self.documents:
             self.vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2),
-                strip_accents="unicode", sublinear_tf=True, token_pattern=r"(?u)\\b\\w+\\b")
+                strip_accents="unicode", sublinear_tf=True, token_pattern=r"(?u)\b\w+\b")
             self.matrix = self.vectorizer.fit_transform([_document_text(x) for x in self.documents])
 
     def search(self, query, *, jurisdiction=None, qualification=None, top_k=5):

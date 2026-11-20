@@ -9,10 +9,14 @@
     ],
     "status_definitions": {
       "verified_snippet": "Official page located and reviewed; only the notes are indexed, not a complete qualification specification.",
-      "discovery_pending": "System identified but exact official source not yet reviewed."
+      "discovery_pending": "System identified but exact official source not yet reviewed.",
+      "catalogue_verified": "Official subject catalogue reviewed; this does not imply full syllabus, paper structure or grade rules have been ingested.",
+      "specification_verified": "Specific official subject specification reviewed for the stated qualification and version.",
+      "historical_reference": "Official historical source useful for context but not current requirements."
     },
     "answer_rule": "Do not infer subject-specific paper structures, grade thresholds, equivalencies or current-year rules from a general landing page. Cite sources and state when details remain unverified.",
-    "copyright_rule": "Store concise factual notes and links; do not reproduce full syllabuses or copyrighted examination papers."
+    "copyright_rule": "Store concise factual notes and links; do not reproduce full syllabuses or copyrighted examination papers.",
+    "grade_calculation_rule": "Raw percentage is earned marks divided by maximum marks. Never convert raw percentages to board grades unless the exact official grading table matches board, qualification, subject and examination session."
   },
   "coverage": [
     {
@@ -167,6 +171,132 @@
       "status": "discovery_pending",
       "source_ids": [],
       "next_task": "Separate qualification families and verify unit assessment rules."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "Punjab BISE network / PECTAA",
+      "qualification": "SSC and HSSC",
+      "status": "verified_snippet",
+      "source_ids": [
+        "pectaa-curriculum",
+        "biselahore-notices"
+      ],
+      "next_task": "Map each Punjab board and current subject specification separately."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "BISE Peshawar",
+      "qualification": "SSC and HSSC",
+      "status": "verified_snippet",
+      "source_ids": [
+        "bisep-hssc-models"
+      ],
+      "next_task": "Expand current class-wise subject catalogues and schemes for all KP boards."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "BISE Malakand",
+      "qualification": "SSC and HSSC",
+      "status": "verified_snippet",
+      "source_ids": [
+        "bisemalakand-resources"
+      ],
+      "next_task": "Review latest subject-specific model papers, tables of specification and schemes."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "Balochistan School Education Department / BEAC",
+      "qualification": "Grades 1–10 curriculum and assessment",
+      "status": "verified_snippet",
+      "source_ids": [
+        "balochistan-curriculum"
+      ],
+      "next_task": "Link BBISE SSC/HSSC examination specifications separately."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "AKU Examination Board",
+      "qualification": "SSC and HSSC",
+      "status": "historical_reference",
+      "source_ids": [
+        "akueb-hssc-scheme"
+      ],
+      "next_task": "Locate latest current-year subject specifications."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "BSEK Karachi",
+      "qualification": "SSC",
+      "status": "verified_snippet",
+      "source_ids": [
+        "bsek-optional-subjects"
+      ],
+      "next_task": "Replace 2025 optional-subject notice with latest full scheme."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "BIEK Karachi",
+      "qualification": "HSC",
+      "status": "historical_reference",
+      "source_ids": [
+        "biek-reduced-syllabus-2020"
+      ],
+      "next_task": "Locate current official HSC scheme; 2020 reduced syllabus is archival."
+    },
+    {
+      "jurisdiction": "United States",
+      "system": "State high-school graduation systems",
+      "qualification": "State-specific diploma requirements",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Build state-by-state coverage; there is no single US national high-school graduation curriculum."
+    },
+    {
+      "jurisdiction": "England",
+      "system": "Ofqual-regulated GCSE and A-level boards",
+      "qualification": "GCSE, AS and A-level",
+      "status": "verified_snippet",
+      "source_ids": [
+        "ofqual-exam-boards"
+      ],
+      "next_task": "Ingest separate current specifications from AQA, OCR, Pearson and WJEC/Eduqas."
+    },
+    {
+      "jurisdiction": "Wales",
+      "system": "WJEC",
+      "qualification": "GCSE and AS/A-level",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify Wales-specific qualification versions and subject specifications."
+    },
+    {
+      "jurisdiction": "Northern Ireland",
+      "system": "CCEA",
+      "qualification": "GCSE and A-level",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Review CCEA official specifications and grade rules."
+    },
+    {
+      "jurisdiction": "Russia",
+      "system": "FIPI",
+      "qualification": "EGE and OGE",
+      "status": "verified_snippet",
+      "source_ids": [
+        "fipi-ege-subjects",
+        "fipi-2027-specifications"
+      ],
+      "next_task": "Ingest 2027 subject specifications, codifiers, demo papers and official scoring guides."
+    },
+    {
+      "jurisdiction": "India",
+      "system": "CBSE",
+      "qualification": "Secondary and Senior Secondary",
+      "status": "verified_snippet",
+      "source_ids": [
+        "cbse-curriculum"
+      ],
+      "next_task": "Index current subject curriculum PDFs and class-wise assessment rules."
     }
   ],
   "sources": [
@@ -381,6 +511,392 @@
         "The ministry FAQ describes the 2026–2027 implementation scope for the Common Written Examination System, including specified middle- and high-school grades and subjects."
       ],
       "limits": "Not a complete national curriculum or YKS guide."
+    },
+    {
+      "source_id": "pectaa-curriculum",
+      "jurisdiction": "Pakistan",
+      "system": "Punjab PECTAA",
+      "qualification": "Punjab school curriculum",
+      "title": "Curriculum & Compliance",
+      "source_url": "https://pectaa.edu.pk/curriculum-compliance/",
+      "publisher": "Punjab Education Curriculum Training and Assessment Authority",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "Punjab",
+        "curriculum",
+        "Smart Syllabus"
+      ],
+      "summary": "Curriculum & Compliance",
+      "verified_notes": [
+        "PECTAA publishes curriculum and compliance resources, including Smart Syllabus and Accelerated Learning Programme materials for Grades 9 to 12.",
+        "The current page lists 2026–27 resources for Grades 9, 10, 11 and 12, including selected model papers and pairing schemes."
+      ],
+      "limits": "Provincial curriculum authority source; each BISE examination notice and subject specification still needs separate verification."
+    },
+    {
+      "source_id": "biselahore-notices",
+      "jurisdiction": "Pakistan",
+      "system": "BISE Lahore",
+      "qualification": "SSC and HSSC",
+      "title": "BISE Lahore notifications and syllabus updates",
+      "source_url": "https://www.biselahore.com/notifications",
+      "publisher": "Board of Intermediate and Secondary Education Lahore",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "Punjab",
+        "SSC",
+        "HSSC"
+      ],
+      "summary": "BISE Lahore notifications and syllabus updates",
+      "verified_notes": [
+        "The official notification archive includes updated SSC and HSSC schemes and syllabuses for academic sessions, pairing schemes and model papers.",
+        "The archive identifies updated HSSC and SSC schemes for academic session 2025–2027."
+      ],
+      "limits": "Notification archive is an index; open the specific current notification and attachment before asserting subject-level details."
+    },
+    {
+      "source_id": "bisep-hssc-models",
+      "jurisdiction": "Pakistan",
+      "system": "BISE Peshawar",
+      "qualification": "SSC and HSSC",
+      "title": "SLO Based Model Papers for HSSC",
+      "source_url": "https://www.bisep.edu.pk/page-10098.html",
+      "publisher": "Board of Intermediate and Secondary Education Peshawar",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "KPK",
+        "Peshawar",
+        "HSSC"
+      ],
+      "summary": "SLO Based Model Papers for HSSC",
+      "verified_notes": [
+        "The official HSSC model-paper page provides class 11 and class 12 subject resources.",
+        "Listed subjects include Biology, Chemistry, Computer Science, English, Islamiyat, Mathematics, Physics, Urdu and Pakistan Studies.",
+        "Resources include model papers, marking schemes and tables of specification."
+      ],
+      "limits": "HSSC model-paper collection, not the complete board-wide syllabus catalogue."
+    },
+    {
+      "source_id": "bisemalakand-resources",
+      "jurisdiction": "Pakistan",
+      "system": "BISE Malakand",
+      "qualification": "SSC and HSSC",
+      "title": "BISE Malakand examination resources",
+      "source_url": "https://bisemalakand.edu.pk/downloadforms?cat_id=9",
+      "publisher": "Board of Intermediate and Secondary Education Malakand",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "KPK",
+        "Malakand",
+        "SSC",
+        "HSSC"
+      ],
+      "summary": "BISE Malakand examination resources",
+      "verified_notes": [
+        "The official downloads page provides categories for SSC Grade 9 and 10 model papers, tables of specification and rubrics, and HSSC Grade 11 and 12 resources.",
+        "The page lists recent examination gazettes and previous question papers, including 2026 HSSC and SSC resources."
+      ],
+      "limits": "Use exact subject, class and examination year; older scheme PDFs may be superseded."
+    },
+    {
+      "source_id": "balochistan-curriculum",
+      "jurisdiction": "Pakistan",
+      "system": "Balochistan School Education Department",
+      "qualification": "Grades 1–10",
+      "title": "Curriculum and Textbooks — Grades 1–10",
+      "source_url": "https://sed.gob.pk/curriculum.html",
+      "publisher": "School Education Department, Government of Balochistan",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "Balochistan",
+        "curriculum"
+      ],
+      "summary": "Curriculum and Textbooks — Grades 1–10",
+      "verified_notes": [
+        "The department page provides a grade-wise scheme of studies, curriculum and textbooks for Grades 1–10.",
+        "It identifies the Bureau of Curriculum and Extension Centres as curriculum developer/reviewer, the Balochistan Textbook Board as textbook producer and BEAC as the assessment body for Grade 5 and Grade 8.",
+        "The page describes year-versioned curriculum resources."
+      ],
+      "limits": "Covers school curriculum through Grade 10; it does not replace BBISE SSC/HSSC examination rules."
+    },
+    {
+      "source_id": "akueb-hssc-scheme",
+      "jurisdiction": "Pakistan",
+      "system": "AKU Examination Board",
+      "qualification": "HSSC",
+      "title": "HSSC Scheme of Studies",
+      "source_url": "https://examinationboard.aku.edu/learning-materials/documents/hssc%20-%20scheme%20of%20studies.pdf",
+      "publisher": "Aga Khan University Examination Board",
+      "status": "historical_reference",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "AKU-EB",
+        "HSSC"
+      ],
+      "summary": "HSSC Scheme of Studies",
+      "verified_notes": [
+        "The document describes an HSSC scheme with compulsory subjects and science, humanities and other group options.",
+        "The document states the revised scheme was implemented from September 2007 and was updated June 24, 2024."
+      ],
+      "limits": "Historical/reference scheme; do not use as proof of current 2026–27 subject availability without locating the latest replacement."
+    },
+    {
+      "source_id": "bsek-optional-subjects",
+      "jurisdiction": "Pakistan",
+      "system": "BSEK Karachi",
+      "qualification": "SSC",
+      "title": "Revised Reduced Syllabus — General Group optional subjects, 2025",
+      "source_url": "https://bsek.edu.pk/uploads/Reduced%20Syllabus%20of%20some%20optional%20subjects%20corrected%20by%20%20General%20Group%20IX-X%202025.pdf",
+      "publisher": "Board of Secondary Education Karachi",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "Sindh",
+        "Karachi",
+        "SSC"
+      ],
+      "summary": "Revised Reduced Syllabus — General Group optional subjects, 2025",
+      "verified_notes": [
+        "The official 2025 notice identifies General Group optional subjects including Computer Studies, Islamic Studies, Islamic History, Arabic, Economics, Civics, Commercial Geography and Home Economics."
+      ],
+      "limits": "2025 reduced-syllabus document for selected optional subjects, not a complete current BSEK subject catalogue."
+    },
+    {
+      "source_id": "biek-reduced-syllabus-2020",
+      "jurisdiction": "Pakistan",
+      "system": "BIEK Karachi",
+      "qualification": "HSC",
+      "title": "Reduced syllabus XI and XII — 2020–21",
+      "source_url": "https://biek.edu.pk/Notifications/2020/Reduce%20Syllabus%20XI%20-XII.pdf",
+      "publisher": "Board of Intermediate Education Karachi",
+      "status": "historical_reference",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "Sindh",
+        "Karachi",
+        "HSC"
+      ],
+      "summary": "Reduced syllabus XI and XII — 2020–21",
+      "verified_notes": [
+        "The document is a Sindh government notification for a condensed HSC syllabus for academic year 2020–2021.",
+        "It lists then-included subjects such as English, Urdu, Islamiat, Ethics, Biology, Computer Science, Chemistry, Mathematics and Physics."
+      ],
+      "limits": "Historical pandemic-era reduced syllabus only; never present as the current BIEK syllabus."
+    },
+    {
+      "source_id": "collegeboard-ap-42",
+      "jurisdiction": "United States",
+      "system": "College Board",
+      "qualification": "Advanced Placement",
+      "title": "AP Courses and Exams — 42 subjects",
+      "source_url": "https://apstudents.collegeboard.org/courses",
+      "publisher": "College Board",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "United States",
+        "AP",
+        "subjects"
+      ],
+      "summary": "AP Courses and Exams — 42 subjects",
+      "verified_notes": [
+        "The College Board AP catalogue lists course and examination information for 42 AP subjects.",
+        "Subject areas include arts, English, history and social sciences, mathematics and computer science, sciences, world languages, AP Capstone and career-focused courses."
+      ],
+      "limits": "Catalogue-level evidence only; individual course pages are required for exam structure and scoring."
+    },
+    {
+      "source_id": "ofqual-exam-boards",
+      "jurisdiction": "England",
+      "system": "Ofqual",
+      "qualification": "GCSE, AS and A-level",
+      "title": "Ofqual guide for schools and colleges 2026",
+      "source_url": "https://www.gov.uk/government/publications/ofqual-guide-for-schools-and-colleges-2026",
+      "publisher": "Office of Qualifications and Examinations Regulation",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "United Kingdom",
+        "England",
+        "Ofqual",
+        "GCSE",
+        "A-level"
+      ],
+      "summary": "Ofqual guide for schools and colleges 2026",
+      "verified_notes": [
+        "The 2026 guide identifies AQA, OCR, Pearson and WJEC Eduqas as exam boards offering GCSE, AS and A-level qualifications regulated by Ofqual in England.",
+        "Exam boards develop and award qualifications against subject content and regulatory conditions."
+      ],
+      "limits": "England-specific overview; Wales and Northern Ireland have distinct qualification regulators."
+    },
+    {
+      "source_id": "fipi-ege-subjects",
+      "jurisdiction": "Russia",
+      "system": "FIPI",
+      "qualification": "Unified State Exam (EGE)",
+      "title": "EGE subjects and examination information",
+      "source_url": "https://fipi.ru/ege",
+      "publisher": "Federal Institute of Pedagogical Measurements",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Russia",
+        "EGE",
+        "subjects"
+      ],
+      "summary": "EGE subjects and examination information",
+      "verified_notes": [
+        "FIPI lists 15 EGE subjects: Russian, mathematics, physics, chemistry, history, social studies, informatics, biology, geography, English, German, French, Spanish, Chinese and literature.",
+        "Russian language and mathematics are mandatory for current-year graduates seeking the school-leaving certificate; other EGE subjects are selected by candidates."
+      ],
+      "limits": "Confirm examination year and subject specification before advising about exam structure or scores."
+    },
+    {
+      "source_id": "fipi-2027-specifications",
+      "jurisdiction": "Russia",
+      "system": "FIPI",
+      "qualification": "EGE 2027",
+      "title": "EGE 2027 demonstration papers, specifications and codifiers",
+      "source_url": "https://fipi.ru/ege/demoversii-specifikacii-kodifikatory",
+      "publisher": "Federal Institute of Pedagogical Measurements",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Russia",
+        "FIPI",
+        "EGE",
+        "2027"
+      ],
+      "summary": "EGE 2027 demonstration papers, specifications and codifiers",
+      "verified_notes": [
+        "FIPI publishes demonstration variants, specifications and codifiers defining the structure and content of EGE 2027 assessment materials.",
+        "The page provides subject-specific document sets, including Russian, mathematics, physics, geography, social studies, literature and foreign languages."
+      ],
+      "limits": "Retain year and document version for every indexed item."
+    },
+    {
+      "source_id": "cbse-curriculum",
+      "jurisdiction": "India",
+      "system": "CBSE",
+      "qualification": "Secondary and Senior Secondary",
+      "title": "CBSE Curriculum",
+      "source_url": "https://www.cbse.gov.in/cbsenew/Curriculum.html",
+      "publisher": "Central Board of Secondary Education",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "India",
+        "CBSE",
+        "subjects"
+      ],
+      "summary": "CBSE Curriculum",
+      "verified_notes": [
+        "CBSE publishes separate secondary curriculum for Classes IX–X and senior secondary curriculum for Classes XI–XII.",
+        "The catalogue includes languages, mathematics, science, social science and electives such as accountancy, biology, biotechnology, business studies, chemistry, computer science, economics, geography, history, legal studies, mathematics, physics, political science, psychology and sociology."
+      ],
+      "limits": "Catalogue-level index; open exact class, subject and academic-session document before using subject-specific requirements."
+    },
+    {
+      "source_id": "cambridge-igcse-subjects",
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "IGCSE / O Level",
+      "title": "Cambridge IGCSE subjects",
+      "source_url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-upper-secondary/cambridge-igcse/subjects/",
+      "publisher": "Cambridge International",
+      "status": "catalogue_verified",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "IGCSE",
+        "O Level",
+        "subjects"
+      ],
+      "summary": "Cambridge IGCSE subjects",
+      "verified_notes": [
+        "The official IGCSE subject directory lists subject names and syllabus codes, with separate variants for some subjects and languages."
+      ],
+      "limits": "Directory is a subject catalogue; verify current syllabus code and year for each subject."
+    },
+    {
+      "source_id": "cambridge-alevel-subjects",
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "AS and A Level",
+      "title": "Cambridge International AS & A Level subjects",
+      "source_url": "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-advanced/cambridge-international-as-and-a-levels/subjects/",
+      "publisher": "Cambridge International",
+      "status": "catalogue_verified",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "AS Level",
+        "A Level",
+        "subjects"
+      ],
+      "summary": "Cambridge International AS & A Level subjects",
+      "verified_notes": [
+        "Cambridge states that schools can choose from 55 AS & A Level subjects.",
+        "The official directory lists subjects with syllabus codes and identifies some AS-only, A-Level-only and new subjects."
+      ],
+      "limits": "Directory is not a substitute for each current subject syllabus or component structure."
+    },
+    {
+      "source_id": "pearson-igcse-subject-catalogue",
+      "jurisdiction": "Global",
+      "system": "Pearson Edexcel",
+      "qualification": "International GCSE",
+      "title": "International GCSE subject availability",
+      "source_url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses.html",
+      "publisher": "Pearson",
+      "status": "catalogue_verified",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "International GCSE",
+        "subjects",
+        "linear",
+        "modular"
+      ],
+      "summary": "International GCSE subject availability",
+      "verified_notes": [
+        "Pearson publishes an International GCSE subject availability table for May–June and November examination series.",
+        "The current catalogue includes sciences, mathematics, languages, humanities, business, computing and other subjects.",
+        "Pearson states that many International GCSE subjects offer linear or modular assessment options."
+      ],
+      "limits": "Availability differs by examination series and subject; confirm current information manual and specification."
+    },
+    {
+      "source_id": "meb-curriculum-programmes",
+      "jurisdiction": "Türkiye",
+      "system": "MEB",
+      "qualification": "Secondary school curriculum",
+      "title": "Türkiye Yüzyılı Maarif Modeli — teaching programmes",
+      "source_url": "https://tymm.meb.gov.tr/ogretim-programlari/matematik-dersi",
+      "publisher": "Republic of Türkiye Ministry of National Education",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Türkiye",
+        "MEB",
+        "curriculum"
+      ],
+      "summary": "Türkiye Yüzyılı Maarif Modeli — teaching programmes",
+      "verified_notes": [
+        "The official secondary curriculum portal lists programmes including biology, geography, religious culture and ethics, philosophy, physics, English, chemistry, mathematics, music, history and Turkish language and literature.",
+        "MEB states that updated programmes are implemented in stages by grade and academic year."
+      ],
+      "limits": "Curriculum directory; confirm applicable grade and implementation year. YKS is administered separately by ÖSYM."
     }
   ]
 }

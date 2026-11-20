@@ -61,5 +61,75 @@
     "expected_source_ids": [
       "meb-faq"
     ]
+  },
+  {
+    "case_id": "pectaa-01",
+    "query": "Where is Punjab's 2026-27 Smart Syllabus and model papers?",
+    "expected_source_ids": [
+      "pectaa-curriculum"
+    ]
+  },
+  {
+    "case_id": "bisep-01",
+    "query": "Which HSSC subjects have Peshawar Board model papers and marking schemes?",
+    "expected_source_ids": [
+      "bisep-hssc-models"
+    ]
+  },
+  {
+    "case_id": "balochistan-01",
+    "query": "Who publishes Balochistan Grades 1 to 10 curriculum and assessment resources?",
+    "expected_source_ids": [
+      "balochistan-curriculum"
+    ]
+  },
+  {
+    "case_id": "cambridge-igcse-01",
+    "query": "Where can I find Cambridge IGCSE subject codes and syllabus directories?",
+    "expected_source_ids": [
+      "cambridge-igcse-subjects"
+    ]
+  },
+  {
+    "case_id": "cambridge-alevel-01",
+    "query": "How many AS and A Level subject choices does Cambridge offer?",
+    "expected_source_ids": [
+      "cambridge-alevel-subjects"
+    ]
+  },
+  {
+    "case_id": "pearson-catalogue-01",
+    "query": "Which International GCSE subjects does Pearson offer and are they linear or modular?",
+    "expected_source_ids": [
+      "pearson-igcse-subject-catalogue"
+    ]
+  },
+  {
+    "case_id": "ap-42-01",
+    "query": "How many AP subjects are in the College Board catalogue?",
+    "expected_source_ids": [
+      "collegeboard-ap-42"
+    ]
+  },
+  {
+    "case_id": "russia-ege-01",
+    "query": "What subjects can students take in Russia's EGE?",
+    "expected_source_ids": [
+      "fipi-ege-subjects"
+    ]
+  },
+  {
+    "case_id": "russia-ege-2027-01",
+    "query": "Where does FIPI publish EGE 2027 specifications and codifiers?",
+    "expected_source_ids": [
+      "fipi-2027-specifications"
+    ]
+  },
+  {
+    "case_id": "india-cbse-01",
+    "query": "Where does CBSE publish class 9 to 12 subject curriculum?",
+    "expected_source_ids": [
+      "cbse-curriculum"
+    ]
   }
 ]
