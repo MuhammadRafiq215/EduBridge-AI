@@ -33,6 +33,13 @@ def validate_image(image_bytes: bytes, mime_type: str) -> None:
         raise ValueError("Please upload a PNG, JPEG or WebP image.")
     if not image_bytes:
         raise ValueError("The selected image is empty.")
+    signatures = {
+        "image/png": image_bytes.startswith(b"\\x89PNG\\r\\n\\x1a\\n"),
+        "image/jpeg": image_bytes.startswith(b"\\xff\\xd8\\xff"),
+        "image/webp": len(image_bytes) >= 12 and image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP",
+    }
+    if not signatures[mime_type]:
+        raise ValueError("The file content does not match its image type.")
     if len(image_bytes) > MAX_IMAGE_BYTES:
         raise ValueError("Please choose an image smaller than 5 MB.")
 
