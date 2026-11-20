@@ -15,6 +15,7 @@ from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
+from src.ai_teacher_ui import render_ai_teacher
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -201,10 +202,11 @@ with st.sidebar:
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
-    if pending_workspace in ["Dashboard", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
+    if pending_workspace in ["Dashboard", "AI Teacher", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
     workspace_icons = {
         "Dashboard": "🏠",
+        "AI Teacher": "🤖",
         "My learning profile": "👤",
         "Career pathways": "🧭",
         "Study planner": "📅",
@@ -482,6 +484,9 @@ if page == "Dashboard":
                     st.session_state["navigate_to_workspace"] = destination
                     st.rerun()
         st.caption("You can explore public learning and research features without signing in. Account features are subject to the service's eligibility requirements.")
+
+elif page == "AI Teacher":
+    render_ai_teacher(profile)
 
 elif page == "My learning profile":
     if not user:
