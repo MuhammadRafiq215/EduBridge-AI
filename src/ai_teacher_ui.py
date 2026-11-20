@@ -20,6 +20,9 @@ from src.student_navigator import build_navigation_plan, build_student_snapshot
 def _configured_provider():
     try:
         settings = st.secrets.get("ai", {})
+    except Exception:
+        return None
+    try:
         return build_provider_from_settings(dict(settings))
     except Exception as exc:
         st.session_state["ai_provider_configuration_error"] = str(exc)
@@ -267,8 +270,8 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
             with st.chat_message(message["role"]):
                 st.markdown(message.get("content", ""))
 
-    provider_error = st.session_state.pop("ai_provider_configuration_error", None)
     provider = _configured_provider()
+    provider_error = st.session_state.pop("ai_provider_configuration_error", None)
     if provider is None:
         if provider_error:
             st.error(f"AI provider configuration needs attention: {provider_error}")
