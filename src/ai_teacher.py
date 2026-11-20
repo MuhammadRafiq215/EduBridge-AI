@@ -12,9 +12,14 @@ ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
 
 
 class ChatProvider(Protocol):
-    """Minimal interface required by the EduBridge AI teacher UI."""
-    def answer(self, messages: list[dict[str, Any]], profile_context: dict[str, Any] | None = None,
-               image: tuple[bytes, str] | None = None) -> str: ...
+    """Minimal interface required by the EduBridge AI Teacher UI."""
+    def answer(
+        self,
+        messages: list[dict[str, Any]],
+        profile_context: dict[str, Any] | None = None,
+        image: tuple[bytes, str] | None = None,
+        knowledge_context: str | None = None,
+    ) -> str: ...
 
 
 def build_profile_context(profile: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -44,9 +49,12 @@ def validate_image(image_bytes: bytes, mime_type: str) -> None:
         raise ValueError("Please choose an image smaller than 5 MB.")
 
 
-def build_system_prompt(profile_context: dict[str, Any] | None) -> str:
+def build_system_prompt(
+    profile_context: dict[str, Any] | None,
+    knowledge_context: str | None = None,
+) -> str:
     profile_text = json.dumps(profile_context, ensure_ascii=False) if profile_context else "No learner profile was supplied."
-    return (
+    prompt = (
         "You are EduBridge AI, a patient educational tutor. Explain concepts clearly, step by step, "
         "at the learner's level. Ask a brief clarifying question when the question or image is unclear. "
         "For academic problems, explain the reasoning, not just the final answer. Never invent exam-board "
@@ -56,12 +64,22 @@ def build_system_prompt(profile_context: dict[str, Any] | None) -> str:
         "other sensitive personal information.\n"
         f"Learner education context (user-provided profile fields): {profile_text}"
     )
+    if knowledge_context:
+        prompt += "\n\nCURATED KNOWLEDGE BASE CONTEXT:\n" + knowledge_context
+    return prompt
 
 
-def build_request_messages(messages: list[dict[str, Any]], profile_context: dict[str, Any] | None = None,
-                           image: tuple[bytes, str] | None = None) -> list[dict[str, Any]]:
-    """Build a conversation with optional OpenAI-style image input."""
-    result: list[dict[str, Any]] = [{"role": "system", "content": build_system_prompt(profile_context)}]
+def build_request_messages(
+    messages: list[dict[str, Any]],
+    profile_context: dict[str, Any] | None = None,
+    image: tuple[bytes, str] | None = None,
+    knowledge_context: str | None = None,
+) -> list[dict[str, Any]]:
+    """Build a conversation with optional image and verified knowledge context."""
+    result: list[dict[str, Any]] = [{
+        "role": "system",
+        "content": build_system_prompt(profile_context, knowledge_context),
+    }]
     for item in messages[-12:]:
         role, content = item.get("role"), item.get("content")
         if role in {"user", "assistant"} and isinstance(content, str) and content.strip():
@@ -101,9 +119,14 @@ class OpenAICompatibleProvider:
         self.api_key, self.model = api_key.strip(), model.strip()
         self.base_url, self.timeout = base_url.rstrip("/"), timeout
 
-    def answer(self, messages: list[dict[str, Any]], profile_context: dict[str, Any] | None = None,
-               image: tuple[bytes, str] | None = None) -> str:
-        request_messages = build_request_messages(messages, profile_context, image)
+    def answer(
+        self,
+        messages: list[dict[str, Any]],
+        profile_context: dict[str, Any] | None = None,
+        image: tuple[bytes, str] | None = None,
+        knowledge_context: str | None = None,
+    ) -> str:
+        request_messages = build_request_messages(messages, profile_context, image, knowledge_context)
         body = json.dumps({"model": self.model, "messages": request_messages, "temperature": 0.3}).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions", data=body,
