@@ -329,10 +329,10 @@ def render_share_strip() -> None:
 
 
 if page == "AI Teacher":
-    render_ai_teacher(profile)
+    render_ai_teacher(profile, supabase=supabase, user_id=str(user.id) if user else None)
 
 elif page == "Student Navigator":
-    render_student_navigator(profile)
+    render_student_navigator(profile, supabase=supabase, user_id=str(user.id) if user else None)
 
 elif page == "Dashboard":
     if user and profile_ready():
