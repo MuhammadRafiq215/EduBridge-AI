@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src.ai_teacher import (OpenAICompatibleProvider, LocalModelProvider, build_provider_from_settings, build_profile_context, build_request_messages, build_system_prompt, extract_response_text, validate_image)
+from src.ai_teacher import (OpenAICompatibleProvider, LocalModelProvider, build_provider_from_settings, build_profile_context, build_request_messages, build_system_prompt, extract_response_text, validate_hosted_base_url, validate_image)
 
 
 class AITeacherTests(unittest.TestCase):
@@ -48,6 +48,30 @@ class AITeacherTests(unittest.TestCase):
     def test_invalid_response_is_rejected(self):
         with self.assertRaises(ValueError):
             extract_response_text({"choices": []})
+
+    def test_hosted_endpoint_requires_https(self):
+        for endpoint in ("http://provider.example/v1", "http://127.0.0.1:8080/v1", "not-a-url"):
+            with self.subTest(endpoint=endpoint), self.assertRaises(ValueError):
+                validate_hosted_base_url(endpoint)
+
+    def test_hosted_endpoint_rejects_embedded_credentials_and_query(self):
+        for endpoint in (
+            "https://user:secret@provider.example/v1",
+            "https://provider.example/v1?token=secret",
+            "https://provider.example/v1#fragment",
+        ):
+            with self.subTest(endpoint=endpoint), self.assertRaises(ValueError):
+                validate_hosted_base_url(endpoint)
+
+    def test_hosted_endpoint_normalises_trailing_slash(self):
+        self.assertEqual(
+            validate_hosted_base_url("https://provider.example/v1/"),
+            "https://provider.example/v1",
+        )
+
+    def test_hosted_provider_clamps_timeout(self):
+        provider = OpenAICompatibleProvider("test-key", "test-model", timeout=999)
+        self.assertEqual(provider.timeout, 120)
 
     def test_provider_posts_to_compatible_endpoint(self):
         class FakeResponse:
