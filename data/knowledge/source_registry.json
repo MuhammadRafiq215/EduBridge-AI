@@ -1,0 +1,386 @@
+{
+  "schema_version": "1.0",
+  "registry_updated": "2026-11-20",
+  "policy": {
+    "source_priority": [
+      "Official awarding body",
+      "Official examination council",
+      "Government education authority"
+    ],
+    "status_definitions": {
+      "verified_snippet": "Official page located and reviewed; only the notes are indexed, not a complete qualification specification.",
+      "discovery_pending": "System identified but exact official source not yet reviewed."
+    },
+    "answer_rule": "Do not infer subject-specific paper structures, grade thresholds, equivalencies or current-year rules from a general landing page. Cite sources and state when details remain unverified.",
+    "copyright_rule": "Store concise factual notes and links; do not reproduce full syllabuses or copyrighted examination papers."
+  },
+  "coverage": [
+    {
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "IGCSE, O Level, AS & A Level",
+      "status": "verified_snippet",
+      "source_ids": [
+        "cambridge-awarding"
+      ],
+      "next_task": "Ingest current subject syllabuses, component codes and series-specific grade thresholds."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "Pearson Edexcel",
+      "qualification": "International GCSE and International A Level",
+      "status": "verified_snippet",
+      "source_ids": [
+        "pearson-igcse"
+      ],
+      "next_task": "Add subject specifications, unit structures, assessment routes and grading."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "FBISE",
+      "qualification": "SSC and HSSC",
+      "status": "verified_snippet",
+      "source_ids": [
+        "fbise-syllabus"
+      ],
+      "next_task": "Index current curriculum, schemes, assessment frameworks and model papers."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "Punjab BISE boards",
+      "qualification": "SSC and HSSC",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify official board and provincial curriculum sources."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "Sindh BISE boards",
+      "qualification": "SSC and HSC",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify BSEK, BIEK and regional board syllabus resources."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "KPK BISE boards",
+      "qualification": "SSC and HSSC",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify KPK boards and provincial curriculum authority sources."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "Balochistan Board",
+      "qualification": "SSC and HSSC",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify BBISE syllabus and assessment resources."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "AKU-EB",
+      "qualification": "SSC and HSSC",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify current subject syllabuses and assessment frameworks."
+    },
+    {
+      "jurisdiction": "Nigeria",
+      "system": "WAEC Nigeria",
+      "qualification": "WASSCE",
+      "status": "verified_snippet",
+      "source_ids": [
+        "waec-nigeria"
+      ],
+      "next_task": "Add subject syllabuses, paper structures and country-specific distinctions."
+    },
+    {
+      "jurisdiction": "Nigeria",
+      "system": "NECO",
+      "qualification": "SSCE Internal and External",
+      "status": "verified_snippet",
+      "source_ids": [
+        "neco-internal",
+        "neco-external"
+      ],
+      "next_task": "Add syllabuses, subject structures and session-specific rules."
+    },
+    {
+      "jurisdiction": "Türkiye",
+      "system": "MEB",
+      "qualification": "National school curriculum",
+      "status": "verified_snippet",
+      "source_ids": [
+        "meb-faq"
+      ],
+      "next_task": "Review current curriculum programmes and common examination guides."
+    },
+    {
+      "jurisdiction": "Türkiye",
+      "system": "ÖSYM",
+      "qualification": "YKS",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Verify current official YKS guide, TYT/AYT/YDT and placement rules."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "International Baccalaureate",
+      "qualification": "PYP, MYP, DP and CP",
+      "status": "verified_snippet",
+      "source_ids": [
+        "ib-dp"
+      ],
+      "next_task": "Expand programme-specific assessment and award requirements."
+    },
+    {
+      "jurisdiction": "United States",
+      "system": "College Board",
+      "qualification": "Advanced Placement",
+      "status": "verified_snippet",
+      "source_ids": [
+        "collegeboard-ap"
+      ],
+      "next_task": "Add individual AP course exam descriptions and scoring."
+    },
+    {
+      "jurisdiction": "England",
+      "system": "AQA",
+      "qualification": "GCSE and A-level",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Index official subject specifications and assessment resources."
+    },
+    {
+      "jurisdiction": "England",
+      "system": "OCR",
+      "qualification": "GCSE and A-level",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Index specifications and qualification-specific grading guidance."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "Pearson BTEC",
+      "qualification": "Technical and vocational",
+      "status": "discovery_pending",
+      "source_ids": [],
+      "next_task": "Separate qualification families and verify unit assessment rules."
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "cambridge-awarding",
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "IGCSE, O Level, AS & A Level",
+      "title": "Our awarding standards",
+      "source_url": "https://www.cambridgeinternational.org/about-us/our-standards/awarding-standards/",
+      "publisher": "Cambridge International",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "grading",
+        "grade thresholds",
+        "awarding",
+        "assessment"
+      ],
+      "summary": "Official explanation of Cambridge grade-threshold setting and awarding standards.",
+      "verified_notes": [
+        "Cambridge uses statistical evidence from current and previous comparable candidate groups and expert judgement about paper difficulty when setting grade thresholds.",
+        "The page states that grading decisions are made by experts and reviewed by a second expert team, rather than being decided automatically by a computer.",
+        "Evidence is considered for each qualification component because assessments can test different skills and have different candidate populations."
+      ],
+      "limits": "Not a subject syllabus and does not provide a universal fixed percentage for a grade. Check the exact qualification, component and examination series."
+    },
+    {
+      "source_id": "pearson-igcse",
+      "jurisdiction": "Global",
+      "system": "Pearson Edexcel",
+      "qualification": "International GCSE",
+      "title": "About Pearson Edexcel International GCSEs",
+      "source_url": "https://qualifications.pearson.com/en/qualifications/edexcel-international-gcses/about-international-gcses.html",
+      "publisher": "Pearson",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "International GCSE",
+        "assessment",
+        "progression"
+      ],
+      "summary": "Official overview of Pearson Edexcel International GCSE.",
+      "verified_notes": [
+        "Pearson describes International GCSE as an international qualification with content and assessment designed for international learners.",
+        "Pearson states that many International GCSE subjects offer a choice of linear or modular assessment; the applicable route must be checked for the individual subject."
+      ],
+      "limits": "Overview does not replace the current subject specification or grading documents."
+    },
+    {
+      "source_id": "fbise-syllabus",
+      "jurisdiction": "Pakistan",
+      "system": "FBISE",
+      "qualification": "SSC and HSSC",
+      "title": "FBISE Syllabus and Model Question Papers",
+      "source_url": "https://www.fbise.edu.pk/syllabus.php",
+      "publisher": "Federal Board of Intermediate and Secondary Education",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Pakistan",
+        "SSC",
+        "HSSC",
+        "syllabus",
+        "scheme of studies",
+        "model papers"
+      ],
+      "summary": "Official FBISE portal for syllabus, schemes, model papers and assessment resources.",
+      "verified_notes": [
+        "The FBISE portal groups syllabus and model-question-paper resources under SSC and HSSC levels.",
+        "The portal states that it provides syllabus, scheme of studies, model papers and objective-type test items."
+      ],
+      "limits": "Identify class, subject, scheme/version and examination session before giving a detailed answer."
+    },
+    {
+      "source_id": "waec-nigeria",
+      "jurisdiction": "Nigeria",
+      "system": "WAEC Nigeria",
+      "qualification": "WASSCE",
+      "title": "WASSCE entry regulations",
+      "source_url": "https://waecnigeria.org/node/102",
+      "publisher": "West African Examinations Council — Nigeria",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "West Africa",
+        "Nigeria",
+        "WAEC",
+        "WASSCE",
+        "subject entry"
+      ],
+      "summary": "Official WAEC Nigeria page describing WASSCE entry regulations.",
+      "verified_notes": [
+        "The current page describes a minimum of eight and maximum of nine subjects for the candidate cohort covered by the notice.",
+        "The page notes that Citizenship and Heritage Studies and Digital Technologies require curriculum and syllabus development and are not to be examined until 2028.",
+        "The page states that 2026 and 2027 candidates sit English Language and General Mathematics as the two currently available core subjects, alongside selected other subjects."
+      ],
+      "limits": "Nigeria-specific and cohort/year-dependent; do not generalise to every WAEC member country."
+    },
+    {
+      "source_id": "neco-internal",
+      "jurisdiction": "Nigeria",
+      "system": "NECO",
+      "qualification": "SSCE Internal",
+      "title": "NECO SSCE Internal",
+      "source_url": "https://neco.gov.ng/exams/ssce-internal",
+      "publisher": "National Examinations Council",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Nigeria",
+        "NECO",
+        "SSCE Internal",
+        "school candidates"
+      ],
+      "summary": "Official NECO information for the internal senior school certificate examination.",
+      "verified_notes": [
+        "NECO describes SSCE Internal as the examination for candidates in their final year of Senior Secondary School Education.",
+        "The page describes compulsory cross-cutting subjects and additional subjects based on specialisation, within the stated overall subject-count range."
+      ],
+      "limits": "Dates, fees and subject counts are session-specific. Read current-year guidelines."
+    },
+    {
+      "source_id": "neco-external",
+      "jurisdiction": "Nigeria",
+      "system": "NECO",
+      "qualification": "SSCE External",
+      "title": "NECO SSCE External",
+      "source_url": "https://neco.gov.ng/exams/ssce-external",
+      "publisher": "National Examinations Council",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Nigeria",
+        "NECO",
+        "SSCE External",
+        "private candidates",
+        "CBT"
+      ],
+      "summary": "Official NECO information for external/private candidates.",
+      "verified_notes": [
+        "NECO describes SSCE External as an examination for candidates who are not in the school system.",
+        "The 2026 notice describes dual mode with computer-based and pen-and-paper options; candidates must consult the current session guidelines."
+      ],
+      "limits": "Mode, procedure, fees and dates are session-specific."
+    },
+    {
+      "source_id": "ib-dp",
+      "jurisdiction": "Global",
+      "system": "International Baccalaureate",
+      "qualification": "Diploma Programme",
+      "title": "Assessment and exams — Diploma Programme",
+      "source_url": "https://www.ibo.org/programmes/diploma-programme/assessment-and-exams/",
+      "publisher": "International Baccalaureate",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "IB",
+        "Diploma Programme",
+        "internal assessment",
+        "external assessment"
+      ],
+      "summary": "Official IB Diploma Programme assessment overview.",
+      "verified_notes": [
+        "The IB describes both external and internal assessment in the Diploma Programme.",
+        "The IB lists examinations, essays, structured problems, data-response tasks and other formats; internal-assessment examples include oral work, fieldwork, laboratory work and investigations."
+      ],
+      "limits": "Not a complete subject guide or diploma-award rulebook."
+    },
+    {
+      "source_id": "collegeboard-ap",
+      "jurisdiction": "United States",
+      "system": "College Board",
+      "qualification": "Advanced Placement",
+      "title": "AP Courses and Exams",
+      "source_url": "https://apstudents.collegeboard.org/courses",
+      "publisher": "College Board",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "United States",
+        "AP",
+        "Advanced Placement",
+        "courses",
+        "exams"
+      ],
+      "summary": "Official College Board AP course and exam catalogue.",
+      "verified_notes": [
+        "The College Board page provides course and exam information across AP subject areas.",
+        "Individual AP course pages are the appropriate next source for course-specific exam structure and assessment details."
+      ],
+      "limits": "A course catalogue is not a complete exam specification."
+    },
+    {
+      "source_id": "meb-faq",
+      "jurisdiction": "Türkiye",
+      "system": "MEB",
+      "qualification": "National school curriculum and common written examinations",
+      "title": "MEB Frequently Asked Questions",
+      "source_url": "https://www.meb.gov.tr/sss.php",
+      "publisher": "Republic of Türkiye Ministry of National Education",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Türkiye",
+        "MEB",
+        "school assessment",
+        "common written examinations"
+      ],
+      "summary": "Official ministry FAQ with information about common written examinations.",
+      "verified_notes": [
+        "The ministry FAQ describes the 2026–2027 implementation scope for the Common Written Examination System, including specified middle- and high-school grades and subjects."
+      ],
+      "limits": "Not a complete national curriculum or YKS guide."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "case_id": "cambridge-01",
+    "query": "How does Cambridge International decide grade thresholds?",
+    "expected_source_ids": [
+      "cambridge-awarding"
+    ]
+  },
+  {
+    "case_id": "pearson-01",
+    "query": "Does Pearson Edexcel International GCSE use linear or modular assessment?",
+    "expected_source_ids": [
+      "pearson-igcse"
+    ]
+  },
+  {
+    "case_id": "fbise-01",
+    "query": "Where can I find FBISE HSSC syllabus and model papers?",
+    "expected_source_ids": [
+      "fbise-syllabus"
+    ]
+  },
+  {
+    "case_id": "waec-01",
+    "query": "What are WAEC Nigeria WASSCE subject entry requirements?",
+    "expected_source_ids": [
+      "waec-nigeria"
+    ]
+  },
+  {
+    "case_id": "neco-internal-01",
+    "query": "Who takes NECO SSCE Internal?",
+    "expected_source_ids": [
+      "neco-internal"
+    ]
+  },
+  {
+    "case_id": "neco-external-01",
+    "query": "What is NECO SSCE External for private candidates?",
+    "expected_source_ids": [
+      "neco-external"
+    ]
+  },
+  {
+    "case_id": "ib-01",
+    "query": "Does the IB Diploma Programme use internal and external assessment?",
+    "expected_source_ids": [
+      "ib-dp"
+    ]
+  },
+  {
+    "case_id": "ap-01",
+    "query": "Where can I find official AP course and exam information?",
+    "expected_source_ids": [
+      "collegeboard-ap"
+    ]
+  },
+  {
+    "case_id": "meb-01",
+    "query": "What does Türkiye MEB publish about common written examinations?",
+    "expected_source_ids": [
+      "meb-faq"
+    ]
+  }
+]
