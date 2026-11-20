@@ -16,6 +16,7 @@ from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
 from src.ai_teacher_ui import render_ai_teacher, render_student_navigator
+from src.visual_design import apply_visual_identity, render_site_footer
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -195,6 +196,8 @@ section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button{backg
 @media(prefers-reduced-motion:reduce){.welcome-card{transition:none}.welcome-card:hover{transform:none}}
 </style>
 """, unsafe_allow_html=True)
+
+apply_visual_identity()
 
 supabase = get_supabase_client()
 user = restore_auth_session(supabase) if supabase else None
@@ -987,5 +990,4 @@ elif page == "About EduBridge":
     st.markdown("- [UCI Student Performance](https://archive.ics.uci.edu/dataset/320/student+performance)")
     st.markdown("- [OULAD](https://analyse.kmi.open.ac.uk/open_dataset)")
 
-st.divider()
-st.caption("EduBridge AI · A student learning companion and educational data-science research prototype.")
+render_site_footer()
