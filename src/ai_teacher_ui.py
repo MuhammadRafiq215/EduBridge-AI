@@ -225,6 +225,11 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     for message in st.session_state.ai_teacher_messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+    st.info(
+        "Privacy: when you send a question, the latest 12 text turns and any attached screenshot are sent to the configured AI provider. "
+        "Saved profile fields are sent only when you separately opt in. The provider's own privacy and retention terms apply. "
+        "Uploaded screenshots are not written to EduBridge's saved chat-history table."
+    )
     uploaded = st.file_uploader(
         "Question screenshot (optional)",
         type=["png", "jpg", "jpeg", "webp"],
