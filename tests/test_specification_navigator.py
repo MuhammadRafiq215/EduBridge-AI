@@ -112,7 +112,7 @@ class StudentNavigatorTests(unittest.TestCase):
             subject="Computer Science",
             exam_year="2027",
         )
-        records = retrieve_specifications(query, knowledge_base=self.kb, top_k=5)
+        records = retrieve_specifications(query, knowledge_base=EducationalKnowledgeBase(), top_k=5)
         self.assertTrue(any(x["source_id"] == "pearson-ial-computer-science-2026" for x in records))
 
 
