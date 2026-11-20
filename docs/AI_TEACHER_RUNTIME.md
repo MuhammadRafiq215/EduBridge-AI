@@ -31,6 +31,39 @@ supports_vision = false
 
 The local adapter calls the native `/api/chat` endpoint with streaming disabled. It sends no Authorization header and only accepts loopback addresses (`localhost`, `127.0.0.1`, or `::1`). Image upload remains hidden unless `supports_vision = true` is explicitly set and the installed model supports images.
 
+## Recommended first model for a 16 GB Windows laptop
+
+For a computer showing **15.8 GB total RAM** and about **9.5 GB available at the time of checking**, begin by testing **Qwen 3.5 4B**. The official Ollama library lists the `qwen3.5:4b` model at approximately 3.3–4.0 GB and identifies text and image input support. This is a reasonable first trial, not a guarantee of speed: CPU/GPU, current memory pressure, context length and other running applications all affect performance.
+
+After installing Ollama from the official Windows installer, open PowerShell and run:
+
+```powershell
+ollama run qwen3.5:4b
+```
+
+The first run downloads the model. Wait for its prompt, enter a short test question, then use `/bye` to exit the model chat. Check the installed model name with:
+
+```powershell
+ollama list
+```
+
+Use the exact installed model tag in the local EduBridge secrets file:
+
+```toml
+[ai]
+provider = "local"
+model = "qwen3.5:4b"
+base_url = "http://127.0.0.1:11434"
+timeout = 180
+supports_vision = true
+```
+
+Qwen 3.5 4B supports image input in Ollama's model library, so vision can be enabled after confirming the installed model runs successfully. If the laptop becomes sluggish or Windows reports low available memory, stop the model and try the smaller `qwen3.5:2b` tag instead. Do not run multiple large models at once. Start with short prompts and close unnecessary applications.
+
+Official model pages:
+- [Qwen 3.5 4B in the Ollama library](https://ollama.com/library/qwen3.5:4b)
+- [Qwen 3.5 model tags and published sizes](https://ollama.com/library/qwen3.5/tags)
+
 ## Important deployment distinction
 
 A Streamlit Community Cloud app runs on Streamlit's server. Its `localhost` is the cloud server, not your Windows laptop. Therefore, the local mode above is for running EduBridge and the local model runtime on the same computer. It does not make the deployed public app reach your laptop.
