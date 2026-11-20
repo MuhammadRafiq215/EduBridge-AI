@@ -4,6 +4,9 @@ from __future__ import annotations
 import streamlit as st
 
 from src.ai_teacher import OpenAICompatibleProvider, build_profile_context
+from src.account_store import save_learner_profile
+from src.adaptive_learning import normalise_topic_entry, summarise_topic_progress, build_adaptive_plan
+from src.chat_history_store import load_chat_history, save_chat_history, delete_chat_history
 from src.specification_engine import (
     SpecificationQuery,
     build_specification_context,
@@ -30,11 +33,12 @@ def _configured_provider():
         return None
 
 
-def render_student_navigator(profile: dict | None) -> None:
+def render_student_navigator(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
     st.markdown("## 🧭 Student Navigator")
     st.write("A practical next-step guide based on your saved learning profile and the questions in your current browser session.")
+    profile_data = dict(profile or {})
     history = st.session_state.get("ai_teacher_messages", [])
-    snapshot = build_student_snapshot(profile, history)
+    snapshot = build_student_snapshot(profile_data, history)
     coverage = specification_coverage_summary()
     first, second, third = st.columns(3)
     first.metric("Your subjects", len(snapshot["subjects"]))
@@ -73,8 +77,73 @@ def render_student_navigator(profile: dict | None) -> None:
         st.caption("A catalogue or reviewed summary is not the same as a complete subject specification.")
     st.caption("Navigator suggestions are planning support, not predicted grades, admission chances or formal academic assessments.")
 
+    st.divider()
+    st.markdown("### 📈 Topic progress and adaptive next steps")
+    st.write("Record a topic after studying it. EduBridge combines your own confidence reflection with practice results; this is a planning signal, not an exam grade.")
+    session_entries = st.session_state.setdefault("topic_progress_session", [])
+    saved_entries = profile_data.get("topic_progress", []) if isinstance(profile_data.get("topic_progress", []), list) else []
+    save_progress = st.checkbox(
+        "Save topic progress to my signed-in learner profile",
+        value=False,
+        disabled=not bool(supabase and user_id),
+        help="When enabled, the topic record is stored in your own profile under the existing account privacy rules."
+    )
+    subject_options = snapshot["subjects"] or ["General study"]
+    with st.form("topic_progress_form", clear_on_submit=True):
+        subject_choice = st.selectbox("Subject", subject_options)
+        topic_name = st.text_input("Topic", placeholder="e.g. Recursion, differentiation, cell structure")
+        confidence = st.slider("How confident do you feel after studying it?", 1, 5, 3)
+        attempted = st.number_input("Practice questions attempted", min_value=0, max_value=100, value=0, step=1)
+        correct = st.number_input("Correct answers", min_value=0, max_value=100, value=0, step=1)
+        submitted = st.form_submit_button("Record topic progress", type="primary")
+    if submitted:
+        try:
+            entry = normalise_topic_entry(subject_choice, topic_name, confidence, int(attempted), int(correct))
+            if save_progress and supabase and user_id:
+                updated = (saved_entries + [entry])[-300:]
+                profile_data["topic_progress"] = updated
+                save_learner_profile(supabase, user_id, profile_data)
+                st.session_state.learner_profile = profile_data
+                saved_entries = updated
+                st.success("Topic progress saved to your private learner profile.")
+            else:
+                session_entries.append(entry)
+                st.success("Topic progress recorded for this browser session.")
+        except (ValueError, TypeError) as exc:
+            st.error(str(exc))
+        except Exception:
+            st.error("Progress could not be saved. Check your account connection and try again.")
 
-def render_ai_teacher(profile: dict | None) -> None:
+    combined_entries = (saved_entries + session_entries)[-300:]
+    summaries = summarise_topic_progress(combined_entries)
+    if summaries:
+        st.markdown("#### Your latest topic signals")
+        st.dataframe(
+            [{
+                "Subject": row["subject"],
+                "Topic": row["topic"],
+                "Practice accuracy": f'{row["practice_accuracy"]:.1f}%' if row["practice_accuracy"] is not None else "Not recorded",
+                "Confidence": f'{row["confidence"]}/5',
+                "Progress index": f'{row["progress_index"]}/100',
+                "Evidence": "Stronger" if row["evidence_level"] == "practice_and_self_reflection" else "Provisional",
+                "Last studied": row["studied_on"],
+            } for row in summaries],
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption("Progress index is a transparent 60% practice-accuracy + 40% self-reflection indicator. Fewer than five attempts are labelled provisional.")
+        st.markdown("#### Suggested next actions")
+        for item in build_adaptive_plan(combined_entries):
+            st.markdown(f"**{item['subject']} · {item['topic']} — {item['priority']}**")
+            st.write(item["action"])
+            st.caption(item["basis"])
+    else:
+        st.info("No topic records yet. Add one above to start a personal progress timeline.")
+    if not (supabase and user_id):
+        st.caption("Sign-in is not connected in this session, so topic records remain temporary in this browser session.")
+
+
+def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
     st.markdown("## 🤖 EduBridge AI Teacher")
     st.write("Ask a question about your studies, qualification, examination structure or subject content. Attach a screenshot when image input is supported by the configured provider.")
     coverage = specification_coverage_summary()
@@ -92,6 +161,33 @@ def render_ai_teacher(profile: dict | None) -> None:
         )
         st.write("The specification engine and Student Navigator can be explored without enabling an external AI provider.")
         return
+
+    if "ai_teacher_messages" not in st.session_state:
+        st.session_state.ai_teacher_messages = []
+    persist_history = False
+    if supabase and user_id:
+        persist_history = st.checkbox(
+            "Save my AI Teacher chat history to my private account",
+            value=False,
+            help="Off by default. When enabled, text messages and answers are saved to your own account. Uploaded images are not stored."
+        )
+        if persist_history and st.session_state.get("ai_teacher_history_loaded_for") != user_id:
+            try:
+                st.session_state.ai_teacher_messages = load_chat_history(supabase, user_id)
+                st.session_state["ai_teacher_history_loaded_for"] = user_id
+            except Exception:
+                st.warning("Saved chat history could not be loaded. Check that the Phase 7 chat-history database migration has been applied.")
+        if st.button("Delete all saved AI Teacher history", key="delete_saved_ai_teacher_history"):
+            try:
+                delete_chat_history(supabase, user_id)
+                st.session_state.ai_teacher_messages = []
+                st.session_state["ai_teacher_history_loaded_for"] = user_id
+                st.success("Saved chat history deleted.")
+                st.rerun()
+            except Exception:
+                st.error("Saved history could not be deleted. Check the database migration and account connection.")
+    elif not user_id:
+        st.caption("Sign in to use optional cross-session chat history. This feature is off by default.")
 
     use_profile = False
     if isinstance(profile, dict) and profile:
@@ -117,8 +213,6 @@ def render_ai_teacher(profile: dict | None) -> None:
     })
     context = {k: v for k, v in context.items() if v not in ("", None, [], {})}
 
-    if "ai_teacher_messages" not in st.session_state:
-        st.session_state.ai_teacher_messages = []
     for message in st.session_state.ai_teacher_messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -175,11 +269,21 @@ def render_ai_teacher(profile: dict | None) -> None:
                                     f"[Open official source]({record['source_url']})"
                                 )
                     st.session_state.ai_teacher_messages.append({"role": "assistant", "content": answer})
+                    if persist_history and supabase and user_id:
+                        save_chat_history(supabase, user_id, st.session_state.ai_teacher_messages)
                 except (RuntimeError, ValueError, OSError) as exc:
                     st.error(str(exc))
         st.rerun()
     if st.session_state.ai_teacher_messages:
         if st.button("Clear this browser session's chat", key="clear_ai_teacher_chat"):
             st.session_state.ai_teacher_messages = []
+            if persist_history and supabase and user_id:
+                try:
+                    delete_chat_history(supabase, user_id)
+                except Exception:
+                    st.error("The browser chat was cleared, but saved history could not be deleted.")
             st.rerun()
-        st.caption("The latest 12 turns may be sent to the configured model during this session. Chat is not stored permanently or used to train a model.")
+        if persist_history:
+            st.caption("Chat text is saved to your own account because you opted in. Uploaded images are not saved. You can delete the saved history above.")
+        else:
+            st.caption("Chat history is temporary in this browser session. Permanent saving is off unless you explicitly enable it.")
