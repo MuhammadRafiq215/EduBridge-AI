@@ -53,6 +53,10 @@ Student accounts use Supabase Auth for email/password registration and sign-in. 
 
 The confidence snapshot is based only on the learner's own ratings. It is not an objective grade, admissions probability, diagnosis or AI prediction.
 
+### AI Teacher, Student Navigator and adaptive progress
+
+EduBridge includes a specification-aware AI Teacher interface, a Student Navigator, and opt-in topic-progress tracking. The tutor uses retrieved official-source context and a configured external provider; it does not fine-tune the public-dataset benchmark models. Topic progress uses a transparent student-entered indicator, not a trained mastery predictor. See [Phase 7 documentation](docs/PHASE7_ADAPTIVE_INTELLIGENCE.md) for evidence, privacy and setup requirements.
+
 ## Machine-learning research
 
 The current secondary-school benchmark uses the [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance). Its mathematics cohort represents two Portuguese schools, so it is a methodological benchmark—not a validated model for Pakistani students.

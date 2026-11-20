@@ -91,5 +91,30 @@ class StudentNavigatorTests(unittest.TestCase):
         self.assertNotIn("predicted_grade", snapshot)
 
 
+    def test_retrieves_versioned_cambridge_9618_specification(self):
+        query = SpecificationQuery(
+            question="What are the assessment objectives and Paper 4 practical requirements?",
+            jurisdiction="Global",
+            qualification="AS & A Level Computer Science 9618",
+            awarding_body="Cambridge International",
+            subject="Computer Science",
+            exam_year="2027",
+        )
+        records = retrieve_specifications(query, knowledge_base=EducationalKnowledgeBase(), top_k=5)
+        self.assertTrue(any(x["source_id"] == "cambridge-9618-2027-2029" for x in records))
+
+    def test_retrieves_new_pearson_ial_computer_science_specification(self):
+        query = SpecificationQuery(
+            question="What are the units and practical programming assessment?",
+            jurisdiction="Global",
+            qualification="International Advanced Subsidiary and International Advanced Level Computer Science (XCP01/YCP01)",
+            awarding_body="Pearson Edexcel",
+            subject="Computer Science",
+            exam_year="2027",
+        )
+        records = retrieve_specifications(query, knowledge_base=EducationalKnowledgeBase(), top_k=5)
+        self.assertTrue(any(x["source_id"] == "pearson-ial-computer-science-2026" for x in records))
+
+
 if __name__ == "__main__":
     unittest.main()
