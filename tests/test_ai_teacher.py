@@ -20,6 +20,14 @@ class AITeacherTests(unittest.TestCase):
         self.assertIn("A Levels", result[0]["content"])
         self.assertEqual(result[1]["content"], "Question 3")
 
+    def test_verified_knowledge_context_is_added_to_system_prompt(self):
+        result = build_request_messages(
+            [{"role": "user", "content": "What is the grading policy?"}],
+            knowledge_context="Use this official fact [KB:BOARD-2026].",
+        )
+        self.assertIn("CURATED KNOWLEDGE BASE CONTEXT", result[0]["content"])
+        self.assertIn("[KB:BOARD-2026]", result[0]["content"])
+
     def test_image_is_encoded_as_data_url(self):
         result = build_request_messages([{"role": "user", "content": "Explain"}], image=(b"\x89PNG\r\n\x1a\n" + b"payload", "image/png"))
         self.assertTrue(result[-1]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,"))
