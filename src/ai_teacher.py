@@ -26,7 +26,7 @@ def build_profile_context(profile: dict[str, Any] | None) -> dict[str, Any] | No
     """Return a small allow-listed education context; omit unrelated fields."""
     if not isinstance(profile, dict):
         return None
-    keys = ("country", "level", "qualification", "board", "pathway", "programme",
+    keys = ("country", "level", "qualification", "custom_qualification", "board", "pathway", "programme",
             "current_year", "subjects", "confidence", "latest_results")
     context = {key: profile[key] for key in keys if key in profile and profile[key] not in (None, "", [], {})}
     return context or None
