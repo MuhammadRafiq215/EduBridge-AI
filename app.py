@@ -15,7 +15,7 @@ from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
-from src.ai_teacher_ui import render_ai_teacher
+from src.ai_teacher_ui import render_ai_teacher, render_student_navigator
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -202,11 +202,12 @@ with st.sidebar:
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
-    if pending_workspace in ["Dashboard", "AI Teacher", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
+    if pending_workspace in ["Dashboard", "AI Teacher", "Student Navigator", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
     workspace_icons = {
         "Dashboard": "🏠",
         "AI Teacher": "🤖",
+        "Student Navigator": "🧭",
         "My learning profile": "👤",
         "Career pathways": "🧭",
         "Study planner": "📅",
@@ -487,6 +488,9 @@ if page == "Dashboard":
 
 elif page == "AI Teacher":
     render_ai_teacher(profile)
+
+elif page == "Student Navigator":
+    render_student_navigator(profile)
 
 elif page == "My learning profile":
     if not user:
