@@ -1,5 +1,6 @@
 """Transparent mark aggregation; board grades are never guessed."""
 from __future__ import annotations
+import math
 
 def calculate_academic_profile(subjects):
     if not isinstance(subjects, (list, tuple)) or not subjects:
@@ -17,6 +18,8 @@ def calculate_academic_profile(subjects):
             earned, maximum = float(row.get("marks_obtained")), float(row.get("maximum_marks"))
         except (TypeError, ValueError):
             raise ValueError(f"Enter numeric marks for {name}.")
+        if not math.isfinite(earned) or not math.isfinite(maximum):
+            raise ValueError(f"Marks for {name} must be finite numbers.")
         if maximum <= 0:
             raise ValueError(f"Maximum marks for {name} must be greater than zero.")
         if earned < 0 or earned > maximum:

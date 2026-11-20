@@ -578,6 +578,54 @@
         "Home Science"
       ],
       "note": "Offerings and combinations depend on academic session and school."
+    },
+    {
+      "jurisdiction": "Nigeria",
+      "system": "WAEC Nigeria",
+      "qualification": "WASSCE",
+      "status": "catalogue_verified",
+      "source_ids": [
+        "waec-nigeria"
+      ],
+      "subjects": [
+        "English Language",
+        "General Mathematics",
+        "Biology",
+        "Chemistry",
+        "Physics",
+        "Agriculture",
+        "Further Mathematics",
+        "Physical Education",
+        "Health Education",
+        "Foods and Nutrition",
+        "Geography",
+        "Technical Drawing",
+        "Nigerian History",
+        "Government",
+        "Christian Religious Studies",
+        "Islamic Studies",
+        "Hausa",
+        "Igbo",
+        "Yoruba",
+        "French",
+        "Arabic",
+        "Visual Art",
+        "Music",
+        "Literature-in-English",
+        "Home Management",
+        "Catering Craft",
+        "Accounting",
+        "Commerce",
+        "Marketing",
+        "Economics",
+        "Fashion Design and Garment Making",
+        "Livestock Farming",
+        "Beauty and Cosmetology",
+        "Computer Hardware and GSM Repairs",
+        "Solar Photovoltaic Installation and Maintenance",
+        "Horticulture and Crop Production"
+      ],
+      "note": "Subject choices and core-subject rules are cohort- and year-specific. The 2026–27 notice distinguishes subjects available now from new subjects scheduled for 2028."
     }
   ]
 }
