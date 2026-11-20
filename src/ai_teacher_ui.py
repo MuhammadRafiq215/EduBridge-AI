@@ -37,6 +37,10 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
     st.markdown("## 🧭 Student Navigator")
     st.write("A practical next-step guide based on your saved learning profile and the questions in your current browser session.")
     profile_data = dict(profile or {})
+    topic_owner = user_id or "anonymous-session"
+    if st.session_state.get("topic_progress_owner") != topic_owner:
+        st.session_state["topic_progress_session"] = []
+        st.session_state["topic_progress_owner"] = topic_owner
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
     coverage = specification_coverage_summary()
@@ -162,6 +166,11 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         st.write("The specification engine and Student Navigator can be explored without enabling an external AI provider.")
         return
 
+    chat_owner = user_id or "anonymous-session"
+    if st.session_state.get("ai_teacher_owner") != chat_owner:
+        st.session_state["ai_teacher_messages"] = []
+        st.session_state.pop("ai_teacher_history_loaded_for", None)
+        st.session_state["ai_teacher_owner"] = chat_owner
     if "ai_teacher_messages" not in st.session_state:
         st.session_state.ai_teacher_messages = []
     persist_history = False
