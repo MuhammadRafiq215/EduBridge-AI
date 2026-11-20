@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src.ai_teacher import OpenAICompatibleProvider, build_profile_context, build_request_messages, extract_response_text, validate_image
+from src.ai_teacher import OpenAICompatibleProvider, build_profile_context, build_request_messages, build_system_prompt, extract_response_text, validate_image
 
 
 class AITeacherTests(unittest.TestCase):
@@ -27,6 +27,11 @@ class AITeacherTests(unittest.TestCase):
         )
         self.assertIn("CURATED KNOWLEDGE BASE CONTEXT", result[0]["content"])
         self.assertIn("[KB:BOARD-2026]", result[0]["content"])
+
+    def test_system_prompt_requires_exact_specification_citations(self):
+        prompt = build_system_prompt(None, "Use only [SPEC:example-source].")
+        self.assertIn("cite only exact", prompt)
+        self.assertIn("[SPEC:source_id]", prompt)
 
     def test_image_is_encoded_as_data_url(self):
         result = build_request_messages([{"role": "user", "content": "Explain"}], image=(b"\x89PNG\r\n\x1a\n" + b"payload", "image/png"))
