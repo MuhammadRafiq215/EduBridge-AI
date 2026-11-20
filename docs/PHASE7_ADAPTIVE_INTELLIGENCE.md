@@ -30,7 +30,7 @@ The system does not infer a learner's ability from chat messages, identity, scho
 - Permanent chat saving is off by default.
 - It requires an authenticated account and a separate opt-in checkbox.
 - Only text messages and assistant answers are stored; uploaded screenshots are not saved.
-- The database stores at most the latest 100 user/assistant turns, with a 10,000-character limit per message.
+- The database stores at most the latest 100 user/assistant messages, with a 10,000-character limit per message; older messages are trimmed as new ones are saved.
 - Row-level security restricts read, insert, update and delete to the matching authenticated user.
 - The AI Teacher includes a delete-saved-history action.
 - Apply `supabase/chat_history_schema.sql` only after checking the account provider's eligibility, privacy and data-handling terms. The migration has not been run automatically.
