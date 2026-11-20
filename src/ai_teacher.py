@@ -115,13 +115,38 @@ def extract_response_text(payload: dict[str, Any]) -> str:
     raise ValueError("The AI provider returned an empty response.")
 
 
+def validate_hosted_base_url(base_url: str) -> str:
+    """Accept only well-formed HTTPS endpoints for hosted model providers."""
+    value = str(base_url or "").strip()
+    if not value or any(character.isspace() for character in value):
+        raise ValueError("Hosted AI endpoints must be valid HTTPS URLs.")
+    parsed = urlparse(value)
+    try:
+        _ = parsed.port
+    except ValueError as exc:
+        raise ValueError("Hosted AI endpoint has an invalid port.") from exc
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("Hosted AI endpoints must use HTTPS and cannot contain credentials, query strings or fragments.")
+    return value.rstrip("/")
+
+
 class OpenAICompatibleProvider:
     """Adapter for providers exposing the OpenAI-compatible Chat Completions API."""
     def __init__(self, api_key: str, model: str, base_url: str = "https://api.openai.com/v1", timeout: int = 45):
         if not api_key.strip() or not model.strip():
             raise ValueError("An API key and model name are required.")
         self.api_key, self.model = api_key.strip(), model.strip()
-        self.base_url, self.timeout = base_url.rstrip("/"), timeout
+        self.base_url = validate_hosted_base_url(base_url)
+        self.timeout = max(15, min(int(timeout), 120))
+        self.supports_vision = False
+        self.provider_name = "Hosted AI provider"
 
     def answer(
         self,
