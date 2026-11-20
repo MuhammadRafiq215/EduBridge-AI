@@ -21,11 +21,11 @@ class AITeacherTests(unittest.TestCase):
         self.assertEqual(result[1]["content"], "Question 3")
 
     def test_image_is_encoded_as_data_url(self):
-        result = build_request_messages([{"role": "user", "content": "Explain"}], image=(b"fake", "image/png"))
+        result = build_request_messages([{"role": "user", "content": "Explain"}], image=(b"\\x89PNG\\r\\n\\x1a\\n" + b"payload", "image/png"))
         self.assertTrue(result[-1]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,"))
 
     def test_unsupported_empty_and_oversized_images_are_rejected(self):
-        for payload, mime in ((b"data", "image/gif"), (b"", "image/png"), (b"x" * (5 * 1024 * 1024 + 1), "image/png")):
+        for payload, mime in ((b"data", "image/gif"), (b"", "image/png"), (b"not-a-png", "image/png"), (b"\\x89PNG\\r\\n\\x1a\\n" + b"x" * (5 * 1024 * 1024), "image/png")):
             with self.assertRaises(ValueError):
                 validate_image(payload, mime)
 
