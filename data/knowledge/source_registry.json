@@ -297,6 +297,46 @@
         "cbse-curriculum"
       ],
       "next_task": "Index current subject curriculum PDFs and class-wise assessment rules."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "AS & A Level Computer Science 9618 (2027–2029)",
+      "status": "specification_verified",
+      "source_ids": [
+        "cambridge-9618-2027-2029"
+      ],
+      "next_task": "Add subject-topic granularity, specimen assessment materials and series-matched official grade-threshold data."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "Pearson Edexcel",
+      "qualification": "International AS & A Level Computer Science (2026 specification)",
+      "status": "specification_verified",
+      "source_ids": [
+        "pearson-ial-computer-science-2026"
+      ],
+      "next_task": "Add versioned topic-level mapping and current official sample assessment materials; separately track first assessment by unit."
+    },
+    {
+      "jurisdiction": "Pakistan",
+      "system": "FBISE",
+      "qualification": "SSC Scheme of Studies 2024 update (November 2026)",
+      "status": "verified_snippet",
+      "source_ids": [
+        "fbise-revised-scheme-2024-update-2026"
+      ],
+      "next_task": "Review the linked updated scheme and subject-specific current curriculum/model papers before marking individual subjects specification_verified."
+    },
+    {
+      "jurisdiction": "Global",
+      "system": "International Baccalaureate",
+      "qualification": "Diploma Programme assessment overview",
+      "status": "verified_snippet",
+      "source_ids": [
+        "ib-dp-assessment-overview-2026"
+      ],
+      "next_task": "Add separate DP subject guides and current assessment procedures; do not treat this programme overview as a subject specification."
     }
   ],
   "sources": [
@@ -898,6 +938,137 @@
         "MEB states that updated programmes are implemented in stages by grade and academic year."
       ],
       "limits": "Curriculum directory; confirm applicable grade and implementation year. YKS is administered separately by ÖSYM."
+    },
+    {
+      "source_id": "cambridge-9618-2027-2029",
+      "jurisdiction": "Global",
+      "system": "Cambridge International",
+      "qualification": "AS & A Level Computer Science 9618",
+      "title": "Cambridge International AS & A Level Computer Science 9618 syllabus 2027–2029",
+      "source_url": "https://www.cambridgeinternational.org/Images/721397-2027-2029-syllabus.pdf",
+      "publisher": "Cambridge International",
+      "status": "specification_verified",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "Computer Science",
+        "9618",
+        "2027 syllabus",
+        "2028 syllabus",
+        "2029 syllabus",
+        "computational thinking",
+        "programming paradigms",
+        "computer architecture",
+        "data representation",
+        "assessment overview",
+        "subject content",
+        "assessment objectives",
+        "practical programming"
+      ],
+      "summary": "Official subject syllabus for Cambridge International AS & A Level Computer Science 9618, applicable to June and November examinations in 2027, 2028 and 2029.",
+      "verified_notes": [
+        "The document identifies syllabus code 9618 and states that it applies to examinations in 2027, 2028 and 2029, with June and November series available.",
+        "The syllabus contents include AS and A Level subject content, assessment overview, assessment objectives, assessment details and submission of Paper 4 Practical.",
+        "The stated aims include computational thinking, principles of solving problems using computers, computer-system components and their interrelationships, networks and the internet, and developing computer-based solutions.",
+        "The syllabus identifies computational thinking, programming paradigms, communication, computer architecture and hardware, and data representation and structures as key concepts."
+      ],
+      "limits": "This record covers Cambridge 9618 only and the stated 2027–2029 version. It is not a grade-threshold table, and it must not be applied to IGCSE, other A Level subjects, 2026 exams or another exam board."
+    },
+    {
+      "source_id": "pearson-ial-computer-science-2026",
+      "jurisdiction": "Global",
+      "system": "Pearson Edexcel",
+      "qualification": "International Advanced Subsidiary and International Advanced Level Computer Science (XCP01/YCP01)",
+      "title": "Pearson Edexcel International Advanced Level Computer Science specification, Issue 1, March 2026",
+      "source_url": "https://qualifications.pearson.com/content/dam/pdf/International%20Advanced%20Level/computer-science/2026/specification-and-sample-assessments/ial-computer-science-specification.pdf",
+      "publisher": "Pearson",
+      "status": "specification_verified",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "International Advanced Level",
+        "Computer Science",
+        "XCP01",
+        "YCP01",
+        "Python 3",
+        "unit 1",
+        "unit 2",
+        "unit 3",
+        "unit 4",
+        "practical programming",
+        "problem solving",
+        "assessment structure",
+        "2027 assessment"
+      ],
+      "summary": "Official Pearson Edexcel specification for the new International AS and A Level Computer Science qualification, first taught September 2026.",
+      "verified_notes": [
+        "The specification identifies XCP01 as International Advanced Subsidiary and YCP01 as International Advanced Level Computer Science; it is Issue 1, March 2026.",
+        "The qualification is first taught in September 2026 and first examined in June 2027.",
+        "The four units are Unit 1 Principles of Computer Science, Unit 2 Practical Programming and Problem-solving, Unit 3 Advanced Principles of Computer Science, and Unit 4 Advanced Practical Programming and Problem-solving.",
+        "The specification describes Unit 1 and Unit 3 as written or onscreen assessment options, while Unit 2 and Unit 4 are practical programming examinations delivered onscreen.",
+        "The subject develops programming skills using Python 3 and includes computational thinking, algorithms, data representation, computer systems, networks, cybersecurity and data handling.",
+        "The qualification overview states that the four units are equally weighted and externally assessed; IAS consists of Units 1 and 2, while IAL requires all four units."
+      ],
+      "limits": "This is the new Pearson Edexcel International AS/A Level Computer Science specification, not legacy International A Level subjects or Cambridge 9618. First examination timing and unit codes must be matched to the learner's qualification and series. Do not infer grade boundaries from this specification."
+    },
+    {
+      "source_id": "fbise-revised-scheme-2024-update-2026",
+      "jurisdiction": "Pakistan",
+      "system": "Federal Board of Intermediate and Secondary Education (FBISE)",
+      "qualification": "SSC scheme of studies and curriculum",
+      "title": "FBISE notification: revised Scheme of Studies 2024, November 2026",
+      "source_url": "https://www.fbise.edu.pk/notifications/revised%20scheme%20of%20studies%202024%20new.pdf",
+      "publisher": "FBISE",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "FBISE",
+        "Pakistan",
+        "SSC",
+        "Scheme of Studies 2024",
+        "curriculum update",
+        "First Annual Examination 2027",
+        "bilingual examination",
+        "Mathematics",
+        "Physics",
+        "Chemistry",
+        "Biology",
+        "Computer Science"
+      ],
+      "summary": "Official FBISE notification dated 16 November 2026 concerning an update to the 2024 Scheme of Studies and bilingual SSC papers from First Annual Examination 2027.",
+      "verified_notes": [
+        "The notification is dated 16 November 2026 and refers to an updated or revised Scheme of Studies 2024.",
+        "It states that FBISE SSC examination papers in Mathematics, Physics, Chemistry and Biology or Computer Science will be administered bilingually in Urdu and English from First Annual Examination 2027 onwards.",
+        "The notification directs readers to the FBISE website for the updated Scheme of Studies 2024."
+      ],
+      "limits": "This is a policy notification about specified SSC subjects and language of papers, not the full subject curriculum or HSSC syllabus. Confirm the exact class, subject, scheme and current model paper before giving detailed syllabus advice."
+    },
+    {
+      "source_id": "ib-dp-assessment-overview-2026",
+      "jurisdiction": "Global",
+      "system": "International Baccalaureate",
+      "qualification": "Diploma Programme (DP)",
+      "title": "IB Diploma Programme assessment and exams",
+      "source_url": "https://www.ibo.org/programmes/diploma-programme/assessment-and-exams/",
+      "publisher": "International Baccalaureate",
+      "status": "verified_snippet",
+      "reviewed_on": "2026-11-20",
+      "topics": [
+        "IB Diploma Programme",
+        "DP assessment",
+        "internal assessment",
+        "external assessment",
+        "assessment criteria",
+        "examinations",
+        "coursework",
+        "laboratory work",
+        "mathematical investigations"
+      ],
+      "summary": "Official IB overview of Diploma Programme assessment, describing external examinations and internal assessment across DP courses.",
+      "verified_notes": [
+        "The IB describes DP assessment as direct evidence of achievement against the stated goals of DP courses.",
+        "The assessment overview describes external examinations and internal assessment; examples of internal assessment include oral work, fieldwork, laboratory work, mathematical investigations and artistic performances.",
+        "The IB states that DP results are determined against set standards rather than each student's rank relative to other candidates."
+      ],
+      "limits": "This is a programme-level assessment overview, not an individual DP subject guide, grade-boundary table or complete diploma-award regulation. Subject-specific requirements must be checked separately."
     }
   ]
 }
