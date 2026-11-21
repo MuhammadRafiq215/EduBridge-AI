@@ -31,8 +31,19 @@ def _configured_provider():
 
 
 def render_student_navigator(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
-    st.markdown("## 🧭 Student Navigator")
-    st.write("A practical next-step guide based on your saved learning profile and the questions in your current browser session.")
+    st.markdown("""
+    <div class="eb-navigator-hero">
+      <div class="eb-navigator-kicker">YOUR PERSONAL STUDY COMPASS</div>
+      <h2>Know your next move.</h2>
+      <p>Small, useful steps built around your subjects and goals.</p>
+    </div>
+    <style>
+    .eb-navigator-hero{padding:22px 25px;border-radius:20px;background:linear-gradient(115deg,#14213d,#5148c8 70%,#1aa7a7);color:white;margin:5px 0 18px}
+    .eb-navigator-hero h2{color:#fff!important;margin:8px 0;font-size:clamp(23px,3vw,32px)!important}
+    .eb-navigator-hero p{color:#e8edff;margin:0;font-size:14px}
+    .eb-navigator-kicker{font-size:10px;font-weight:850;letter-spacing:1.6px;color:#dfff8a}
+    </style>
+    """, unsafe_allow_html=True)
     profile_data = dict(profile or {})
     topic_owner = user_id or "anonymous-session"
     if st.session_state.get("topic_progress_owner") != topic_owner:
@@ -40,20 +51,16 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.session_state["topic_progress_owner"] = topic_owner
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
-    st.info(
-        "EduBridge AI Teacher is an educational support tool, not a substitute for a teacher, parent or professional. "
-        "Do not share passwords, identity numbers, private records or sensitive personal details. "
-        "If a conversation raises a safety concern, please speak with a trusted adult. "
-        "AI-generated explanations can be wrong; verify important exam information using the linked official sources."
-    )
+    with st.expander("Safety and source guidance"):
+        st.caption("Use EduBridge as a study aid, not a replacement for a teacher. Keep passwords and private records out of chat. Check important exam facts against official sources and speak with a trusted adult if you need help.")
 
     coverage = specification_coverage_summary()
-    first, second, third = st.columns(3)
-    first.metric("Your subjects", len(snapshot["subjects"]))
-    second.metric("Recent learning questions", len(snapshot["recent_questions"]))
-    third.metric("Official source records", coverage["source_records"])
-    st.caption(coverage["coverage_warning"])
-    st.caption(f"Memory scope: {snapshot['memory_scope']}")
+    if snapshot["subjects"]:
+        st.caption(" · ".join(snapshot["subjects"][:6]))
+    with st.expander("Profile and source coverage"):
+        st.caption(f'{len(snapshot["subjects"])} subjects · {len(snapshot["recent_questions"])} recent questions in this session')
+        st.caption(coverage["coverage_warning"])
+        st.caption(f"Context: {snapshot['memory_scope']}")
     if snapshot["qualification"] != "Not specified":
         st.write(
             f"**Qualification:** {snapshot['qualification']} · "
@@ -83,11 +90,12 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.metric("Reviewed official summaries", coverage["verified_snippets"])
         st.metric("Discovery pending systems", coverage["discovery_pending_systems"])
         st.caption("A catalogue or reviewed summary is not the same as a complete subject specification.")
-    st.caption("Navigator suggestions are planning support, not predicted grades, admission chances or formal academic assessments.")
+    with st.expander("How recommendations work"):
+        st.caption("Suggestions use details you chose to provide. They are planning support, not predicted grades, admission chances or formal academic assessments.")
 
     st.divider()
     st.markdown("### 📈 Topic progress and adaptive next steps")
-    st.write("Record a topic after studying it. EduBridge combines your own confidence reflection with practice results; this is a planning signal, not an exam grade.")
+    st.caption("Record a topic, practise and see what to revisit. These are personal study signals, not exam grades.")
     session_entries = st.session_state.setdefault("topic_progress_session", [])
     saved_entries = profile_data.get("topic_progress", []) if isinstance(profile_data.get("topic_progress", []), list) else []
     save_progress = st.checkbox(
@@ -156,7 +164,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
 def render_guided_practice(profile: dict, supabase=None, user_id: str | None = None) -> None:
     """Render model-assisted practice with a transparent offline fallback."""
     st.divider()
-    st.markdown("### ✦ Guided Practice Studio")
+    st.markdown("### ✦ Guided Practice")
     st.markdown(
         """
         <style>
@@ -170,7 +178,7 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
         """,
         unsafe_allow_html=True,
     )
-    st.write("Choose one topic, attempt a short practice set and reflect on what you understand. When a model is configured, EduBridge can generate questions and formative feedback; otherwise it provides a clearly labelled self-guided study routine.")
+    st.caption("Choose a topic, try a short set and get a next step. Model-assisted feedback appears only when an approved model is configured.")
     owner = str(user_id) if user_id else "anonymous-session"
     if st.session_state.get("guided_practice_owner") != owner:
         st.session_state.pop("guided_practice_active", None)
