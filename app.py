@@ -399,8 +399,8 @@ def render_share_strip() -> None:
 
 if page == "Welcome":
     hero(
-        "A clearer path through your learning journey.",
-        "Explore your subjects, understand your next steps and discover trusted education information — all in one student-centred space.",
+        "Learn with direction. Grow with evidence.",
+        "A focused learning studio for understanding difficult topics, practising with purpose and finding trustworthy education information.",
         "WELCOME TO EDUBRIDGE",
     )
     st.markdown(
