@@ -16,6 +16,7 @@ from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
 from src.ai_teacher_ui import render_ai_teacher, render_student_navigator
+from src.visual_design import apply_visual_identity, render_site_footer
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -178,8 +179,25 @@ header[data-testid="stHeader"] [data-testid="stToolbar"] > div > div > :nth-chil
   border-radius:9px; background:linear-gradient(135deg,#6757f5,#27c9d2);
   color:#fff; font-size:14px;
 }
+/* Phase 9: welcoming discovery layer and consistent interactive feature cards. */
+.welcome-card{height:100%;min-height:225px;padding:23px;border:1px solid #e6e8f5;border-radius:22px;background:linear-gradient(150deg,#fff 0%,#fbfbff 72%,#f1faff 100%);box-shadow:0 12px 30px rgba(35,38,85,.055);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+.welcome-card:hover{transform:translateY(-5px);border-color:#c9c5ff;box-shadow:0 19px 38px rgba(47,45,118,.12);}
+.welcome-icon{display:grid;place-items:center;width:54px;height:54px;margin-bottom:18px;border-radius:18px;background:linear-gradient(135deg,#efedff,#e5fbfc);font-size:27px;}
+.welcome-card h3{margin:0 0 9px;color:#202247;font-size:19px;}
+.welcome-card p{margin:0;color:#6c7390;font-size:13px;line-height:1.65;}
+.welcome-card .welcome-tag{display:inline-flex;margin-top:17px;padding:6px 10px;border-radius:999px;background:#f0efff;color:#6255e9;font-size:10px;font-weight:800;letter-spacing:.7px;}
+.welcome-ask{padding:22px 24px;border:1px solid #dfdefa;border-radius:22px;background:linear-gradient(110deg,#f0efff 0%,#e8fbfc 100%);box-shadow:0 10px 26px rgba(35,38,85,.045);}
+.welcome-ask h3{margin:0 0 6px;color:#202247;}.welcome-ask p{margin:0;color:#69718f;font-size:13px;line-height:1.6;}
+.welcome-proof{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0 4px;}.welcome-proof span{padding:8px 12px;border:1px solid #e7e8f4;border-radius:999px;background:rgba(255,255,255,.85);color:#535b7a;font-size:11px;font-weight:700;}
+section[data-testid="stSidebar"] [data-testid="stForm"]{padding:12px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);box-shadow:none;}
+section[data-testid="stSidebar"] [data-testid="stTextInput"] input{background:rgba(255,255,255,.96);color:#202247;}
+section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button{background:linear-gradient(100deg,#6757f5,#27aebd);border:0;color:#fff;}
+@media(max-width:800px){.welcome-card{min-height:0;padding:19px}.welcome-ask{padding:18px}}
+@media(prefers-reduced-motion:reduce){.welcome-card{transition:none}.welcome-card:hover{transform:none}}
 </style>
 """, unsafe_allow_html=True)
+
+apply_visual_identity()
 
 supabase = get_supabase_client()
 user = restore_auth_session(supabase) if supabase else None
@@ -202,9 +220,10 @@ with st.sidebar:
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
-    if pending_workspace in ["Dashboard", "AI Teacher", "Student Navigator", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
+    if pending_workspace in ["Welcome", "Dashboard", "AI Teacher", "Student Navigator", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
     workspace_icons = {
+        "Welcome": "✨",
         "Dashboard": "🏠",
         "AI Teacher": "🤖",
         "Student Navigator": "🧭",
@@ -223,6 +242,14 @@ with st.sidebar:
         label_visibility="visible",
         key="workspace",
     )
+    st.caption("QUICK QUESTION")
+    with st.form("sidebar_quick_ask", clear_on_submit=True):
+        sidebar_question = st.text_input("Ask a learning question", placeholder="e.g. Explain recursion", label_visibility="collapsed")
+        sidebar_ask = st.form_submit_button("Ask AI Teacher", use_container_width=True)
+    if sidebar_ask and sidebar_question.strip():
+        st.session_state["ai_teacher_pending_question"] = sidebar_question.strip()
+        st.session_state["navigate_to_workspace"] = "AI Teacher"
+        st.rerun()
     st.divider()
     if user:
         st.success("Signed in")
@@ -327,6 +354,40 @@ def render_share_strip() -> None:
         st.caption("Copy the website address below and paste it into an Instagram message, story link or bio.")
         st.code(app_url, language=None)
 
+
+if page == "Welcome":
+    hero("A brighter way to learn starts here.", "One calm, intelligent space to understand difficult topics, explore your next steps and build learning habits that work for you.", "WELCOME TO EDUBRIDGE AI")
+    st.markdown('<div class="dash-kicker">✦ YOUR LEARNING COMPANION</div><div class="dash-heading">Everything you need to move forward.</div><p class="dash-subheading">Start with a question, explore a pathway or make a plan. You choose the next step.</p>', unsafe_allow_html=True)
+    feature_cols = st.columns(3, gap="large")
+    welcome_features = [
+        ("🤖", "AI Teacher", "Get clear, step-by-step explanations and explore your exam context with source-aware guidance.", "ASK · UNDERSTAND", "AI Teacher"),
+        ("🧭", "Student Navigator", "Turn your learning goals and topic reflections into practical next steps.", "PLAN · PROGRESS", "Student Navigator"),
+        ("📚", "Learning profile", "Organise your qualification, subjects and interests so your workspace can become more relevant.", "YOUR SPACE", "My learning profile"),
+    ]
+    for col, (symbol, title, description, tag, destination) in zip(feature_cols, welcome_features):
+        with col:
+            st.markdown(f'<div class="welcome-card"><div class="welcome-icon">{symbol}</div><h3>{title}</h3><p>{description}</p><span class="welcome-tag">{tag}</span></div>', unsafe_allow_html=True)
+            if st.button("Open " + title, key="welcome_open_" + destination, type="primary" if destination == "AI Teacher" else "secondary", use_container_width=True):
+                st.session_state["navigate_to_workspace"] = destination
+                st.rerun()
+    st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+    ask_left, ask_right = st.columns([1.35, 0.85], gap="large")
+    with ask_left:
+        st.markdown('<div class="welcome-ask"><div class="dash-kicker">✦ START WITH A QUESTION</div><h3>Your AI Teacher is ready when you are.</h3><p>Ask about a topic, a past-paper concept or a study challenge. Your question opens in the full AI Teacher workspace.</p></div>', unsafe_allow_html=True)
+        with st.form("welcome_quick_ask", clear_on_submit=True):
+            welcome_question = st.text_input("What would you like to understand?", placeholder="e.g. Explain recursion with a simple example")
+            welcome_submit = st.form_submit_button("Ask my AI Teacher →", type="primary", use_container_width=True)
+        if welcome_submit and welcome_question.strip():
+            st.session_state["ai_teacher_pending_question"] = welcome_question.strip()
+            st.session_state["navigate_to_workspace"] = "AI Teacher"
+            st.rerun()
+    with ask_right:
+        st.markdown('<div class="welcome-card"><div class="welcome-icon">🌍</div><h3>Built for curious learners</h3><p>Explore qualifications and learning pathways across education systems. Verified specification coverage is shown transparently rather than assumed.</p><span class="welcome-tag">GLOBAL LEARNING</span></div>', unsafe_allow_html=True)
+        if st.button("Explore the dashboard", key="welcome_dashboard", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Dashboard"
+            st.rerun()
+    st.markdown('<div class="welcome-proof"><span>🔎 Source-aware explanations</span><span>🧠 Adaptive learning support</span><span>🔐 Privacy-first controls</span><span>📈 Progress you can understand</span></div>', unsafe_allow_html=True)
+    st.caption("EduBridge is a learning-support tool. It does not predict grades, guarantee admissions or replace official examination-board guidance.")
 
 if page == "AI Teacher":
     render_ai_teacher(profile, supabase=supabase, user_id=str(user.id) if user else None)
@@ -929,5 +990,4 @@ elif page == "About EduBridge":
     st.markdown("- [UCI Student Performance](https://archive.ics.uci.edu/dataset/320/student+performance)")
     st.markdown("- [OULAD](https://analyse.kmi.open.ac.uk/open_dataset)")
 
-st.divider()
-st.caption("EduBridge AI · A student learning companion and educational data-science research prototype.")
+render_site_footer()

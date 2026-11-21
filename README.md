@@ -55,7 +55,7 @@ The confidence snapshot is based only on the learner's own ratings. It is not an
 
 ### AI Teacher, Student Navigator and adaptive progress
 
-EduBridge includes a specification-aware AI Teacher, a Student Navigator, opt-in topic-progress tracking and private chat-history controls. The AI Teacher supports a local model runtime for same-computer use and an explicitly configured hosted OpenAI-compatible provider. A live response requires a running/configured model; the interface never fabricates connectivity. See [AI Teacher runtime setup](docs/AI_TEACHER_RUNTIME.md) and [Phase 7 documentation](docs/PHASE7_ADAPTIVE_INTELLIGENCE.md).
+EduBridge includes a specification-aware AI Teacher, a Student Navigator, opt-in topic-progress tracking and private chat-history controls. The AI Teacher supports a local model runtime for same-computer use and an explicitly configured hosted OpenAI-compatible provider. The official OpenAI endpoint includes text input/output moderation screening; image input remains disabled until a complete image-safety workflow is available. A live response requires a running/configured model; the interface never fabricates connectivity. Hosted OpenAI generation is paid and must only be enabled by an authorised adult after reviewing the under-18 guidance, privacy terms and safeguards. See [AI Teacher runtime setup](docs/AI_TEACHER_RUNTIME.md), [Phase 7 documentation](docs/PHASE7_ADAPTIVE_INTELLIGENCE.md) and [Phase 12 safety/readiness](docs/PHASE12_AI_TEACHER_SAFETY.md).
 
 ## Machine-learning research
 
