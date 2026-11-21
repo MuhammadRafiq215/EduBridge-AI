@@ -337,16 +337,24 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     .eb-ai-prompt strong{display:block;color:#292b67;font-size:13px;margin-bottom:5px}
     .eb-ai-prompt span{display:block;color:#737b98;font-size:11px;line-height:1.5}
     .eb-ai-note{padding:13px 15px;border:1px solid #e3e7f5;border-radius:14px;background:#f8f9ff;color:#505875;font-size:12px;line-height:1.55}
+    .eb-ai-hero p{max-width:620px}
+    div[data-testid="stChatMessage"]{max-width:900px;margin-inline:auto}
+    div[data-testid="stChatInput"]{max-width:900px;margin-inline:auto}
+    div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"]{line-height:1.68}
+    @media(max-width:700px){
+      .eb-ai-hero{padding:21px 18px}
+      .eb-ai-hero h1{font-size:clamp(25px,7vw,32px)}
+      .eb-ai-pill{font-size:10px;padding:6px 9px;margin:10px 4px 0 0}
+      div[data-testid="stChatMessage"]{padding:11px 12px}
+    }
     div[data-testid="stChatMessage"]{border:1px solid #e9eaf5;border-radius:17px;padding:14px 16px;background:#fff;box-shadow:0 5px 18px rgba(38,40,88,.035)}
     @media(max-width:700px){.eb-ai-hero{padding:23px 21px;border-radius:20px}.eb-ai-hero h1{font-size:29px}}
     </style>
     <div class="eb-ai-hero">
-      <div class="eb-ai-kicker">✦ YOUR PERSONAL LEARNING SPACE</div>
-      <h1>Meet your AI Teacher.</h1>
-      <p>Ask freely, learn step by step, explore your exam specification and turn difficult topics into clear next actions.</p>
-      <span class="eb-ai-pill">📘 Subject explanations</span>
-      <span class="eb-ai-pill">🧭 Exam-board context</span>
-      <span class="eb-ai-pill">📚 Reviewed-source search</span>
+      <div class="eb-ai-kicker">YOUR STUDY SPACE</div>
+      <h1>Learn it. Practise it. Own it.</h1>
+      <p>Subject-aware explanations, one clear step at a time.</p>
+      <span class="eb-ai-pill">Subject-aware</span><span class="eb-ai-pill">Guided practice</span><span class="eb-ai-pill">Source-aware</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -361,11 +369,9 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     if "ai_teacher_messages" not in st.session_state:
         st.session_state["ai_teacher_messages"] = []
 
-    metrics = st.columns(3)
-    metrics[0].metric("Official source records", coverage["source_records"])
-    metrics[1].metric("Verified subject specifications", coverage["specification_verified"])
-    metrics[2].metric("Messages in this session", len(st.session_state.ai_teacher_messages))
-    st.caption(coverage["coverage_warning"])
+    with st.expander("Source coverage", expanded=False):
+        st.caption(coverage["coverage_warning"])
+        st.caption(f"{coverage['specification_verified']} verified specifications · {coverage['source_records']} source records")
 
     persist_history = False
     if supabase is not None and user_id:
@@ -456,9 +462,9 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     if provider is None:
         if provider_error:
             st.error(f"AI provider configuration needs attention: {provider_error}")
-        st.warning("No live generative model is connected yet. You can still use the offline source helper below to search reviewed EduBridge education records.")
-        st.markdown("### 📚 Offline source helper")
-        st.caption("This mode searches EduBridge's reviewed source registry and subject catalogue. It does not generate AI explanations or send your question to an external model.")
+        st.info("Study tools are available. Live AI tutoring is not connected yet.")
+        st.markdown("### 📚 Search trusted study sources")
+        st.caption("Find reviewed exam and qualification information. This mode does not generate AI answers.")
         offline_question = st.chat_input("Search reviewed exam and qualification information...", max_chars=4000)
         if offline_question:
             st.session_state.ai_teacher_messages.append({"role": "user", "content": offline_question})
@@ -529,12 +535,8 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                     except (RuntimeError, ValueError, OSError, KeyError) as exc:
                         st.error(f"Offline source search could not be completed: {exc}")
             st.rerun()
-        st.markdown("**What this mode can do**")
-        st.write("- Search reviewed examination and qualification records.\n- Show source status, reviewed notes and official links.\n- Identify when the current registry does not contain enough evidence.")
-        st.markdown("**What still needs a model connection**")
-        st.write("Step-by-step generated explanations, follow-up tutoring and adaptive conversational responses.")
-        st.markdown("**Local model option**")
-        st.write("For private local testing, run a supported model server on the same computer as Streamlit. A Streamlit Cloud app cannot reach a model server running on your phone or laptop.")
+        with st.expander("How this study mode works"):
+            st.write("Searches reviewed examination records and official links. Generated explanations and conversational tutoring require a separately configured model.")
         st.code(
             '[ai]\nprovider = "local"\nmodel = "YOUR_INSTALLED_MODEL_NAME"\nbase_url = "http://127.0.0.1:11434"\ntimeout = 120\nsupports_vision = false',
             language="toml",
@@ -551,10 +553,11 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         st.caption("Hosted mode: the latest 12 conversation messages and any enabled screenshot are sent to the configured provider. Review that provider's privacy and retention terms.")
 
     prompt_cols = st.columns(3)
+    subject_hint = context.get("subject") or "my subject"
     prompts = [
-        ("Explain a difficult topic", "Explain recursion in computer science step by step, with a simple example and a short practice question."),
-        ("Help me understand my syllabus", "Help me understand the key assessment requirements for my qualification. Separate verified specification facts from general guidance."),
-        ("Build a revision plan", "Help me make a realistic one-week revision plan. Ask for any missing subjects or available study time."),
+        ("Explain a topic", f"Teach me a difficult topic in {subject_hint} step by step, with a simple example and one practice question."),
+        ("Practise a question", f"Give me one appropriately challenging practice question in {subject_hint}. Wait for my attempt before giving feedback."),
+        ("Plan my revision", "Help me build a realistic revision plan. Ask only for the details you need."),
     ]
     pending_question = st.session_state.pop("ai_teacher_pending_question", None)
     for index, (label, prompt_text) in enumerate(prompts):
@@ -563,12 +566,8 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                 st.session_state["ai_teacher_pending_question"] = prompt_text
                 st.rerun()
 
-    st.markdown(
-        '<div class="eb-ai-note">🔐 <strong>Privacy:</strong> profile information is only included when you opt in above. '
-        'Conversation text is saved across sessions only when you enable private chat-history saving. '
-        'Screenshots are sent to the configured model only when image support is enabled and are not saved in EduBridge chat history.</div>',
-        unsafe_allow_html=True,
-    )
+    with st.expander("Privacy and safety"):
+        st.caption("Profile details are shared only when you opt in. Chat history is saved only when you enable it. Never share passwords, identity numbers or private records. Check important exam facts against official sources.")
     uploaded = None
     if getattr(provider, "supports_vision", False):
         uploaded = st.file_uploader(
