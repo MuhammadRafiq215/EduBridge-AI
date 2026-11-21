@@ -39,6 +39,13 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.session_state["topic_progress_owner"] = topic_owner
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
+    st.info(
+        "EduBridge AI Teacher is an educational support tool, not a substitute for a teacher, parent or professional. "
+        "Do not share passwords, identity numbers, private records or sensitive personal details. "
+        "If a conversation raises a safety concern, please speak with a trusted adult. "
+        "AI-generated explanations can be wrong; verify important exam information using the linked official sources."
+    )
+
     coverage = specification_coverage_summary()
     first, second, third = st.columns(3)
     first.metric("Your subjects", len(snapshot["subjects"]))
@@ -278,7 +285,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         st.warning("No live generative model is connected yet. You can still use the offline source helper below to search reviewed EduBridge education records.")
         st.markdown("### 📚 Offline source helper")
         st.caption("This mode searches EduBridge's reviewed source registry and subject catalogue. It does not generate AI explanations or send your question to an external model.")
-        offline_question = st.chat_input("Search reviewed exam and qualification information...")
+        offline_question = st.chat_input("Search reviewed exam and qualification information...", max_chars=4000)
         if offline_question:
             st.session_state.ai_teacher_messages.append({"role": "user", "content": offline_question})
             with st.chat_message("user"):
@@ -398,7 +405,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     else:
         st.caption("Screenshot input is hidden because image support is not enabled for this configured model.")
 
-    question = st.chat_input("Ask your AI Teacher anything about learning...")
+    question = st.chat_input("Ask your AI Teacher anything about learning...", max_chars=4000)
     if not question:
         question = pending_question
 
