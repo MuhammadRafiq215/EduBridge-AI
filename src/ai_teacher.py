@@ -62,7 +62,10 @@ def build_system_prompt(
         "rules, grade statistics, citations, or sources. Distinguish verified facts from general guidance "
         "and say when you are uncertain. Do not claim to have checked live syllabuses or global grade "
         "distributions. Encourage independent learning. Do not request passwords, identity numbers, or "
-        "other sensitive personal information. When official evidence is supplied, cite only exact "
+        "other sensitive personal information. Keep responses age-appropriate for school-age learners. " 
+        "Do not provide sexual content, self-harm details, or instructions for dangerous activities. "
+        "For safety concerns, respond supportively and encourage speaking with a trusted adult. "
+        "When official evidence is supplied, cite only exact "
         "[SPEC:source_id] labels present in that evidence. Distinguish verified snippets, subject "
         "specifications, catalogues and historical references; never present one as another. "
         "If a year, session, subject or version is not supported by the evidence, say so.\n"
@@ -146,7 +149,34 @@ class OpenAICompatibleProvider:
         self.base_url = validate_hosted_base_url(base_url)
         self.timeout = max(15, min(int(timeout), 120))
         self.supports_vision = False
-        self.provider_name = "Hosted AI provider"
+        self.provider_name = "OpenAI API" if self.base_url == "https://api.openai.com/v1" else "Hosted AI provider"
+        # OpenAI moderation is free to use and mandatory for the official OpenAI endpoint.
+        # It is an additional safeguard, not a substitute for human review or a complete safety system.
+        self.moderation_enabled = self.base_url == "https://api.openai.com/v1"
+
+    def _moderate_text(self, text: str) -> bool:
+        """Return whether OpenAI moderation flags text; fail closed if screening is unavailable."""
+        if not self.moderation_enabled or not text.strip():
+            return False
+        body = json.dumps({
+            "model": "omni-moderation-latest",
+            "input": text[:20000],
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            f"{self.base_url}/moderations",
+            data=body,
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            return bool(payload["results"][0]["flagged"])
+        except (urllib.error.URLError, TimeoutError, urllib.error.HTTPError, json.JSONDecodeError,
+                UnicodeDecodeError, KeyError, IndexError, TypeError, OSError) as exc:
+            raise RuntimeError(
+                "EduBridge safety screening is temporarily unavailable. Please try again later."
+            ) from exc
 
     def answer(
         self,
@@ -156,6 +186,15 @@ class OpenAICompatibleProvider:
         knowledge_context: str | None = None,
     ) -> str:
         request_messages = build_request_messages(messages, profile_context, image, knowledge_context)
+        latest_user_text = next((
+            item.get("content", "") for item in reversed(request_messages)
+            if item.get("role") == "user" and isinstance(item.get("content"), str)
+        ), "")
+        if self._moderate_text(latest_user_text):
+            return (
+                "I can help with learning-focused questions, but I can’t continue with this request. "
+                "If this relates to a safety concern, please speak with a trusted adult."
+            )
         body = json.dumps({"model": self.model, "messages": request_messages, "temperature": 0.3}).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions", data=body,
@@ -175,7 +214,13 @@ class OpenAICompatibleProvider:
             raise RuntimeError("EduBridge could not reach the AI provider. Check the provider settings or try again later.") from exc
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise RuntimeError("The AI provider returned an unreadable response.") from exc
-        return extract_response_text(payload)
+        answer = extract_response_text(payload)
+        if self._moderate_text(answer):
+            return (
+                "I’m sorry, but I can’t show that response. Please try asking your learning question "
+                "in a different way, or speak with a trusted adult if this concerns your safety."
+            )
+        return answer
 
 
 class LocalModelProvider:
