@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.visual_design import apply_visual_identity
+
 
 WORKSPACES = [
     ("Welcome", "✨", "Start here"),
@@ -26,6 +28,7 @@ def _open_workspace(name: str) -> None:
 
 def render_page_sidebar(active_page: str) -> None:
     """Render the same branded navigation on all three standalone tool pages."""
+    apply_visual_identity()
     with st.sidebar:
         st.markdown(
             """
