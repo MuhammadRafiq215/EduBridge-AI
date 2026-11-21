@@ -411,82 +411,71 @@ def render_share_strip() -> None:
 
 
 if page == "Welcome":
-    hero(
-        "Learn with direction. Grow with evidence.",
-        "A focused learning studio for understanding difficult topics, practising with purpose and finding trustworthy education information.",
-        "WELCOME TO EDUBRIDGE",
-    )
-    st.markdown(
-        '<div class="dash-kicker">✦ START WITH WHAT YOU NEED</div>'
-        '<div class="dash-heading">Your learning space, all connected.</div>'
-        '<p class="dash-subheading">Choose a workspace below. You can return here at any time from the sidebar.</p>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <style>
+    .eb-welcome {
+      position:relative;overflow:hidden;padding:clamp(25px,5vw,58px);
+      border-radius:30px;color:#fff;margin:8px 0 25px;
+      background:linear-gradient(118deg,#11182f 0%,#37318a 48%,#6655ed 76%,#16a6ad 120%);
+      box-shadow:0 24px 60px rgba(54,49,138,.22);
+    }
+    .eb-welcome:before,.eb-welcome:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+    .eb-welcome:before{width:330px;height:330px;right:-80px;top:-170px;border:1px solid #ffffff40;box-shadow:0 0 0 28px #ffffff0c,0 0 0 58px #ffffff08}
+    .eb-welcome:after{width:190px;height:190px;right:18%;bottom:-155px;background:radial-gradient(circle,#38d7c7a0,transparent 70%)}
+    .eb-welcome-kicker{font-size:11px;letter-spacing:2px;font-weight:850;color:#d9ff83}
+    .eb-welcome h1{color:#fff!important;font-size:clamp(34px,5.5vw,66px)!important;max-width:780px;margin:18px 0 12px;line-height:1.02!important}
+    .eb-welcome p{color:#e6e9ff;max-width:620px;font-size:clamp(14px,1.5vw,17px)}
+    .eb-welcome-chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
+    .eb-welcome-chips span{padding:8px 12px;border:1px solid #ffffff38;background:#ffffff16;border-radius:999px;font-size:12px;font-weight:700}
+    .eb-destination{height:100%;min-height:178px;padding:20px;border-radius:20px;border:1px solid #e4e8f4;background:linear-gradient(150deg,#fff,#f7f8ff);box-shadow:0 10px 30px #18264b0a}
+    .eb-destination-icon{font-size:28px}.eb-destination h3{margin:10px 0 5px;font-size:19px!important}.eb-destination p{font-size:13px;color:#68748b;min-height:40px}
+    .eb-destination.ai{background:linear-gradient(145deg,#f0efff,#fff 70%);border-color:#d8d4ff}
+    .eb-destination.nav{background:linear-gradient(145deg,#e8fbf8,#fff 70%);border-color:#c9efea}
+    .eb-destination.career{background:linear-gradient(145deg,#fff2ed,#fff 70%);border-color:#ffe0d5}
+    @media(max-width:650px){.eb-welcome{border-radius:22px;padding:25px 21px}.eb-destination{min-height:0}.eb-destination p{min-height:0}}
+    </style>
+    <section class="eb-welcome">
+      <div class="eb-welcome-kicker">YOUR NEXT CHAPTER STARTS HERE</div>
+      <h1>Make learning<br>move you forward.</h1>
+      <p>One connected space to understand, practise and discover what comes next.</p>
+      <div class="eb-welcome-chips"><span>✦ Learn with AI</span><span>◎ Track your growth</span><span>↗ Explore possibilities</span></div>
+    </section>
+    """, unsafe_allow_html=True)
+    st.markdown("### Choose your next move")
     cards = [
-        ("🤖", "AI Teacher", "Ask learning questions and explore reviewed examination information.", "Open AI Teacher"),
-        ("🧭", "Student Navigator", "Turn your goals and subjects into practical next steps.", "Open Navigator"),
-        ("👤", "My learning profile", "Set your qualification, subjects and learning priorities.", "Build your profile"),
-        ("🧩", "Career pathways", "Explore degree families, preparation areas and project ideas.", "Explore pathways"),
-        ("📅", "Study planner", "Organise a realistic weekly study routine.", "Plan your week"),
-        ("📊", "Research insights", "Explore transparent educational data-science experiments.", "View research"),
+        ("🤖", "AI Teacher", "Clear explanations. Guided questions.", "Open AI Teacher", "ai"),
+        ("🧭", "Student Navigator", "A practical next step for your learning.", "Open Navigator", "nav"),
+        ("👤", "My learning profile", "Your subjects. Your goals. Your choices.", "Build your profile", ""),
+        ("🧩", "Career pathways", "Explore study and career directions.", "Explore pathways", "career"),
+        ("📅", "Study planner", "Shape a study week that works.", "Plan your week", ""),
+        ("🌍", "Research insights", "Explore global education and your progress.", "View research", ""),
     ]
-    for start in range(0, len(cards), 3):
+    for start_index in range(0, len(cards), 3):
         cols = st.columns(3, gap="medium")
-        for col, card in zip(cols, cards[start:start + 3]):
-            icon, title, description, label = card
+        for col, card in zip(cols, cards[start_index:start_index + 3]):
+            icon, title, description, label, style = card
             with col:
                 st.markdown(
-                    f'<div class="dash-card"><div class="card-icon">{icon}</div>'
+                    f'<div class="eb-destination {style}"><div class="eb-destination-icon">{icon}</div>'
                     f'<h3>{title}</h3><p>{description}</p></div>',
                     unsafe_allow_html=True,
                 )
                 if st.button(label, key=f"welcome_{title}", use_container_width=True):
                     st.session_state["navigate_to_workspace"] = title
                     st.rerun()
-
-    st.markdown(
-        '<div class="welcome-practice-band"><div><span>NEW · GUIDED PRACTICE</span><strong>Turn a topic into your next learning session.</strong>'
-        '<p>Choose a subject, practise a concept, reflect on your attempt and plan when to revisit it.</p></div></div>',
-        unsafe_allow_html=True,
-    )
-    if st.button("Open Guided Practice Studio", key="welcome_guided_practice", type="primary"):
-        st.session_state["navigate_to_workspace"] = "Student Navigator"
-        st.rerun()
-
-    st.markdown(
-        '<div class="welcome-loop-title">A learning loop that moves you forward</div>'
-        '<p class="dash-subheading">EduBridge connects understanding, practice and reflection — so each study session gives you a useful next step.</p>',
-        unsafe_allow_html=True,
-    )
-    loop_items = [
-        ("01", "Understand", "🧠", "Explore a concept with the AI Teacher.", "AI Teacher"),
-        ("02", "Practise", "✍️", "Build understanding through guided practice.", "Student Navigator"),
-        ("03", "Improve", "🌱", "Reflect, track topics and plan revision.", "Dashboard"),
-    ]
-    loop_html = '<div class="eb-learning-loop">'
-    for number, title, icon, description, destination in loop_items:
-        loop_html += (
-            f'<article class="eb-loop-card"><div class="eb-loop-top"><span class="eb-loop-number">{number}</span>'
-            f'<span class="eb-loop-icon">{icon}</span></div><h3>{title}</h3>'
-            f'<p>{description}</p></article>'
-        )
-    loop_html += '</div>'
-    st.markdown(loop_html, unsafe_allow_html=True)
-    action_cols = st.columns(3, gap="small")
-    for col, (_, title, _, _, destination) in zip(action_cols, loop_items):
+    st.markdown("### Your learning rhythm")
+    rhythm = st.columns(3, gap="small")
+    for col, icon, title, caption in [
+        (rhythm[0], "01", "Understand", "Make a difficult idea clear."),
+        (rhythm[1], "02", "Practise", "Try it yourself, one step at a time."),
+        (rhythm[2], "03", "Grow", "See progress and choose what is next."),
+    ]:
         with col:
-            if st.button(f"Open {title}", key=f"loop_{title}", use_container_width=True):
-                st.session_state["navigate_to_workspace"] = destination
-                st.rerun()
-    st.markdown(
-        '<div class="welcome-footer-band"><div><strong>Built around your learning, not just your chat history.</strong>'
-        '<p>Track topics, revisit what needs attention and keep your learning choices under your control.</p></div></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown('<div class="dash-band"><strong>Explore trusted education information</strong><br/>'
-                'Use the Global Knowledge Hub, Academic Profile Analyzer and Subject Catalogue from the sidebar.</div>',
-                unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="eb-destination"><div class="eb-destination-icon">{icon}</div>'
+                f'<h3>{title}</h3><p>{caption}</p></div>', unsafe_allow_html=True
+            )
+    st.caption("Start anywhere. Your learning stays in your control.")
 
 elif page == "AI Teacher":
     render_ai_teacher(profile, supabase=supabase, user_id=str(user.id) if user else None)
