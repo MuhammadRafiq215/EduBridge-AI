@@ -165,7 +165,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
       <p>Ask freely, learn step by step, explore your exam specification and turn difficult topics into clear next actions.</p>
       <span class="eb-ai-pill">📘 Subject explanations</span>
       <span class="eb-ai-pill">🧭 Exam-board context</span>
-      <span class="eb-ai-pill">🖼️ Screenshot support when enabled</span>
+      <span class="eb-ai-pill">📚 Reviewed-source search</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -275,9 +275,85 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     if provider is None:
         if provider_error:
             st.error(f"AI provider configuration needs attention: {provider_error}")
-        st.warning("The chat interface is ready, but no live model is connected yet. EduBridge will not invent an answer or pretend a provider is online.")
+        st.warning("No live generative model is connected yet. You can still use the offline source helper below to search reviewed EduBridge education records.")
+        st.markdown("### 📚 Offline source helper")
+        st.caption("This mode searches EduBridge's reviewed source registry and subject catalogue. It does not generate AI explanations or send your question to an external model.")
+        offline_question = st.chat_input("Search reviewed exam and qualification information...")
+        if offline_question:
+            st.session_state.ai_teacher_messages.append({"role": "user", "content": offline_question})
+            with st.chat_message("user"):
+                st.markdown(offline_question)
+            with st.chat_message("assistant"):
+                with st.spinner("Searching reviewed EduBridge records..."):
+                    try:
+                        offline_query = SpecificationQuery(
+                            question=offline_question,
+                            jurisdiction=context.get("country"),
+                            qualification=context.get("qualification"),
+                            awarding_body=context.get("board"),
+                            subject=context.get("subject"),
+                            exam_year=context.get("exam_year"),
+                            exam_series=context.get("exam_series"),
+                        )
+                        offline_records = retrieve_specifications(offline_query)
+                        offline_catalogue = find_subject_catalogue(
+                            offline_query.subject or "",
+                            jurisdiction=offline_query.jurisdiction,
+                            qualification=offline_query.qualification,
+                        ) if offline_query.subject else []
+                        if offline_records:
+                            reply_lines = [
+                                "**Offline source search results**",
+                                "",
+                                "These are retrieved records, not AI-generated teaching. Check that the jurisdiction, qualification, subject and examination session match your question.",
+                            ]
+                            for record in offline_records:
+                                reply_lines.extend([
+                                    "",
+                                    f"**{record.get('title', 'Official source')}**",
+                                    f"{record.get('publisher', record.get('system', 'Publisher not recorded'))} · {record.get('jurisdiction', 'Jurisdiction not recorded')} · {record.get('qualification', 'Qualification not recorded')}",
+                                    f"Status: \`{record.get('status', 'not recorded')}\` · Reviewed: {record.get('reviewed_on', 'date not recorded')}",
+                                ])
+                                notes = record.get("matched_notes", record.get("verified_notes", []))
+                                if notes:
+                                    reply_lines.extend(["", "Reviewed notes:"] + [f"- {note}" for note in notes])
+                                reply_lines.extend([
+                                    "",
+                                    f"Limits: {record.get('limits', 'Check the exact official document before relying on this information.')}",
+                                    f"[Open official source]({record.get('source_url', '')})",
+                                ])
+                            answer = "\n".join(reply_lines)
+                        elif offline_catalogue:
+                            answer = (
+                                "**A subject catalogue mention was found, but no reviewed specification matched.**\n\n"
+                                + "\n".join(
+                                    f"- {item.get('system')} · {item.get('qualification')} · {item.get('status')} — {item.get('note')}"
+                                    for item in offline_catalogue
+                                )
+                                + "\n\nA catalogue entry is not a full syllabus or proof of current assessment rules."
+                            )
+                        else:
+                            answer = (
+                                "I couldn't find a matching reviewed source in the current EduBridge registry. "
+                                "Try adding the awarding body, qualification, subject and exam session above. "
+                                "This offline mode cannot provide a generated lesson; a configured model is required for conversational tutoring."
+                            )
+                        st.markdown(answer)
+                        st.session_state.ai_teacher_messages.append({"role": "assistant", "content": answer})
+                        if persist_history and supabase and user_id:
+                            try:
+                                save_chat_history(supabase, user_id, st.session_state.ai_teacher_messages)
+                            except Exception:
+                                st.warning("The source results were shown, but chat history could not be saved.")
+                    except (RuntimeError, ValueError, OSError, KeyError) as exc:
+                        st.error(f"Offline source search could not be completed: {exc}")
+            st.rerun()
+        st.markdown("**What this mode can do**")
+        st.write("- Search reviewed examination and qualification records.\n- Show source status, reviewed notes and official links.\n- Identify when the current registry does not contain enough evidence.")
+        st.markdown("**What still needs a model connection**")
+        st.write("Step-by-step generated explanations, follow-up tutoring and adaptive conversational responses.")
         st.markdown("**Local model option**")
-        st.write("For a private local setup, run a supported local model server on the same computer as Streamlit, then configure the AI settings below. No external API key is needed for local mode.")
+        st.write("For private local testing, run a supported model server on the same computer as Streamlit. A Streamlit Cloud app cannot reach a model server running on your phone or laptop.")
         st.code(
             '[ai]\nprovider = "local"\nmodel = "YOUR_INSTALLED_MODEL_NAME"\nbase_url = "http://127.0.0.1:11434"\ntimeout = 120\nsupports_vision = false',
             language="toml",
