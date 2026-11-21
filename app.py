@@ -194,6 +194,9 @@ if user and st.session_state.get("profile_loaded_for") != str(user.id):
         st.session_state.learner_profile = None
         st.session_state["profile_load_error"] = True
 
+if "workspace" not in st.session_state:
+    st.session_state["workspace"] = "Welcome"
+
 with st.sidebar:
     st.markdown("## 🎓 EduBridge AI")
     st.caption("YOUR LEARNING & CAREER COMPANION")
@@ -202,9 +205,10 @@ with st.sidebar:
     if st.session_state.pop("navigate_to_account", False):
         st.session_state["workspace"] = "Account & privacy"
     pending_workspace = st.session_state.pop("navigate_to_workspace", None)
-    if pending_workspace in ["Dashboard", "AI Teacher", "Student Navigator", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
+    if pending_workspace in ["Welcome", "Dashboard", "AI Teacher", "Student Navigator", "My learning profile", "Career pathways", "Study planner", "Research insights", "Student feedback", "Account & privacy", "About EduBridge"]:
         st.session_state["workspace"] = pending_workspace
     workspace_icons = {
+        "Welcome": "✨",
         "Dashboard": "🏠",
         "AI Teacher": "🤖",
         "Student Navigator": "🧭",
@@ -223,6 +227,11 @@ with st.sidebar:
         label_visibility="visible",
         key="workspace",
     )
+    st.divider()
+    st.markdown("**EXPLORE TOOLS**")
+    st.page_link("pages/1_Global_Knowledge_Hub.py", label="Global Knowledge Hub", icon="🌍")
+    st.page_link("pages/2_Academic_Profile_Analyzer.py", label="Academic Profile Analyzer", icon="📊")
+    st.page_link("pages/3_Subject_Catalogue.py", label="Subject Catalogue", icon="📚")
     st.divider()
     if user:
         st.success("Signed in")
@@ -368,7 +377,44 @@ def render_share_strip() -> None:
         st.code(app_url, language=None)
 
 
-if page == "AI Teacher":
+if page == "Welcome":
+    hero(
+        "A clearer path through your learning journey.",
+        "Explore your subjects, understand your next steps and discover trusted education information — all in one student-centred space.",
+        "WELCOME TO EDUBRIDGE",
+    )
+    st.markdown(
+        '<div class="dash-kicker">✦ START WITH WHAT YOU NEED</div>'
+        '<div class="dash-heading">Your learning space, all connected.</div>'
+        '<p class="dash-subheading">Choose a workspace below. You can return here at any time from the sidebar.</p>',
+        unsafe_allow_html=True,
+    )
+    cards = [
+        ("🤖", "AI Teacher", "Ask learning questions and explore reviewed examination information.", "Open AI Teacher"),
+        ("🧭", "Student Navigator", "Turn your goals and subjects into practical next steps.", "Open Navigator"),
+        ("👤", "My learning profile", "Set your qualification, subjects and learning priorities.", "Build your profile"),
+        ("🧩", "Career pathways", "Explore degree families, preparation areas and project ideas.", "Explore pathways"),
+        ("📅", "Study planner", "Organise a realistic weekly study routine.", "Plan your week"),
+        ("📊", "Research insights", "Explore transparent educational data-science experiments.", "View research"),
+    ]
+    for start in range(0, len(cards), 3):
+        cols = st.columns(3, gap="medium")
+        for col, card in zip(cols, cards[start:start + 3]):
+            icon, title, description, label = card
+            with col:
+                st.markdown(
+                    f'<div class="dash-card"><div class="card-icon">{icon}</div>'
+                    f'<h3>{title}</h3><p>{description}</p></div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button(label, key=f"welcome_{title}", use_container_width=True):
+                    st.session_state["navigate_to_workspace"] = title
+                    st.rerun()
+    st.markdown('<div class="dash-band"><strong>Explore trusted education information</strong><br/>'
+                'Use the Global Knowledge Hub, Academic Profile Analyzer and Subject Catalogue from the sidebar.</div>',
+                unsafe_allow_html=True)
+
+elif page == "AI Teacher":
     render_ai_teacher(profile, supabase=supabase, user_id=str(user.id) if user else None)
 
 elif page == "Student Navigator":
