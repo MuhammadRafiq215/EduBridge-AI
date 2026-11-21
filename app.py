@@ -17,6 +17,7 @@ from src.research_ui import render_research_lab
 from src.feedback import ALLOWED_CATEGORIES, ALLOWED_WORKSPACES, validate_feedback
 from src.global_education import get_countries, get_qualification_options, get_subject_options, FIELDS_OF_INTEREST
 from src.ai_teacher_ui import render_ai_teacher, render_student_navigator
+from src.visual_design import apply_visual_identity
 
 st.set_page_config(page_title="EduBridge AI", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -197,6 +198,8 @@ header[data-testid="stHeader"] [data-testid="stToolbar"] > div > div > :nth-chil
 
 </style>
 """, unsafe_allow_html=True)
+
+apply_visual_identity()
 
 supabase = get_supabase_client()
 user = restore_auth_session(supabase) if supabase else None
