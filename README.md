@@ -59,7 +59,7 @@ EduBridge includes a specification-aware AI Teacher, a Student Navigator, opt-in
 
 ## Product design
 
-Phase 17 introduces an original responsive visual identity for EduBridge: editorial typography, deep-ink navigation, electric blue/cyan accents, consistent cards and accessible interaction states. It is informed by modern product-design principles, not copied screens or brand assets. See [Phase 17 design notes](docs/PHASE17_SIGNATURE_VISUAL_REDESIGN.md).
+Phase 17 introduces an original responsive visual identity for EduBridge: editorial typography, deep-ink navigation, electric blue/cyan accents, consistent cards and accessible interaction states. It is informed by modern product-design principles, not copied screens or brand assets. See [Phase 17 design notes](docs/PHASE17_SIGNATURE_VISUAL_REDESIGN.md). Phase 19 rebuilds the Welcome learning loop for narrow screens and adds a World Bank-powered country indicator explorer, while keeping the historical Portugal ML experiment separate. See [Phase 19 redesign notes](docs/PHASE19_WELCOME_AND_GLOBAL_RESEARCH_REDESIGN.md).
 
 ## Machine-learning research
 

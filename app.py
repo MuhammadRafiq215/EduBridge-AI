@@ -196,6 +196,19 @@ header[data-testid="stHeader"] [data-testid="stToolbar"] > div > div > :nth-chil
 .welcome-footer-band p {margin:6px 0 0;color:#e4e8ff;font-size:13px;line-height:1.55;}
 @media(max-width:700px){.welcome-loop-card{min-height:0;padding:17px}.welcome-footer-band{padding:18px}}
 
+
+/* Phase 19: responsive learning loop — grid reflows instead of squeezing three columns on phones. */
+.eb-learning-loop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:16px 0 12px;}
+.eb-loop-card{min-width:0;min-height:190px;padding:22px;border:1px solid #e4e9f4;border-radius:22px;background:linear-gradient(150deg,#fff 0%,#f9fbff 72%,#eefbfb 100%);box-shadow:0 12px 30px rgba(25,39,76,.055);position:relative;overflow:hidden;}
+.eb-loop-card:after{content:"";position:absolute;width:150px;height:150px;right:-80px;bottom:-95px;border-radius:50%;background:radial-gradient(circle,rgba(67,87,245,.13),transparent 70%);pointer-events:none;}
+.eb-loop-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;}
+.eb-loop-number{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#eef1ff;color:#4357f5;font-size:12px;font-weight:850;}
+.eb-loop-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:linear-gradient(140deg,#edf0ff,#e6fbfa);font-size:24px;}
+.eb-loop-card h3{font-size:clamp(18px,2vw,22px)!important;margin:0 0 7px!important;white-space:normal;overflow-wrap:normal;word-break:normal;}
+.eb-loop-card p{font-size:13px;line-height:1.6;color:#68748b;margin:0;max-width:34ch;}
+@media(max-width:900px){.eb-learning-loop{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){.eb-learning-loop{grid-template-columns:minmax(0,1fr);gap:12px;margin:12px 0;}.eb-loop-card{min-height:0;padding:18px;border-radius:18px;}.eb-loop-top{margin-bottom:14px;}.eb-loop-card h3{font-size:20px!important;}.eb-loop-card p{font-size:14px;max-width:none;}.welcome-loop-title{margin-top:22px!important;}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -445,18 +458,26 @@ if page == "Welcome":
         '<p class="dash-subheading">EduBridge connects understanding, practice and reflection — so each study session gives you a useful next step.</p>',
         unsafe_allow_html=True,
     )
-    loop_cols = st.columns(3, gap="medium")
     loop_items = [
-        ("01", "Understand", "Break a difficult idea into smaller explanations with the AI Teacher."),
-        ("02", "Practise", "Use guided questions or a structured offline study routine."),
-        ("03", "Improve", "Record your reflection and receive a suggested revision date."),
+        ("01", "Understand", "🧠", "Explore a concept with the AI Teacher.", "AI Teacher"),
+        ("02", "Practise", "✍️", "Build understanding through guided practice.", "Student Navigator"),
+        ("03", "Improve", "🌱", "Reflect, track topics and plan revision.", "Dashboard"),
     ]
-    for col, (number, title, description) in zip(loop_cols, loop_items):
+    loop_html = '<div class="eb-learning-loop">'
+    for number, title, icon, description, destination in loop_items:
+        loop_html += (
+            f'<article class="eb-loop-card"><div class="eb-loop-top"><span class="eb-loop-number">{number}</span>'
+            f'<span class="eb-loop-icon">{icon}</span></div><h3>{title}</h3>'
+            f'<p>{description}</p></article>'
+        )
+    loop_html += '</div>'
+    st.markdown(loop_html, unsafe_allow_html=True)
+    action_cols = st.columns(3, gap="small")
+    for col, (_, title, _, _, destination) in zip(action_cols, loop_items):
         with col:
-            st.markdown(
-                f'<div class="welcome-loop-card"><span>{number}</span><h3>{title}</h3><p>{description}</p></div>',
-                unsafe_allow_html=True,
-            )
+            if st.button(f"Open {title}", key=f"loop_{title}", use_container_width=True):
+                st.session_state["navigate_to_workspace"] = destination
+                st.rerun()
     st.markdown(
         '<div class="welcome-footer-band"><div><strong>Built around your learning, not just your chat history.</strong>'
         '<p>Track topics, revisit what needs attention and keep your learning choices under your control.</p></div></div>',
