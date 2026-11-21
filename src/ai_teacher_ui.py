@@ -169,6 +169,12 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     </div>
     """, unsafe_allow_html=True)
 
+    st.info(
+        "EduBridge AI Teacher is an educational support tool, not a substitute for a teacher, parent or professional. "
+        "Do not share passwords, identity numbers, private records or sensitive personal details. "
+        "If a conversation raises a safety concern, please speak with a trusted adult."
+    )
+
     coverage = specification_coverage_summary()
     chat_owner = str(user_id) if user_id else "anonymous-session"
     if st.session_state.get("ai_teacher_owner") != chat_owner:
