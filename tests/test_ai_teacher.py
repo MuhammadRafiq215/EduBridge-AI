@@ -85,6 +85,45 @@ class AITeacherTests(unittest.TestCase):
         self.assertEqual(mocked.call_args.args[0].full_url, "https://example.invalid/v1/chat/completions")
 
 
+
+    def test_openai_provider_moderates_input_and_output(self):
+        class FakeResponse:
+            def __init__(self, body): self.body = body
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return self.body
+        responses = [
+            FakeResponse(b'{"results":[{"flagged":false}]}'),
+            FakeResponse(b'{"choices":[{"message":{"content":"A safe study explanation."}}]}'),
+            FakeResponse(b'{"results":[{"flagged":false}]}'),
+        ]
+        with patch("src.ai_teacher.urllib.request.urlopen", side_effect=responses) as mocked:
+            provider = OpenAICompatibleProvider("test-key", "test-model")
+            answer = provider.answer([{"role": "user", "content": "Explain binary search"}])
+        self.assertEqual(answer, "A safe study explanation.")
+        self.assertEqual(mocked.call_count, 3)
+        self.assertTrue(mocked.call_args_list[0].args[0].full_url.endswith("/moderations"))
+        self.assertTrue(mocked.call_args_list[1].args[0].full_url.endswith("/chat/completions"))
+        self.assertTrue(mocked.call_args_list[2].args[0].full_url.endswith("/moderations"))
+
+    def test_openai_provider_blocks_flagged_input_before_generation(self):
+        class FakeResponse:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return b'{"results":[{"flagged":true}]}'
+        with patch("src.ai_teacher.urllib.request.urlopen", return_value=FakeResponse()) as mocked:
+            provider = OpenAICompatibleProvider("test-key", "test-model")
+            answer = provider.answer([{"role": "user", "content": "flagged sample"}])
+        self.assertIn("trusted adult", answer)
+        self.assertEqual(mocked.call_count, 1)
+        self.assertTrue(mocked.call_args.args[0].full_url.endswith("/moderations"))
+
+    def test_openai_provider_fails_closed_when_moderation_is_unavailable(self):
+        with patch("src.ai_teacher.urllib.request.urlopen", side_effect=OSError("offline")):
+            provider = OpenAICompatibleProvider("test-key", "test-model")
+            with self.assertRaisesRegex(RuntimeError, "safety screening"):
+                provider.answer([{"role": "user", "content": "Explain recursion"}])
+
     def test_local_provider_can_be_configured_without_an_api_key(self):
         provider = build_provider_from_settings({
             "provider": "local",
