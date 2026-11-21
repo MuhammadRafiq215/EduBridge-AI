@@ -951,7 +951,7 @@ elif page == "Study planner":
         st.caption("Your plan is generated from your saved learning profile. Checklist ticks are temporary and clear when the browser session ends.")
 
 elif page == "Research insights":
-    render_research_lab(hero)
+    render_research_lab(hero, profile=profile)
 
 elif page == "Account & privacy":
     hero("Your account, your learning space.", "Understand how sign-in works, what is saved and how to troubleshoot verification safely.", "ACCOUNT & PRIVACY")

@@ -452,6 +452,31 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     })
     context = {key: value for key, value in context.items() if value not in ("", None, [], {})}
 
+    st.markdown("#### Conversation")
+    width_choice = st.select_slider(
+        "Chat width",
+        options=["Compact", "Balanced", "Wide"],
+        value="Balanced",
+        key="ai_teacher_chat_width",
+        help="Choose a comfortable reading width. Your choice stays selected during this browser session.",
+    )
+    chat_width = {"Compact": "620px", "Balanced": "820px", "Wide": "1080px"}[width_choice]
+    st.markdown(
+        f"""<style>
+        div[data-testid="stChatMessage"], div[data-testid="stChatInput"] {{
+            width: min(100%, {chat_width}) !important;
+            max-width: {chat_width} !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }}
+        @media(max-width:700px) {{
+            div[data-testid="stChatMessage"], div[data-testid="stChatInput"] {{
+                width:100% !important; max-width:100% !important;
+            }}
+        }}
+        </style>""",
+        unsafe_allow_html=True,
+    )
     for message in st.session_state.ai_teacher_messages:
         if message.get("role") in {"user", "assistant"}:
             with st.chat_message(message["role"]):
