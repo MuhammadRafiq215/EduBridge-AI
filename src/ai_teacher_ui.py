@@ -157,6 +157,19 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
     """Render model-assisted practice with a transparent offline fallback."""
     st.divider()
     st.markdown("### ✦ Guided Practice Studio")
+    st.markdown(
+        """
+        <style>
+        .eb-practice-intro {padding:19px 21px;margin:10px 0 17px;border-radius:18px;
+          background:linear-gradient(110deg,#171a35,#343579 65%,#168d9a);color:#fff;}
+        .eb-practice-intro strong {display:block;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:20px;}
+        .eb-practice-intro span {display:block;margin-top:5px;color:#e3e8ff;font-size:12px;line-height:1.55;}
+        </style>
+        <div class="eb-practice-intro"><strong>Understand · Practise · Reflect</strong>
+        <span>A short, supportive practice cycle. Your reflection stays yours; EduBridge does not turn it into a formal grade.</span></div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.write("Choose one topic, attempt a short practice set and reflect on what you understand. When a model is configured, EduBridge can generate questions and formative feedback; otherwise it provides a clearly labelled self-guided study routine.")
     owner = str(user_id) if user_id else "anonymous-session"
     if st.session_state.get("guided_practice_owner") != owner:
