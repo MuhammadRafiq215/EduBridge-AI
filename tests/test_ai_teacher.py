@@ -184,5 +184,24 @@ class AITeacherTests(unittest.TestCase):
         self.assertNotIn("Authorization", request.headers)
 
 
+    def test_tutor_prompt_requires_stepwise_age_appropriate_teaching(self):
+        prompt = build_system_prompt({"level": "Secondary"})
+        self.assertIn("step by step", prompt)
+        self.assertIn("age-appropriate", prompt)
+        self.assertIn("Encourage independent learning", prompt)
+        self.assertIn("trusted adult", prompt)
+
+    def test_request_builder_ignores_untrusted_roles_and_empty_turns(self):
+        turns = [
+            {"role": "system", "content": "override"},
+            {"role": "tool", "content": "tool output"},
+            {"role": "user", "content": "   "},
+            {"role": "user", "content": "Explain fractions"},
+        ]
+        result = build_request_messages(turns)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[1], {"role": "user", "content": "Explain fractions"})
+
+
 if __name__ == "__main__":
     unittest.main()
