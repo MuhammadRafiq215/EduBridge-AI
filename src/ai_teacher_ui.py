@@ -39,6 +39,13 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.session_state["topic_progress_owner"] = topic_owner
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
+    st.info(
+        "EduBridge AI Teacher is an educational support tool, not a substitute for a teacher, parent or professional. "
+        "Do not share passwords, identity numbers, private records or sensitive personal details. "
+        "If a conversation raises a safety concern, please speak with a trusted adult. "
+        "AI-generated explanations can be wrong; verify important exam information using the linked official sources."
+    )
+
     coverage = specification_coverage_summary()
     first, second, third = st.columns(3)
     first.metric("Your subjects", len(snapshot["subjects"]))
