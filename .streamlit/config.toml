@@ -8,6 +8,7 @@ font = "sans serif"
 
 [client]
 toolbarMode = "viewer"
+showSidebarNavigation = false
 
 [server]
 headless = true
