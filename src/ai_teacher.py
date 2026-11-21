@@ -322,7 +322,12 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
             return None
         base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
         provider = OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
-        provider.supports_vision = bool(settings.get("supports_vision", False))
-        provider.provider_name = "Configured AI provider"
+        if provider.base_url == "https://api.openai.com/v1":
+            # Image input remains disabled until an image moderation and review path is implemented.
+            provider.supports_vision = False
+            provider.provider_name = "OpenAI API · text safety screening"
+        else:
+            provider.supports_vision = bool(settings.get("supports_vision", False))
+            provider.provider_name = "Configured AI provider"
         return provider
     raise ValueError("AI provider must be 'local' or 'openai_compatible'.")
