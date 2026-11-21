@@ -242,6 +242,31 @@ with st.sidebar:
 
 st.markdown('<div class="top-brand-strip"><span class="brand-mark">✦</span><span>EduBridge AI</span><span style="font-weight:500;color:#737a99">· Learn · Explore · Grow</span></div>', unsafe_allow_html=True)
 
+def render_quick_navigation(active_page: str) -> None:
+    """Keep the three most-used student destinations reachable on compact screens."""
+    st.markdown(
+        '<div class="eb-quick-nav-heading">QUICK ACCESS <span>Switch workspace without reopening the sidebar</span></div>',
+        unsafe_allow_html=True,
+    )
+    destinations = [
+        ("Dashboard", "🏠  Dashboard"),
+        ("AI Teacher", "🤖  AI Teacher"),
+        ("Student Navigator", "🧭  Student Navigator"),
+    ]
+    columns = st.columns(3, gap="small")
+    for column, (destination, label) in zip(columns, destinations):
+        with column:
+            if st.button(
+                label,
+                key=f"quick_nav_{destination.lower().replace(' ', '_')}",
+                type="primary" if active_page == destination else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state["navigate_to_workspace"] = destination
+                st.rerun()
+
+render_quick_navigation(page)
+
 def hero(title: str, subtitle: str, eyebrow: str = "LEARN · EXPLORE · GROW"):
     st.markdown(f"""
     <div class="hero">
