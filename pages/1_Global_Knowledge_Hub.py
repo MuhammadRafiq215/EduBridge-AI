@@ -8,6 +8,7 @@ from src.knowledge_base import EducationalKnowledgeBase, evaluate_retrieval, loa
 
 st.set_page_config(page_title="Global Knowledge Hub | EduBridge AI", page_icon="🌍", layout="wide")
 from src.navigation import render_page_sidebar
+from src.visual_design import apply_visual_identity
 
 st.markdown("""
 <style>
@@ -45,6 +46,7 @@ st.markdown("""
 .kb-hero p{color:#e3e9ff;font-size:15px;margin:0;max-width:820px}
 </style>
 """,unsafe_allow_html=True)
+apply_visual_identity()
 registry=load_registry()
 kb=EducationalKnowledgeBase(registry)
 st.markdown('<div class="kb-hero"><div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#c9f27b">EDUBRIDGE INTELLIGENCE</div><h1>Global Knowledge Hub</h1><p>Explore qualification systems, retrieve source-linked guidance and inspect the evidence behind every indexed answer.</p></div>',unsafe_allow_html=True)
