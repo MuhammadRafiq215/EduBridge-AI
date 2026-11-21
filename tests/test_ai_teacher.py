@@ -124,6 +124,17 @@ class AITeacherTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "safety screening"):
                 provider.answer([{"role": "user", "content": "Explain recursion"}])
 
+    def test_openai_provider_keeps_image_upload_disabled(self):
+        provider = build_provider_from_settings({
+            "provider": "openai_compatible",
+            "model": "test-model",
+            "api_key": "test-key",
+            "base_url": "https://api.openai.com/v1",
+            "supports_vision": True,
+        })
+        self.assertFalse(provider.supports_vision)
+        self.assertTrue(provider.moderation_enabled)
+
     def test_local_provider_can_be_configured_without_an_api_key(self):
         provider = build_provider_from_settings({
             "provider": "local",
