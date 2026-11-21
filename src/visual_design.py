@@ -231,7 +231,6 @@ def render_site_footer() -> None:
             </div>
             <nav class="eb-footer-links" aria-label="Project links">
               <a href="https://github.com/MuhammadRafiq215/EduBridge-AI" target="_blank" rel="noopener noreferrer">GitHub repository ↗</a>
-              <a href="https://educationbridge-ai.streamlit.app/" target="_blank" rel="noopener noreferrer">Live app ↗</a>
             </nav>
           </div>
           <div class="eb-footer-bottom">
