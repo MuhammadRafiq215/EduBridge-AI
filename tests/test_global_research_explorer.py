@@ -1,13 +1,26 @@
 from unittest.mock import Mock, patch
 
-from src.research_ui import COUNTRIES, WORLD_BANK_INDICATORS, _latest_indicator
+from src.research_ui import WORLD_BANK_INDICATORS, _latest_indicator, _world_bank_countries
 
 
-def test_country_catalogue_includes_multiple_regions():
-    assert COUNTRIES["Pakistan"] == "PAK"
-    assert COUNTRIES["Türkiye"] == "TUR"
-    assert COUNTRIES["United Kingdom"] == "GBR"
-    assert len(COUNTRIES) >= 15
+def test_country_catalogue_is_loaded_from_live_reporting_catalogue():
+    payload = [
+        {"page": 1},
+        [
+            {"id": "PAK", "name": "Pakistan", "region": {"value": "South Asia"}},
+            {"id": "TUR", "name": "Türkiye", "region": {"value": "Europe & Central Asia"}},
+            {"id": "GBR", "name": "United Kingdom", "region": {"value": "Europe & Central Asia"}},
+            {"id": "WLD", "name": "World", "region": {"value": "Aggregates"}},
+        ],
+    ]
+    response = Mock()
+    response.json.return_value = payload
+    response.raise_for_status.return_value = None
+    with patch("src.research_ui.requests.get", return_value=response):
+        _world_bank_countries.clear()
+        countries = _world_bank_countries()
+    assert countries == {"Pakistan": "PAK", "Türkiye": "TUR", "United Kingdom": "GBR"}
+    _world_bank_countries.clear()
 
 
 def test_indicator_catalogue_uses_world_bank_series():
