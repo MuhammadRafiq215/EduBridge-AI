@@ -278,7 +278,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         st.warning("No live generative model is connected yet. You can still use the offline source helper below to search reviewed EduBridge education records.")
         st.markdown("### 📚 Offline source helper")
         st.caption("This mode searches EduBridge's reviewed source registry and subject catalogue. It does not generate AI explanations or send your question to an external model.")
-        offline_question = st.chat_input("Search reviewed exam and qualification information...")
+        offline_question = st.chat_input("Search reviewed exam and qualification information...", max_chars=4000)
         if offline_question:
             st.session_state.ai_teacher_messages.append({"role": "user", "content": offline_question})
             with st.chat_message("user"):
@@ -398,7 +398,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     else:
         st.caption("Screenshot input is hidden because image support is not enabled for this configured model.")
 
-    question = st.chat_input("Ask your AI Teacher anything about learning...")
+    question = st.chat_input("Ask your AI Teacher anything about learning...", max_chars=4000)
     if not question:
         question = pending_question
 
