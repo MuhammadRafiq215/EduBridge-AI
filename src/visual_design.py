@@ -172,7 +172,32 @@ def apply_visual_identity() -> None:
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
         }
-        </style>
+        
+        /* AI Teacher receives the same signature system without changing provider behaviour. */
+        .stApp .eb-ai-hero {
+          border-radius: 24px !important;
+          background: linear-gradient(112deg,#111a32 0%,#25356c 58%,#4357f5 100%) !important;
+          box-shadow: 0 22px 54px rgba(26,43,97,.16) !important;
+        }
+        .stApp .eb-ai-hero h1 { color: #fff !important; }
+        .stApp .eb-ai-pill {
+          border-color: rgba(255,255,255,.22) !important;
+          background: rgba(255,255,255,.12) !important;
+          border-radius: 10px !important;
+        }
+        .stApp .eb-ai-note {
+          background: #eef4ff !important;
+          border: 1px solid #dbe5fb !important;
+          border-radius: 15px !important;
+          color: #34435f !important;
+        }
+        .stApp .eb-ai-prompt {
+          border: 1px solid var(--eb-line) !important;
+          border-radius: 16px !important;
+          background: #fff !important;
+          box-shadow: 0 8px 24px rgba(19,32,62,.045) !important;
+        }
+</style>
         """,
         unsafe_allow_html=True,
     )
