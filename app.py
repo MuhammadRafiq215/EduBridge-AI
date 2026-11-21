@@ -178,6 +178,22 @@ header[data-testid="stHeader"] [data-testid="stToolbar"] > div > div > :nth-chil
   border-radius:9px; background:linear-gradient(135deg,#6757f5,#27c9d2);
   color:#fff; font-size:14px;
 }
+
+.welcome-practice-band {display:flex;align-items:center;justify-content:space-between;gap:16px;margin:20px 0 26px;padding:22px 24px;border:1px solid #dfe4f5;border-radius:21px;background:linear-gradient(110deg,#f0efff 0%,#e8fbfc 100%);}
+.welcome-practice-band span {display:block;margin-bottom:6px;color:#6255e9;font-size:10px;font-weight:850;letter-spacing:1.5px;}
+.welcome-practice-band strong {display:block;color:#202247;font-family:'Space Grotesk',sans-serif;font-size:18px;}
+.welcome-practice-band p {margin:5px 0 0;color:#68708d;font-size:13px;line-height:1.55;}
+.welcome-loop-title {font-family:'Space Grotesk',sans-serif;font-size:clamp(23px,2.8vw,31px);font-weight:700;letter-spacing:-1px;color:#202247;margin:28px 0 7px;}
+.welcome-loop-card {height:100%;min-height:165px;padding:21px;border-radius:19px;background:linear-gradient(145deg,#fff,#f7f8ff);border:1px solid #e5e8f5;box-shadow:0 10px 25px rgba(34,38,82,.045);position:relative;overflow:hidden;}
+.welcome-loop-card:after {content:"";position:absolute;width:110px;height:110px;right:-52px;bottom:-58px;border-radius:50%;background:radial-gradient(circle,rgba(39,201,210,.15),transparent 70%);}
+.welcome-loop-card span {display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#efedff;color:#6255e9;font-size:11px;font-weight:800;}
+.welcome-loop-card h3 {margin:15px 0 7px;font-size:18px!important;}
+.welcome-loop-card p {margin:0;color:#6c7390;font-size:13px;line-height:1.6;}
+.welcome-footer-band {margin:20px 0 6px;padding:22px 24px;border-radius:20px;background:linear-gradient(105deg,#1b1d3d,#343579 62%,#168d9a);color:#fff;}
+.welcome-footer-band strong {font-family:'Space Grotesk',sans-serif;font-size:17px;color:#fff;}
+.welcome-footer-band p {margin:6px 0 0;color:#e4e8ff;font-size:13px;line-height:1.55;}
+@media(max-width:700px){.welcome-loop-card{min-height:0;padding:17px}.welcome-footer-band{padding:18px}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -410,6 +426,39 @@ if page == "Welcome":
                 if st.button(label, key=f"welcome_{title}", use_container_width=True):
                     st.session_state["navigate_to_workspace"] = title
                     st.rerun()
+
+    st.markdown(
+        '<div class="welcome-practice-band"><div><span>NEW · GUIDED PRACTICE</span><strong>Turn a topic into your next learning session.</strong>'
+        '<p>Choose a subject, practise a concept, reflect on your attempt and plan when to revisit it.</p></div></div>',
+        unsafe_allow_html=True,
+    )
+    if st.button("Open Guided Practice Studio", key="welcome_guided_practice", type="primary"):
+        st.session_state["navigate_to_workspace"] = "Student Navigator"
+        st.rerun()
+
+    st.markdown(
+        '<div class="welcome-loop-title">A learning loop that moves you forward</div>'
+        '<p class="dash-subheading">EduBridge connects understanding, practice and reflection — so each study session gives you a useful next step.</p>',
+        unsafe_allow_html=True,
+    )
+    loop_cols = st.columns(3, gap="medium")
+    loop_items = [
+        ("01", "Understand", "Break a difficult idea into smaller explanations with the AI Teacher."),
+        ("02", "Practise", "Use guided questions or a structured offline study routine."),
+        ("03", "Improve", "Record your reflection and receive a suggested revision date."),
+    ]
+    for col, (number, title, description) in zip(loop_cols, loop_items):
+        with col:
+            st.markdown(
+                f'<div class="welcome-loop-card"><span>{number}</span><h3>{title}</h3><p>{description}</p></div>',
+                unsafe_allow_html=True,
+            )
+    st.markdown(
+        '<div class="welcome-footer-band"><div><strong>Built around your learning, not just your chat history.</strong>'
+        '<p>Track topics, revisit what needs attention and keep your learning choices under your control.</p></div></div>',
+        unsafe_allow_html=True,
+    )
+
     st.markdown('<div class="dash-band"><strong>Explore trusted education information</strong><br/>'
                 'Use the Global Knowledge Hub, Academic Profile Analyzer and Subject Catalogue from the sidebar.</div>',
                 unsafe_allow_html=True)
