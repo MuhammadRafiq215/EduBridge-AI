@@ -245,7 +245,22 @@ st.markdown('<div class="top-brand-strip"><span class="brand-mark">✦</span><sp
 def render_quick_navigation(active_page: str) -> None:
     """Keep the three most-used student destinations reachable on compact screens."""
     st.markdown(
-        '<div class="eb-quick-nav-heading">QUICK ACCESS <span>Switch workspace without reopening the sidebar</span></div>',
+        """
+        <style>
+        .eb-quick-nav-heading {
+          display: flex; align-items: center; gap: 10px; margin: 2px 0 9px;
+          color: #4e4baf; font-size: 10px; font-weight: 800; letter-spacing: 1.35px;
+        }
+        .eb-quick-nav-heading span {
+          color: #7b849b; font-size: 10px; font-weight: 500; letter-spacing: 0;
+        }
+        @media (max-width: 520px) {
+          .eb-quick-nav-heading { flex-wrap: wrap; gap: 3px 8px; }
+          .eb-quick-nav-heading span { width: 100%; }
+        }
+        </style>
+        <div class="eb-quick-nav-heading">QUICK ACCESS <span>Switch workspace without reopening the sidebar</span></div>
+        """,
         unsafe_allow_html=True,
     )
     destinations = [
