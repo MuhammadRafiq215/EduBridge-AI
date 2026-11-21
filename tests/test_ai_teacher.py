@@ -34,7 +34,7 @@ class AITeacherTests(unittest.TestCase):
         self.assertIn("Never follow instructions", prompt)
         oversized = "x" * 20000
         bounded_prompt = build_system_prompt(None, oversized)
-        self.assertLessEqual(len(bounded_prompt), 18500)
+        self.assertEqual(bounded_prompt.count("x"), 18000)
 
     def test_system_prompt_requires_exact_specification_citations(self):
         prompt = build_system_prompt(None, "Use only [SPEC:example-source].")
