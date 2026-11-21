@@ -9,6 +9,7 @@ import plotly.express as px
 import streamlit as st
 
 from src.account_store import (get_supabase_client, restore_auth_session, save_auth_session, clear_auth_session, load_learner_profile, save_learner_profile, delete_learner_profile)
+from src.student_intelligence import build_student_intelligence
 from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan, build_personalised_recommendations
 from src.modeling import ARTIFACTS, run_experiment
 from src.profile_export import build_profile_pdf
@@ -430,6 +431,56 @@ elif page == "Dashboard":
         metrics[1].metric("Average confidence", f'{snapshot["average_confidence"]:.1f} / 5')
         metrics[2].metric("Weekly study budget", f'{int(profile.get("weekly_hours", 0))} hrs')
         metrics[3].metric("Learning stage", snapshot["confidence_label"])
+
+        intelligence = build_student_intelligence(profile.get("topic_progress", []))
+        st.markdown('<div class="dash-divider"></div>', unsafe_allow_html=True)
+        st.markdown("### ✦ Student Intelligence")
+        st.caption("A transparent view of recorded topic reflections and practice. These indicators are learning-planning signals, not exam grades.")
+        intel_cols = st.columns(4)
+        intel_cols[0].metric("Topics tracked", intelligence["topic_count"])
+        intel_cols[1].metric("Practice attempts", intelligence["practice_attempts"])
+        intel_cols[2].metric("Active days · 7 days", intelligence["active_days_last_7"])
+        intel_cols[3].metric("Learning streak", f'{intelligence["learning_streak"]} days')
+        intel_left, intel_right = st.columns([1.2, 1], gap="large")
+        with intel_left:
+            st.markdown("#### Topic confidence map")
+            if intelligence["topics"]:
+                topic_frame = pd.DataFrame([
+                    {"Topic": f'{row["subject"]} · {row["topic"]}', "Signal": row["signal"],
+                     "Evidence": row["evidence"]}
+                    for row in intelligence["topics"][:12]
+                ])
+                topic_chart = px.bar(
+                    topic_frame, x="Signal", y="Topic", orientation="h", color="Signal",
+                    color_continuous_scale=["#F29A78", "#5B4DE8", "#12A6A6"],
+                    range_x=[0, 100], text="Signal",
+                )
+                topic_chart.update_traces(textposition="outside", cliponaxis=False)
+                topic_chart.update_layout(
+                    height=max(260, 38 * len(topic_frame)), margin=dict(l=8,r=28,t=8,b=8),
+                    coloraxis_showscale=False, xaxis_title="Descriptive learning signal (0–100)",
+                    yaxis_title="", plot_bgcolor="rgba(0,0,0,0)",paper_bgcolor="rgba(0,0,0,0)",
+                    font=dict(family="DM Sans",color="#525a78"),
+                    xaxis=dict(range=[0,110],dtick=20,gridcolor="#eef0f8",zeroline=False),
+                    yaxis=dict(autorange="reversed",automargin=True),
+                )
+                st.plotly_chart(topic_chart,use_container_width=True,config={"displayModeBar":False})
+            else:
+                st.info("Your topic intelligence view will appear after you record a topic reflection in Student Navigator.")
+        with intel_right:
+            st.markdown("#### Your next review priorities")
+            if intelligence["review_first"]:
+                for row in intelligence["review_first"]:
+                    with st.container(border=True):
+                        st.markdown(f'**{row["subject"]} · {row["topic"]}**')
+                        st.caption(f'{row["evidence"]} · confidence {row["confidence"]}/5')
+                        st.caption("Recorded practice accuracy: " + (f'{row["accuracy"]}%' if row["accuracy"] is not None else "not available"))
+                if st.button("Open Student Navigator",key="intel_open_navigator",type="primary",use_container_width=True):
+                    st.session_state["navigate_to_workspace"]="Student Navigator"
+                    st.rerun()
+            else:
+                st.caption("No topic reflections have been recorded yet.")
+        st.caption(intelligence["note"])
         st.markdown('<div class="dash-divider"></div>', unsafe_allow_html=True)
         left, right = st.columns([1.25, 0.9], gap="large")
         with left:
