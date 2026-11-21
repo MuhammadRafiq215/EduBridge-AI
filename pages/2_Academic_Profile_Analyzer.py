@@ -7,6 +7,36 @@ from src.academic_profile import calculate_academic_profile
 from src.knowledge_base import load_registry
 
 st.set_page_config(page_title="Academic Profile Analyzer | EduBridge AI",page_icon="📊",layout="wide")
+from src.navigation import render_page_sidebar
+
+st.markdown("""
+<style>
+section[data-testid="stSidebar"] {background:linear-gradient(180deg,#171a35 0%,#242653 100%);border-right:0}
+section[data-testid="stSidebar"] * {color:#f6f7ff}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {color:#b9bddb}
+section[data-testid="stSidebar"] hr {border-color:rgba(255,255,255,.16)}
+section[data-testid="stSidebar"] [data-testid="stButton"] button,
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a {
+  border-radius:12px;min-height:42px;font-weight:650
+}
+section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"] {
+  background:linear-gradient(100deg,#6556ed,#168d9a);border:0;color:#fff
+}
+.eb-sidebar-brand {display:flex;align-items:center;gap:12px;margin:8px 0 10px}
+.eb-sidebar-mark {display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#6757f5,#27c9d2);font-size:22px;color:#fff}
+.eb-sidebar-brand strong {display:block;color:#fff;font-size:21px;letter-spacing:-.6px}
+.eb-sidebar-brand span {display:block;color:#bfc4e7;font-size:9px;letter-spacing:1.2px;margin-top:3px}
+.eb-sidebar-section {color:#c7f36b;font-size:10px;font-weight:800;letter-spacing:1.5px;margin:16px 0 8px}
+@media(max-width:700px) {
+ .main .block-container {padding:1rem .85rem 2rem}
+ .kb-hero,.profile-hero,.catalog-hero {padding:22px 20px;border-radius:20px}
+ .kb-hero h1,.profile-hero h1,.catalog-hero h1 {font-size:29px}
+}
+</style>
+""", unsafe_allow_html=True)
+render_page_sidebar("Academic Profile Analyzer")
+
 st.markdown("""<style>
 .stApp{background:linear-gradient(135deg,#f5f7ff 0%,#fbfcff 58%,#eef9f8 100%)}
 .profile-hero{padding:30px 34px;border-radius:24px;background:linear-gradient(115deg,#171a35,#393879 60%,#087f8c);color:white;margin:8px 0 24px}
