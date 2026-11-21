@@ -5,7 +5,7 @@ import streamlit as st
 
 from src.ai_teacher import build_profile_context, build_provider_from_settings, LocalModelProvider
 from src.account_store import save_learner_profile
-from src.adaptive_learning import normalise_topic_entry, summarise_topic_progress, build_adaptive_plan
+from src.adaptive_learning import normalise_topic_entry, summarise_topic_progress, build_adaptive_plan, build_revision_schedule
 from src.chat_history_store import load_chat_history, save_chat_history, delete_chat_history
 from src.specification_engine import (
     SpecificationQuery,
@@ -15,6 +15,7 @@ from src.specification_engine import (
     specification_coverage_summary,
 )
 from src.student_navigator import build_navigation_plan, build_student_snapshot
+from src.guided_practice import (build_offline_practice_scaffold, build_practice_generation_prompt, normalise_practice_attempt, normalise_practice_request)
 
 
 def _configured_provider():
@@ -39,6 +40,13 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.session_state["topic_progress_owner"] = topic_owner
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
+    st.info(
+        "EduBridge AI Teacher is an educational support tool, not a substitute for a teacher, parent or professional. "
+        "Do not share passwords, identity numbers, private records or sensitive personal details. "
+        "If a conversation raises a safety concern, please speak with a trusted adult. "
+        "AI-generated explanations can be wrong; verify important exam information using the linked official sources."
+    )
+
     coverage = specification_coverage_summary()
     first, second, third = st.columns(3)
     first.metric("Your subjects", len(snapshot["subjects"]))
@@ -141,6 +149,179 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         st.info("No topic records yet. Add one above to start a personal progress timeline.")
     if not (supabase and user_id):
         st.caption("Sign-in is not connected in this session, so topic records remain temporary in this browser session.")
+
+    render_guided_practice(profile_data, supabase=supabase, user_id=user_id)
+
+
+def render_guided_practice(profile: dict, supabase=None, user_id: str | None = None) -> None:
+    """Render model-assisted practice with a transparent offline fallback."""
+    st.divider()
+    st.markdown("### ✦ Guided Practice Studio")
+    st.markdown(
+        """
+        <style>
+        .eb-practice-intro {padding:19px 21px;margin:10px 0 17px;border-radius:18px;
+          background:linear-gradient(110deg,#171a35,#343579 65%,#168d9a);color:#fff;}
+        .eb-practice-intro strong {display:block;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:20px;}
+        .eb-practice-intro span {display:block;margin-top:5px;color:#e3e8ff;font-size:12px;line-height:1.55;}
+        </style>
+        <div class="eb-practice-intro"><strong>Understand · Practise · Reflect</strong>
+        <span>A short, supportive practice cycle. Your reflection stays yours; EduBridge does not turn it into a formal grade.</span></div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.write("Choose one topic, attempt a short practice set and reflect on what you understand. When a model is configured, EduBridge can generate questions and formative feedback; otherwise it provides a clearly labelled self-guided study routine.")
+    owner = str(user_id) if user_id else "anonymous-session"
+    if st.session_state.get("guided_practice_owner") != owner:
+        st.session_state.pop("guided_practice_active", None)
+        st.session_state.pop("guided_practice_feedback", None)
+        st.session_state["guided_practice_owner"] = owner
+
+    subjects = profile.get("subjects", []) if isinstance(profile.get("subjects", []), list) else []
+    subject_options = [value for value in subjects if isinstance(value, str) and value.strip()] or ["General study"]
+    with st.form(f"guided_practice_setup_{owner}"):
+        practice_subject = st.selectbox("Practice subject", subject_options)
+        practice_topic = st.text_input("Topic to practise", placeholder="e.g. Recursion, differentiation, cell structure")
+        left, right = st.columns(2)
+        difficulty = left.selectbox("Difficulty", ["Foundations", "Developing", "Challenge"])
+        practice_format = right.selectbox("Practice style", ["Mixed practice", "Recall and explain", "Apply a method", "Find and fix an error"])
+        create_set = st.form_submit_button("Create my practice session", type="primary", use_container_width=True)
+
+    if create_set:
+        try:
+            request = normalise_practice_request(practice_subject, practice_topic, difficulty, practice_format)
+            provider = _configured_provider()
+            if provider is not None:
+                question = build_practice_generation_prompt(request)
+                qualification = profile.get("qualification") or profile.get("custom_qualification")
+                board = profile.get("board")
+                country = profile.get("country")
+                query = SpecificationQuery(
+                    question=question,
+                    jurisdiction=country,
+                    qualification=qualification,
+                    awarding_body=board,
+                    subject=practice_subject,
+                )
+                records = retrieve_specifications(query)
+                evidence = build_specification_context(records, query) if records else None
+                generated = provider.answer([{"role": "user", "content": question}], knowledge_context=evidence)
+                st.session_state["guided_practice_active"] = {
+                    "request": request, "mode": "ai_generated", "question_set": generated,
+                    "evidence": evidence, "records": records,
+                }
+            else:
+                scaffold = build_offline_practice_scaffold(request)
+                st.session_state["guided_practice_active"] = {
+                    "request": request, "mode": "offline_scaffold", "scaffold": scaffold,
+                    "evidence": None, "records": [],
+                }
+                st.info("No live model is connected. This is a general study scaffold, not an AI-generated or subject-marked question set.")
+        except (ValueError, RuntimeError, OSError, KeyError) as exc:
+            st.error(f"Practice session could not be created: {exc}")
+
+    active = st.session_state.get("guided_practice_active")
+    if isinstance(active, dict):
+        request = active["request"]
+        st.markdown(f"#### {request['subject']} · {request['topic']}")
+        st.caption(f"{request['difficulty']} · {request['practice_format']}")
+        if active["mode"] == "ai_generated":
+            st.markdown(active["question_set"])
+            if active.get("records"):
+                with st.expander("Official source context for this practice set"):
+                    for record in active["records"]:
+                        st.markdown(
+                            f"**[{record.get('source_id', 'Source')}] {record.get('title', 'Official source')}**  \\n"
+                            f"{record.get('system', '')} · {record.get('status', '')}  \\n"
+                            f"[Open official source]({record.get('source_url', '')})"
+                        )
+        else:
+            for index, step in enumerate(active["scaffold"], start=1):
+                with st.container(border=True):
+                    st.markdown(f"**{index}. {step['step']}**")
+                    st.write(step["task"])
+                    st.caption(step["check"])
+
+        st.markdown("#### Your attempt")
+        with st.form(f"guided_practice_attempt_{owner}"):
+            learner_answer = st.text_area("Write your answer or learning notes", max_chars=5000, height=140)
+            reflection = st.radio(
+                "How did this attempt feel?",
+                ["I can explain it in my own words", "I understand some of it", "I need to review this topic"],
+            )
+            confidence = st.slider("Confidence after this attempt", 1, 5, 3)
+            save_attempt = st.checkbox(
+                "Save this topic reflection to my signed-in profile",
+                value=False,
+                disabled=not bool(supabase and user_id),
+            )
+            submit_attempt = st.form_submit_button("Review my attempt", type="primary", use_container_width=True)
+        if submit_attempt:
+            try:
+                attempt = normalise_practice_attempt(request, learner_answer, confidence, reflection)
+                feedback = (
+                    "Your reflection has been recorded. Revisit your notes, compare your method with a worked example, "
+                    "and ask a teacher to check any step you are unsure about. This offline mode does not mark answers."
+                )
+                if active["mode"] == "ai_generated":
+                    provider = _configured_provider()
+                    if provider is None:
+                        raise RuntimeError("The AI provider is no longer available. Your written attempt was not sent.")
+                    feedback = provider.answer(
+                        [
+                            {"role": "user", "content": build_practice_generation_prompt(request)},
+                            {"role": "assistant", "content": active["question_set"]},
+                            {"role": "user", "content": (
+                                "Here is my attempt. Give supportive, age-appropriate formative feedback. "
+                                "Identify what is clear, explain one improvement, show a worked correction only "
+                                "where justified, and give one small next question. Do not assign a formal grade.\n\n"
+                                + attempt["answer"]
+                            )},
+                        ],
+                        knowledge_context=active.get("evidence"),
+                    )
+                progress_entry = normalise_topic_entry(
+                    request["subject"], request["topic"], confidence, 0, 0
+                )
+                if save_attempt and supabase and user_id:
+                    updated_profile = dict(profile)
+                    saved = updated_profile.get("topic_progress", [])
+                    if not isinstance(saved, list):
+                        saved = []
+                    updated_profile["topic_progress"] = (saved + [progress_entry])[-300:]
+                    save_learner_profile(supabase, user_id, updated_profile)
+                    st.session_state.learner_profile = updated_profile
+                    st.success("Your reflection was saved to your private learner profile.")
+                else:
+                    st.session_state.setdefault("topic_progress_session", []).append(progress_entry)
+                    st.success("Your reflection was added to this browser session.")
+                st.session_state["guided_practice_feedback"] = feedback
+                st.session_state.pop("guided_practice_active", None)
+                st.rerun()
+            except (ValueError, RuntimeError, OSError) as exc:
+                st.error(f"Your attempt could not be reviewed: {exc}")
+
+    feedback = st.session_state.get("guided_practice_feedback")
+    if feedback:
+        with st.container(border=True):
+            st.markdown("#### Feedback and next step")
+            st.markdown(feedback)
+            st.caption("This is formative learning support, not a formal mark or prediction of exam performance.")
+            if st.button("Start another practice session", key=f"new_guided_practice_{owner}"):
+                st.session_state.pop("guided_practice_feedback", None)
+                st.rerun()
+
+    combined = (profile.get("topic_progress", []) if isinstance(profile.get("topic_progress", []), list) else [])
+    combined += st.session_state.get("topic_progress_session", [])
+    schedule = build_revision_schedule(combined)
+    if schedule:
+        st.markdown("#### Your suggested revision queue")
+        for item in schedule:
+            with st.container(border=True):
+                st.markdown(f"**{item['subject']} · {item['topic']}** — review {item['review_on']}")
+                st.caption(item["reason"])
+                st.caption(item["basis"])
+    st.caption("Revision dates are transparent rule-based suggestions. Topic signals are self-reported, not grades or diagnoses.")
 
 
 def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
@@ -278,7 +459,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
         st.warning("No live generative model is connected yet. You can still use the offline source helper below to search reviewed EduBridge education records.")
         st.markdown("### 📚 Offline source helper")
         st.caption("This mode searches EduBridge's reviewed source registry and subject catalogue. It does not generate AI explanations or send your question to an external model.")
-        offline_question = st.chat_input("Search reviewed exam and qualification information...")
+        offline_question = st.chat_input("Search reviewed exam and qualification information...", max_chars=4000)
         if offline_question:
             st.session_state.ai_teacher_messages.append({"role": "user", "content": offline_question})
             with st.chat_message("user"):
@@ -398,7 +579,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
     else:
         st.caption("Screenshot input is hidden because image support is not enabled for this configured model.")
 
-    question = st.chat_input("Ask your AI Teacher anything about learning...")
+    question = st.chat_input("Ask your AI Teacher anything about learning...", max_chars=4000)
     if not question:
         question = pending_question
 

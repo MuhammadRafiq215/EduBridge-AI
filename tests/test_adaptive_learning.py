@@ -1,6 +1,8 @@
 import unittest
+from datetime import date
 from src.adaptive_learning import (
     build_adaptive_plan,
+    build_revision_schedule,
     normalise_topic_entry,
     summarise_topic_progress,
 )
@@ -44,6 +46,14 @@ class AdaptiveLearningTests(unittest.TestCase):
         ])
         self.assertEqual(plan[0]["priority"], "Review next")
         self.assertTrue(plan[0]["action"])
+
+    def test_revision_schedule_prioritises_early_review_for_provisional_topics(self):
+        rows = build_revision_schedule([
+            {"subject": "Computer Science", "topic": "Recursion", "confidence": 2,
+             "attempted": 0, "correct": 0, "studied_on": "2026-11-20"}
+        ], today=date(2026, 11, 21))
+        self.assertEqual(rows[0]["review_on"], "2026-11-22")
+        self.assertIn("provisional", rows[0]["reason"])
 
     def test_chat_history_is_allow_listed_and_bounded(self):
         rows = sanitise_messages([
