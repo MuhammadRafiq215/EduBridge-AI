@@ -57,6 +57,10 @@ The confidence snapshot is based only on the learner's own ratings. It is not an
 
 EduBridge includes a specification-aware AI Teacher, a Student Navigator, opt-in topic-progress tracking, guided practice and a transparent revision queue. The Guided Practice Studio can generate subject-aware practice and formative feedback when an authorised provider is configured; without a model, it clearly switches to a general recall/explain/apply scaffold and never pretends to generate or mark subject answers. Topic reflections are self-reported and are not formal grades. Revision dates use transparent rule-based intervals. The AI Teacher supports a local model runtime for same-computer use and an explicitly configured hosted OpenAI-compatible provider. A live response requires a running/configured model; the interface never fabricates connectivity. See [AI Teacher runtime setup](docs/AI_TEACHER_RUNTIME.md), [Phase 14](docs/PHASE14_GENERATIVE_AI_TEACHER.md) and [Phase 15](docs/PHASE15_ADAPTIVE_LEARNING_EXPERIENCE.md).
 
+## Product design
+
+Phase 17 introduces an original responsive visual identity for EduBridge: editorial typography, deep-ink navigation, electric blue/cyan accents, consistent cards and accessible interaction states. It is informed by modern product-design principles, not copied screens or brand assets. See [Phase 17 design notes](docs/PHASE17_SIGNATURE_VISUAL_REDESIGN.md).
+
 ## Machine-learning research
 
 The current secondary-school benchmark uses the [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance). Its mathematics cohort represents two Portuguese schools, so it is a methodological benchmark—not a validated model for Pakistani students.

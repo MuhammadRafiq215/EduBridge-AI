@@ -7,6 +7,7 @@ from src.knowledge_base import load_registry
 
 st.set_page_config(page_title="Global Subject Catalogue | EduBridge AI",page_icon="🌐",layout="wide")
 from src.navigation import render_page_sidebar
+from src.visual_design import apply_visual_identity
 
 st.markdown("""
 <style>
@@ -47,6 +48,7 @@ st.markdown("""
 .subject-chip{display:inline-block;padding:6px 10px;margin:4px;border-radius:999px;background:#f0efff;color:#4b459f;border:1px solid #e3e1ff;font-size:12px}
 </style>
 """,unsafe_allow_html=True)
+apply_visual_identity()
 st.markdown('<div class="catalog-hero"><div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#c9f27b">GLOBAL QUALIFICATION DIRECTORY</div><h1>Subject Catalogue</h1><p>Explore a growing directory of subjects across national boards and international qualifications. Each catalogue links back to official evidence and shows its research status.</p></div>',unsafe_allow_html=True)
 rows=catalog["catalogues"]
 a,b,c=st.columns(3)

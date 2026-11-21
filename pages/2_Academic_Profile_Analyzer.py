@@ -8,6 +8,7 @@ from src.knowledge_base import load_registry
 
 st.set_page_config(page_title="Academic Profile Analyzer | EduBridge AI",page_icon="📊",layout="wide")
 from src.navigation import render_page_sidebar
+from src.visual_design import apply_visual_identity
 
 st.markdown("""
 <style>
@@ -43,6 +44,7 @@ st.markdown("""<style>
 .profile-hero h1{color:white!important;font-size:36px;margin:0 0 8px}
 .profile-hero p{color:#e3e9ff;margin:0;max-width:850px}
 </style>""",unsafe_allow_html=True)
+apply_visual_identity()
 st.markdown('<div class="profile-hero"><div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#c9f27b">EDUBRIDGE STUDENT INTELLIGENCE</div><h1>Academic Profile Analyzer</h1><p>Calculate marks accurately, compare subject performance and create a clear academic snapshot — with transparent calculations and no invented grades.</p></div>',unsafe_allow_html=True)
 registry=load_registry()
 systems=sorted({x["system"] for x in registry["coverage"]})
