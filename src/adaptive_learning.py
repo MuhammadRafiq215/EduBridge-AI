@@ -5,7 +5,7 @@ not grades, diagnoses, predictions, or an objective measure of ability.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 MAX_TOPIC_ENTRIES = 300
@@ -103,3 +103,32 @@ def build_adaptive_plan(entries: list[dict[str, Any]] | None, limit: int = 5) ->
             "basis": row["evidence"],
         })
     return plan
+
+
+def build_revision_schedule(
+    entries: list[dict[str, Any]] | None,
+    today: date | None = None,
+    limit: int = 5,
+) -> list[dict[str, str]]:
+    """Suggest transparent review dates from latest self-reported topic signals."""
+    anchor = today or date.today()
+    schedule: list[dict[str, str]] = []
+    for row in summarise_topic_progress(entries)[:max(1, min(int(limit), 10))]:
+        if row["evidence_level"] == "provisional" or row["progress_index"] < 50:
+            days = 1
+            reason = "Review soon: the latest record is provisional or shows that this topic needs another pass."
+        elif row["progress_index"] < 75:
+            days = 3
+            reason = "Revisit in a few days and try a different question type."
+        else:
+            days = 7
+            reason = "Schedule a spaced check to see whether the learning is retained."
+        schedule.append({
+            "subject": row["subject"],
+            "topic": row["topic"],
+            "review_on": (anchor + timedelta(days=days)).isoformat(),
+            "interval_days": str(days),
+            "reason": reason,
+            "basis": row["evidence"],
+        })
+    return schedule
