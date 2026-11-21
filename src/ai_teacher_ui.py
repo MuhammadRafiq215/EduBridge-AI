@@ -312,7 +312,7 @@ def render_ai_teacher(profile: dict | None, supabase=None, user_id: str | None =
                                     "",
                                     f"**{record.get('title', 'Official source')}**",
                                     f"{record.get('publisher', record.get('system', 'Publisher not recorded'))} · {record.get('jurisdiction', 'Jurisdiction not recorded')} · {record.get('qualification', 'Qualification not recorded')}",
-                                    f"Status: \`{record.get('status', 'not recorded')}\` · Reviewed: {record.get('reviewed_on', 'date not recorded')}",
+                                    f"Status: `{record.get('status', 'not recorded')}` · Reviewed: {record.get('reviewed_on', 'date not recorded')}",
                                 ])
                                 notes = record.get("matched_notes", record.get("verified_notes", []))
                                 if notes:
