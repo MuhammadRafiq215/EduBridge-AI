@@ -114,6 +114,10 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         f'<h3>{html.escape(str(next_title))}</h3><p>{html.escape(str(next_action))}</p></section>',
         unsafe_allow_html=True,
     )
+    metric_cols = st.columns(3, gap="small")
+    metric_cols[0].metric("Subjects", len(set(snapshot["subjects"]) | ({focus_subject} if focus_subject else set())))
+    metric_cols[1].metric("Topics recorded", len(combined_entries))
+    metric_cols[2].metric("Study signals", len(summarise_topic_progress(combined_entries)))
     action_cols = st.columns(2, gap="small")
     with action_cols[0]:
         if st.button("Ask AI Teacher", key="navigator_open_teacher", type="primary", use_container_width=True):
