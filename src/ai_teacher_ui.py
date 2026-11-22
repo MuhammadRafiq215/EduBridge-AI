@@ -171,6 +171,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         subject_options = _build_subject_options(snapshot["subjects"])
         with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
             subject_choice = st.selectbox("Subject", subject_options)
+            custom_subject = st.text_input("Or add a subject", max_chars=80, placeholder="Enter a subject not listed above")
             topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
             confidence = st.slider("Confidence after studying", 1, 5, 3)
             attempted = st.number_input("Questions attempted", min_value=0, max_value=100, value=0, step=1)
@@ -240,9 +241,10 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
         st.session_state["guided_practice_owner"] = owner
 
     subjects = profile.get("subjects", []) if isinstance(profile.get("subjects", []), list) else []
-    subject_options = [value for value in subjects if isinstance(value, str) and value.strip()] or ["General study"]
+    subject_options = _build_subject_options(subjects)
     with st.form(f"guided_practice_setup_{owner}"):
         practice_subject = st.selectbox("Practice subject", subject_options)
+        custom_practice_subject = st.text_input("Or add a subject", max_chars=80, placeholder="Enter a subject not listed above")
         practice_topic = st.text_input("Topic to practise", placeholder="e.g. Recursion, differentiation, cell structure")
         left, right = st.columns(2)
         difficulty = left.selectbox("Difficulty", ["Foundations", "Developing", "Challenge"])
@@ -263,7 +265,7 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
                     jurisdiction=country,
                     qualification=qualification,
                     awarding_body=board,
-                    subject=practice_subject,
+                    subject=request["subject"],
                 )
                 records = retrieve_specifications(query)
                 evidence = build_specification_context(records, query) if records else None
