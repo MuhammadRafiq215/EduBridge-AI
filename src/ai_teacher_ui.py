@@ -78,19 +78,21 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
     session_entries = st.session_state.setdefault("topic_progress_session", [])
     combined_entries = (saved_entries + session_entries)[-300:]
 
-    if snapshot["subjects"]:
-        st.caption("YOUR SUBJECTS  ·  " + "  /  ".join(snapshot["subjects"][:6]))
-        focus_options = ["Let EduBridge choose"] + snapshot["subjects"]
-        focus = st.selectbox("What do you want to focus on?", focus_options, key=f"navigator_focus_subject_{topic_owner}")
-        focus_subject = None if focus == "Let EduBridge choose" else focus
-    else:
-        focus_subject = None
-        st.info("Add your subjects in My learning profile to unlock subject-specific guidance.")
-        if st.button("Set up my learning profile", key="navigator_profile_setup", use_container_width=True):
-            st.session_state["navigate_to_workspace"] = "My learning profile"
-            st.rerun()
+    focus_options = ["Let EduBridge choose"] + _build_subject_options(snapshot["subjects"])
+    focus = st.selectbox(
+        "Choose a subject to focus on",
+        focus_options,
+        key=f"navigator_focus_subject_{topic_owner}",
+        help="Search the catalogue or choose a subject you added to your profile.",
+    )
+    focus_subject = None if focus == "Let EduBridge choose" else focus
+    planning_snapshot = dict(snapshot)
+    if focus_subject and focus_subject not in planning_snapshot["subjects"]:
+        planning_snapshot["subjects"] = [focus_subject] + planning_snapshot["subjects"]
+    if not snapshot["subjects"]:
+        st.caption("You can start with any subject now. Add a full learning profile later to personalise your weekly plan.")
 
-    plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
+    plan = build_navigation_plan(planning_snapshot, focus_subject=focus_subject)
     adaptive = build_adaptive_plan(combined_entries, limit=3)
     if focus_subject:
         adaptive = [item for item in adaptive if item["subject"] == focus_subject]
