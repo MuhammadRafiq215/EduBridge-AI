@@ -72,7 +72,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
     if snapshot["subjects"]:
         st.caption("YOUR SUBJECTS  ·  " + "  /  ".join(snapshot["subjects"][:6]))
         focus_options = ["Let EduBridge choose"] + snapshot["subjects"]
-        focus = st.selectbox("What do you want to focus on?", focus_options, key="navigator_focus_subject")
+        focus = st.selectbox("What do you want to focus on?", focus_options, key=f"navigator_focus_subject_{topic_owner}")
         focus_subject = None if focus == "Let EduBridge choose" else focus
     else:
         focus_subject = None
@@ -82,7 +82,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             st.rerun()
 
     plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
-    adaptive = build_adaptive_plan(combined_entries, limit=3)
+    adaptive = build_adaptive_plan(combined_entries, limit=3)\n    if focus_subject:\n        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
     if adaptive:
         first = adaptive[0]
         next_title = f"{first['subject']} · {first['topic']}"
@@ -107,9 +107,8 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             st.session_state["navigate_to_workspace"] = "AI Teacher"
             st.rerun()
     with action_cols[1]:
-        if st.button("Start guided practice", key="navigator_open_practice", use_container_width=True):
-            st.session_state["navigate_to_workspace"] = "Student Navigator"
-            st.session_state["navigator_open_practice"] = True
+        if st.button("Open study planner", key=f"navigator_open_planner_{topic_owner}", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Study planner"
             st.rerun()
 
     if adaptive and len(adaptive) > 1:
@@ -149,7 +148,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             "Save to my signed-in profile",
             value=False,
             disabled=not bool(supabase and user_id),
-            help="Saved only to your own learner profile.",
+            help="Saved only to your own learner profile.",\n            key=f"save_topic_progress_{topic_owner}",
         )
         subject_options = snapshot["subjects"] or ["General study"]
         with st.form("topic_progress_form", clear_on_submit=True):
