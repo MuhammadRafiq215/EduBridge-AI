@@ -270,6 +270,73 @@ def apply_visual_identity() -> None:
           background: #fff !important;
           box-shadow: 0 8px 24px rgba(19,32,62,.045) !important;
         }
+
+        /* Phase 25 — vivid learning studio, tuned for clarity and access. */
+        :root {
+          --eb-ink: #14213d; --eb-muted: #586780; --eb-paper: #f5f7fc;
+          --eb-surface: #ffffff; --eb-line: #dfe6f2; --eb-blue: #4658f5;
+          --eb-teal: #16a99f; --eb-coral: #f47c62; --eb-gold: #e5a92d;
+          --eb-lilac: #eeeaff;
+        }
+        .stApp {
+          background:
+            radial-gradient(ellipse at 88% 1%, rgba(70,88,245,.13), transparent 28%),
+            radial-gradient(ellipse at 4% 38%, rgba(22,169,159,.10), transparent 25%),
+            radial-gradient(ellipse at 80% 76%, rgba(244,124,98,.055), transparent 24%),
+            linear-gradient(180deg,#f8f9ff 0%,#f2f6fb 55%,#f8fafc 100%) !important;
+        }
+        .eb-nav-hero, .eb-ai-hero, .hero, .pathway-banner {
+          border: 1px solid rgba(255,255,255,.18) !important;
+          background: linear-gradient(112deg,#14213d 0%,#3943a8 54%,#087f88 100%) !important;
+          box-shadow: 0 24px 58px rgba(28,45,102,.18) !important;
+        }
+        .eb-nav-step, .eb-ai-prompt, .dash-card, .pathway-tile, .week-day,
+        div[data-testid="stMetric"], div[data-testid="stForm"] {
+          border-color: var(--eb-line) !important;
+          box-shadow: 0 10px 28px rgba(20,33,61,.055) !important;
+        }
+        .eb-nav-step.primary {
+          background: linear-gradient(120deg,#f0eeff 0%,#fff 72%,#e9fbf8 100%) !important;
+          border-color: #d5d4ff !important;
+        }
+        .eb-nav-label, .dash-kicker, .dash-card .card-meta { color: #4b4cce !important; }
+        .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {
+          background: linear-gradient(105deg,#4658f5 0%,#6651d9 52%,#138e98 100%) !important;
+          box-shadow: 0 9px 22px rgba(70,88,245,.22) !important;
+        }
+        .stProgress > div > div > div > div { background: linear-gradient(90deg,#4658f5,#16a99f,#e5b54b) !important; }
+        .stApp [data-testid="stSelectbox"] [role="combobox"],
+        .stApp [data-testid="stMultiSelect"] [role="combobox"],
+        .stApp [data-testid="stTextInput"] input,
+        .stApp [data-testid="stTextArea"] textarea {
+          min-height: 44px; border-radius: 13px !important; border-color: #d8e0ef !important;
+        }
+        .stApp button, .stApp a, .stApp input, .stApp textarea, .stApp [role="combobox"] { scroll-margin-block: 90px; }
+        .stApp button:focus-visible, .stApp a:focus-visible, .stApp input:focus-visible,
+        .stApp textarea:focus-visible, .stApp [role="combobox"]:focus-visible {
+          outline: 3px solid rgba(22,169,159,.8) !important; outline-offset: 3px !important;
+        }
+        @media (max-width: 700px) {
+          .main .block-container { padding: .75rem .7rem 1.6rem !important; }
+          .eb-nav-hero, .eb-ai-hero, .hero, .pathway-banner {
+            border-radius: 18px !important; padding: 20px 18px !important;
+          }
+          .eb-nav-step { border-radius: 15px !important; padding: 14px !important; }
+          .stApp [data-testid="stHorizontalBlock"] { gap: .55rem !important; }
+          .stApp [data-testid="stMetric"] { padding: 12px !important; min-height: 92px; }
+          .stApp [data-testid="stMetricValue"] { font-size: 1.35rem !important; }
+          .stApp [data-testid="stChatMessage"] { padding: 10px !important; }
+        }
+        @media (max-width: 420px) {
+          .stApp [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
+          .stApp [data-testid="stHorizontalBlock"] > [data-testid="column"] { min-width: min(100%,145px) !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .stApp *, .stApp *::before, .stApp *::after {
+            scroll-behavior: auto !important; animation-duration: .01ms !important;
+            transition-duration: .01ms !important;
+          }
+        }
 </style>
         """,
         unsafe_allow_html=True,
