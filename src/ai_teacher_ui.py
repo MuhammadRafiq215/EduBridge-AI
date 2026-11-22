@@ -17,7 +17,16 @@ from src.specification_engine import (
     specification_coverage_summary,
 )
 from src.student_navigator import build_navigation_plan, build_student_snapshot
+from src.global_education import get_subject_options
 from src.guided_practice import (build_offline_practice_scaffold, build_practice_generation_prompt, normalise_practice_attempt, normalise_practice_request)
+
+
+
+def _build_subject_options(profile_subjects=None) -> list[str]:
+    """Combine the international subject catalogue with a learner's own subjects."""
+    personal = profile_subjects if isinstance(profile_subjects, list) else []
+    clean_personal = {value.strip() for value in personal if isinstance(value, str) and value.strip()}
+    return sorted(set(get_subject_options()) | clean_personal | {"General study"}, key=str.casefold)
 
 
 def _configured_provider():
@@ -69,19 +78,21 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
     session_entries = st.session_state.setdefault("topic_progress_session", [])
     combined_entries = (saved_entries + session_entries)[-300:]
 
-    if snapshot["subjects"]:
-        st.caption("YOUR SUBJECTS  ·  " + "  /  ".join(snapshot["subjects"][:6]))
-        focus_options = ["Let EduBridge choose"] + snapshot["subjects"]
-        focus = st.selectbox("What do you want to focus on?", focus_options, key=f"navigator_focus_subject_{topic_owner}")
-        focus_subject = None if focus == "Let EduBridge choose" else focus
-    else:
-        focus_subject = None
-        st.info("Add your subjects in My learning profile to unlock subject-specific guidance.")
-        if st.button("Set up my learning profile", key="navigator_profile_setup", use_container_width=True):
-            st.session_state["navigate_to_workspace"] = "My learning profile"
-            st.rerun()
+    focus_options = ["Let EduBridge choose"] + _build_subject_options(snapshot["subjects"])
+    focus = st.selectbox(
+        "Choose a subject to focus on",
+        focus_options,
+        key=f"navigator_focus_subject_{topic_owner}",
+        help="Search the catalogue or choose a subject you added to your profile.",
+    )
+    focus_subject = None if focus == "Let EduBridge choose" else focus
+    planning_snapshot = dict(snapshot)
+    if focus_subject and focus_subject not in planning_snapshot["subjects"]:
+        planning_snapshot["subjects"] = [focus_subject] + planning_snapshot["subjects"]
+    if not snapshot["subjects"]:
+        st.caption("You can start with any subject now. Add a full learning profile later to personalise your weekly plan.")
 
-    plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
+    plan = build_navigation_plan(planning_snapshot, focus_subject=focus_subject)
     adaptive = build_adaptive_plan(combined_entries, limit=3)
     if focus_subject:
         adaptive = [item for item in adaptive if item["subject"] == focus_subject]
@@ -103,6 +114,10 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         f'<h3>{html.escape(str(next_title))}</h3><p>{html.escape(str(next_action))}</p></section>',
         unsafe_allow_html=True,
     )
+    metric_cols = st.columns(3, gap="small")
+    metric_cols[0].metric("Subjects", len(set(snapshot["subjects"]) | ({focus_subject} if focus_subject else set())))
+    metric_cols[1].metric("Topics recorded", len(combined_entries))
+    metric_cols[2].metric("Study signals", len(summarise_topic_progress(combined_entries)))
     action_cols = st.columns(2, gap="small")
     with action_cols[0]:
         if st.button("Ask AI Teacher", key="navigator_open_teacher", type="primary", use_container_width=True):
@@ -153,9 +168,10 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             help="Saved only to your own learner profile.",
             key=f"save_topic_progress_{topic_owner}",
         )
-        subject_options = snapshot["subjects"] or ["General study"]
+        subject_options = _build_subject_options(snapshot["subjects"])
         with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
             subject_choice = st.selectbox("Subject", subject_options)
+            custom_subject = st.text_input("Or add a subject", max_chars=80, placeholder="Enter a subject not listed above")
             topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
             confidence = st.slider("Confidence after studying", 1, 5, 3)
             attempted = st.number_input("Questions attempted", min_value=0, max_value=100, value=0, step=1)
@@ -163,7 +179,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             submitted = st.form_submit_button("Save topic progress", type="primary", use_container_width=True)
         if submitted:
             try:
-                entry = normalise_topic_entry(subject_choice, topic_name, confidence, int(attempted), int(correct))
+                entry = normalise_topic_entry(custom_subject.strip() or subject_choice, topic_name, confidence, int(attempted), int(correct))
                 if save_progress and supabase and user_id:
                     updated = (saved_entries + [entry])[-300:]
                     profile_data["topic_progress"] = updated
@@ -225,9 +241,10 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
         st.session_state["guided_practice_owner"] = owner
 
     subjects = profile.get("subjects", []) if isinstance(profile.get("subjects", []), list) else []
-    subject_options = [value for value in subjects if isinstance(value, str) and value.strip()] or ["General study"]
+    subject_options = _build_subject_options(subjects)
     with st.form(f"guided_practice_setup_{owner}"):
         practice_subject = st.selectbox("Practice subject", subject_options)
+        custom_practice_subject = st.text_input("Or add a subject", max_chars=80, placeholder="Enter a subject not listed above")
         practice_topic = st.text_input("Topic to practise", placeholder="e.g. Recursion, differentiation, cell structure")
         left, right = st.columns(2)
         difficulty = left.selectbox("Difficulty", ["Foundations", "Developing", "Challenge"])
@@ -236,7 +253,7 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
 
     if create_set:
         try:
-            request = normalise_practice_request(practice_subject, practice_topic, difficulty, practice_format)
+            request = normalise_practice_request(custom_practice_subject.strip() or practice_subject, practice_topic, difficulty, practice_format)
             provider = _configured_provider()
             if provider is not None:
                 question = build_practice_generation_prompt(request)
@@ -248,7 +265,7 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
                     jurisdiction=country,
                     qualification=qualification,
                     awarding_body=board,
-                    subject=practice_subject,
+                    subject=request["subject"],
                 )
                 records = retrieve_specifications(query)
                 evidence = build_specification_context(records, query) if records else None
