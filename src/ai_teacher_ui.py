@@ -1,6 +1,8 @@
 """AI Teacher and Student Navigator interfaces for EduBridge AI."""
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from src.ai_teacher import build_profile_context, build_provider_from_settings, LocalModelProvider
@@ -31,135 +33,172 @@ def _configured_provider():
 
 
 def render_student_navigator(profile: dict | None, supabase=None, user_id: str | None = None) -> None:
+    """Render a concise, action-first learning navigator."""
     st.markdown("""
-    <div class="eb-navigator-hero">
-      <div class="eb-navigator-kicker">YOUR PERSONAL STUDY COMPASS</div>
-      <h2>Know your next move.</h2>
-      <p>Small, useful steps built around your subjects and goals.</p>
-    </div>
     <style>
-    .eb-navigator-hero{padding:22px 25px;border-radius:20px;background:linear-gradient(115deg,#14213d,#5148c8 70%,#1aa7a7);color:white;margin:5px 0 18px}
-    .eb-navigator-hero h2{color:#fff!important;margin:8px 0;font-size:clamp(23px,3vw,32px)!important}
-    .eb-navigator-hero p{color:#e8edff;margin:0;font-size:14px}
-    .eb-navigator-kicker{font-size:10px;font-weight:850;letter-spacing:1.6px;color:#dfff8a}
+    .eb-nav-hero{padding:24px 26px;border-radius:22px;background:linear-gradient(115deg,#14213d,#5148c8 68%,#13a6a4);color:#fff;margin:5px 0 16px}
+    .eb-nav-kicker{font-size:10px;font-weight:850;letter-spacing:1.7px;color:#e1ff8d}
+    .eb-nav-hero h2{color:#fff!important;margin:8px 0 5px;font-size:clamp(25px,3.5vw,36px)!important}
+    .eb-nav-hero p{color:#e8edff;margin:0;font-size:14px}
+    .eb-nav-step{border:1px solid #e5e9f5;border-radius:18px;padding:17px 19px;background:linear-gradient(145deg,#fff,#f7f8ff);margin:8px 0}
+    .eb-nav-step.primary{border-color:#d7d2ff;background:linear-gradient(120deg,#f1efff,#fff 75%)}
+    .eb-nav-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:850;color:#6254d9}
+    .eb-nav-step h3{font-size:19px!important;margin:7px 0 5px}
+    .eb-nav-step p{font-size:13px;color:#64708a;margin:0}
+    @media(max-width:650px){.eb-nav-hero{padding:21px;border-radius:18px}.eb-nav-step{padding:15px}}
     </style>
+    <section class="eb-nav-hero">
+      <div class="eb-nav-kicker">YOUR STUDY COMPASS</div>
+      <h2>Know your next move.</h2>
+      <p>One clear priority. A practical action. Progress you can understand.</p>
+    </section>
     """, unsafe_allow_html=True)
+
     profile_data = dict(profile or {})
     topic_owner = user_id or "anonymous-session"
     if st.session_state.get("topic_progress_owner") != topic_owner:
         st.session_state["topic_progress_session"] = []
         st.session_state["topic_progress_owner"] = topic_owner
+
     history = st.session_state.get("ai_teacher_messages", [])
     snapshot = build_student_snapshot(profile_data, history)
-    with st.expander("Safety and source guidance"):
-        st.caption("Use EduBridge as a study aid, not a replacement for a teacher. Keep passwords and private records out of chat. Check important exam facts against official sources and speak with a trusted adult if you need help.")
-
     coverage = specification_coverage_summary()
+    saved_entries = profile_data.get("topic_progress", [])
+    if not isinstance(saved_entries, list):
+        saved_entries = []
+    session_entries = st.session_state.setdefault("topic_progress_session", [])
+    combined_entries = (saved_entries + session_entries)[-300:]
+
     if snapshot["subjects"]:
-        st.caption(" · ".join(snapshot["subjects"][:6]))
-    with st.expander("Profile and source coverage"):
-        st.caption(f'{len(snapshot["subjects"])} subjects · {len(snapshot["recent_questions"])} recent questions in this session')
-        st.caption(coverage["coverage_warning"])
-        st.caption(f"Context: {snapshot['memory_scope']}")
-    if snapshot["qualification"] != "Not specified":
-        st.write(
-            f"**Qualification:** {snapshot['qualification']} · "
-            f"**Country:** {snapshot['country']} · "
-            f"**Awarding body:** {snapshot['awarding_body']}"
-        )
-    if snapshot["subjects"]:
-        focus_options = ["Let EduBridge suggest"] + snapshot["subjects"]
-        focus = st.selectbox("Choose your next subject focus", focus_options)
-        focus_subject = None if focus == "Let EduBridge suggest" else focus
+        st.caption("YOUR SUBJECTS  ·  " + "  /  ".join(snapshot["subjects"][:6]))
+        focus_options = ["Let EduBridge choose"] + snapshot["subjects"]
+        focus = st.selectbox("What do you want to focus on?", focus_options, key=f"navigator_focus_subject_{topic_owner}")
+        focus_subject = None if focus == "Let EduBridge choose" else focus
     else:
         focus_subject = None
-        st.info("Add your qualification and subjects in My learning profile to make Navigator recommendations more relevant.")
+        st.info("Add your subjects in My learning profile to unlock subject-specific guidance.")
+        if st.button("Set up my learning profile", key="navigator_profile_setup", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "My learning profile"
+            st.rerun()
+
     plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
-    st.markdown("### Your next steps")
-    for index, item in enumerate(plan, start=1):
-        with st.container(border=True):
-            st.markdown(f"**{index}. {item['title']}**")
-            st.caption(item["reason"])
-            st.write(item["action"])
+    adaptive = build_adaptive_plan(combined_entries, limit=3)
+    if focus_subject:
+        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
+    if adaptive:
+        first = adaptive[0]
+        next_title = f"{first['subject']} · {first['topic']}"
+        next_action = first["action"]
+        next_reason = f"{first['priority']} · based on your latest topic record"
+        next_label = first["priority"].upper()
+    else:
+        first = plan[0]
+        next_title = first["title"]
+        next_action = first["action"]
+        next_reason = first["reason"]
+        next_label = "RECOMMENDED NEXT STEP"
+
+    st.markdown(
+        f'<section class="eb-nav-step primary"><div class="eb-nav-label">{next_label}</div>'
+        f'<h3>{html.escape(str(next_title))}</h3><p>{html.escape(str(next_action))}</p></section>',
+        unsafe_allow_html=True,
+    )
+    action_cols = st.columns(2, gap="small")
+    with action_cols[0]:
+        if st.button("Ask AI Teacher", key="navigator_open_teacher", type="primary", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "AI Teacher"
+            st.rerun()
+    with action_cols[1]:
+        if st.button("Open study planner", key=f"navigator_open_planner_{topic_owner}", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Study planner"
+            st.rerun()
+
+    if adaptive and len(adaptive) > 1:
+        st.markdown("#### Also worth your attention")
+        for item in adaptive[1:3]:
+            st.markdown(
+                f'<section class="eb-nav-step"><div class="eb-nav-label">{item["priority"]}</div>'
+                f'<h3>{html.escape(str(item["subject"]))} · {html.escape(str(item["topic"]))}</h3><p>{html.escape(str(item["action"]))}</p></section>',
+                unsafe_allow_html=True,
+            )
+    elif len(plan) > 1:
+        st.caption(f"Another idea: {plan[1]['title']} — {plan[1]['action']}")
+
     if snapshot["recent_questions"]:
-        with st.expander("Recent questions in this session"):
-            for question in snapshot["recent_questions"]:
+        with st.expander("Continue a recent question"):
+            for question in snapshot["recent_questions"][-3:]:
                 st.markdown(f"- {question}")
-    with st.expander("Specification coverage status"):
-        st.metric("Verified subject specifications", coverage["specification_verified"])
-        st.metric("Reviewed official summaries", coverage["verified_snippets"])
-        st.metric("Discovery pending systems", coverage["discovery_pending_systems"])
-        st.caption("A catalogue or reviewed summary is not the same as a complete subject specification.")
-    with st.expander("How recommendations work"):
-        st.caption("Suggestions use details you chose to provide. They are planning support, not predicted grades, admission chances or formal academic assessments.")
+
+    with st.expander("Specification evidence"):
+        st.caption(
+            f"{coverage['specification_verified']} verified specifications · "
+            f"{coverage['verified_snippets']} reviewed summaries · "
+            f"{coverage['discovery_pending_systems']} systems awaiting discovery"
+        )
+        st.caption("Coverage is not complete for every subject or exam year. Open official sources before relying on exam-specific details.")
+    with st.expander("How your guidance works"):
+        st.caption("Recommendations use the subjects and progress you choose to share. They are study suggestions, not predicted grades, admissions chances or formal assessments.")
+        st.caption("Your recent questions are limited to this browser session. Saved topic records remain in your own learner profile when you choose to save them.")
+        st.caption("Keep passwords and private records out of chat. EduBridge is a study aid, not a replacement for a teacher.")
 
     st.divider()
-    st.markdown("### 📈 Topic progress and adaptive next steps")
-    st.caption("Record a topic, practise and see what to revisit. These are personal study signals, not exam grades.")
-    session_entries = st.session_state.setdefault("topic_progress_session", [])
-    saved_entries = profile_data.get("topic_progress", []) if isinstance(profile_data.get("topic_progress", []), list) else []
-    save_progress = st.checkbox(
-        "Save topic progress to my signed-in learner profile",
-        value=False,
-        disabled=not bool(supabase and user_id),
-        help="When enabled, the topic record is stored in your own profile under the existing account privacy rules."
-    )
-    subject_options = snapshot["subjects"] or ["General study"]
-    with st.form("topic_progress_form", clear_on_submit=True):
-        subject_choice = st.selectbox("Subject", subject_options)
-        topic_name = st.text_input("Topic", placeholder="e.g. Recursion, differentiation, cell structure")
-        confidence = st.slider("How confident do you feel after studying it?", 1, 5, 3)
-        attempted = st.number_input("Practice questions attempted", min_value=0, max_value=100, value=0, step=1)
-        correct = st.number_input("Correct answers", min_value=0, max_value=100, value=0, step=1)
-        submitted = st.form_submit_button("Record topic progress", type="primary")
-    if submitted:
-        try:
-            entry = normalise_topic_entry(subject_choice, topic_name, confidence, int(attempted), int(correct))
-            if save_progress and supabase and user_id:
-                updated = (saved_entries + [entry])[-300:]
-                profile_data["topic_progress"] = updated
-                save_learner_profile(supabase, user_id, profile_data)
-                st.session_state.learner_profile = profile_data
-                saved_entries = updated
-                st.success("Topic progress saved to your private learner profile.")
-            else:
-                session_entries.append(entry)
-                st.success("Topic progress recorded for this browser session.")
-        except (ValueError, TypeError) as exc:
-            st.error(str(exc))
-        except Exception:
-            st.error("Progress could not be saved. Check your account connection and try again.")
+    st.markdown("### Your topic progress")
+    st.caption("Log a topic after studying it. EduBridge will suggest what to revisit.")
+
+    with st.expander("＋ Record a topic", expanded=not bool(combined_entries)):
+        save_progress = st.checkbox(
+            "Save to my signed-in profile",
+            value=False,
+            disabled=not bool(supabase and user_id),
+            help="Saved only to your own learner profile.",
+            key=f"save_topic_progress_{topic_owner}",
+        )
+        subject_options = snapshot["subjects"] or ["General study"]
+        with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
+            subject_choice = st.selectbox("Subject", subject_options)
+            topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
+            confidence = st.slider("Confidence after studying", 1, 5, 3)
+            attempted = st.number_input("Questions attempted", min_value=0, max_value=100, value=0, step=1)
+            correct = st.number_input("Correct answers", min_value=0, max_value=100, value=0, step=1)
+            submitted = st.form_submit_button("Save topic progress", type="primary", use_container_width=True)
+        if submitted:
+            try:
+                entry = normalise_topic_entry(subject_choice, topic_name, confidence, int(attempted), int(correct))
+                if save_progress and supabase and user_id:
+                    updated = (saved_entries + [entry])[-300:]
+                    profile_data["topic_progress"] = updated
+                    save_learner_profile(supabase, user_id, profile_data)
+                    st.session_state.learner_profile = profile_data
+                    st.success("Saved to your private learner profile.")
+                else:
+                    session_entries.append(entry)
+                    st.success("Saved for this browser session.")
+                st.rerun()
+            except (ValueError, TypeError) as exc:
+                st.error(str(exc))
+            except Exception:
+                st.error("Could not save progress. Check your account connection and try again.")
 
     combined_entries = (saved_entries + session_entries)[-300:]
     summaries = summarise_topic_progress(combined_entries)
     if summaries:
-        st.markdown("#### Your latest topic signals")
-        st.dataframe(
-            [{
-                "Subject": row["subject"],
-                "Topic": row["topic"],
-                "Practice accuracy": f'{row["practice_accuracy"]:.1f}%' if row["practice_accuracy"] is not None else "Not recorded",
-                "Confidence": f'{row["confidence"]}/5',
-                "Progress index": f'{row["progress_index"]}/100',
-                "Evidence": "Stronger" if row["evidence_level"] == "practice_and_self_reflection" else "Provisional",
-                "Last studied": row["studied_on"],
-            } for row in summaries],
-            use_container_width=True,
-            hide_index=True,
-        )
-        st.caption("Progress index is a transparent 60% practice-accuracy + 40% self-reflection indicator. Fewer than five attempts are labelled provisional.")
-        st.markdown("#### Suggested next actions")
-        for item in build_adaptive_plan(combined_entries):
-            st.markdown(f"**{item['subject']} · {item['topic']} — {item['priority']}**")
-            st.write(item["action"])
-            st.caption(item["basis"])
+        st.markdown("#### Recent signals")
+        for row in summaries[:3]:
+            accuracy = f"{row['practice_accuracy']:.0f}% practice accuracy" if row["practice_accuracy"] is not None else "No practice score yet"
+            st.markdown(
+                f'<section class="eb-nav-step"><div class="eb-nav-label">{html.escape(str(row["subject"]))} · {row["confidence"]}/5 confidence</div>'
+                f'<h3>{html.escape(str(row["topic"]))}</h3><p>{html.escape(accuracy)} · {html.escape(row["evidence_level"].replace("_", " "))}</p></section>',
+                unsafe_allow_html=True,
+            )
+        if len(summaries) > 3:
+            with st.expander(f"See all {len(summaries)} topic records"):
+                for row in summaries[3:]:
+                    st.write(f"**{row['subject']} · {row['topic']}** — {row['progress_index']}/100 study signal")
+        st.caption("Study signals combine your practice and self-reflection; they are not exam grades.")
     else:
-        st.info("No topic records yet. Add one above to start a personal progress timeline.")
-    if not (supabase and user_id):
-        st.caption("Sign-in is not connected in this session, so topic records remain temporary in this browser session.")
+        st.caption("Your progress timeline will appear here after your first topic record.")
 
     render_guided_practice(profile_data, supabase=supabase, user_id=user_id)
-
 
 def render_guided_practice(profile: dict, supabase=None, user_id: str | None = None) -> None:
     """Render model-assisted practice with a transparent offline fallback."""
