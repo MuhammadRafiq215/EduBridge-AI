@@ -184,7 +184,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         for row in summaries[:3]:
             accuracy = f"{row['practice_accuracy']:.0f}% practice accuracy" if row["practice_accuracy"] is not None else "No practice score yet"
             st.markdown(
-                f'<section class="eb-nav-step"><div class="eb-nav-label">{row["subject"]} · {row["confidence"]}/5 confidence</div>'
+                f'<section class="eb-nav-step"><div class="eb-nav-label">{html.escape(str(row["subject"]))} · {row["confidence"]}/5 confidence</div>'
                 f'<h3>{html.escape(str(row["topic"]))}</h3><p>{html.escape(accuracy)} · {html.escape(row["evidence_level"].replace("_", " "))}</p></section>',
                 unsafe_allow_html=True,
             )
