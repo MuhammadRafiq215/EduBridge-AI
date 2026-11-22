@@ -57,7 +57,16 @@ def restore_auth_session(client):
 def clear_auth_session() -> None:
     for key in ("sb_access_token", "sb_refresh_token", "sb_user_id", "sb_user_email"):
         st.session_state.pop(key, None)
-    st.session_state.pop("learner_profile", None)
+    # Clear learner-owned UI state as well as credentials. This prevents
+    # private content from remaining in a shared browser session after sign-out.
+    for key in (
+        "learner_profile", "profile_loaded_for", "profile_load_error",
+        "ai_teacher_messages", "ai_teacher_owner", "ai_teacher_history_loaded_for",
+        "ai_teacher_persist_history", "ai_teacher_use_profile",
+        "topic_progress_session", "topic_progress_owner",
+        "guided_practice_active", "guided_practice_feedback", "guided_practice_owner",
+    ):
+        st.session_state.pop(key, None)
 
 
 def load_learner_profile(client, user_id: str) -> dict | None:
