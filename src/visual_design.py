@@ -173,6 +173,79 @@ def apply_visual_identity() -> None:
           *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
         }
         
+        /* Phase 24: a calmer, more tactile learning-studio surface. */
+        .stApp {
+          background:
+            radial-gradient(ellipse at 82% 2%, rgba(99,102,241,.12), transparent 30%),
+            radial-gradient(ellipse at 8% 42%, rgba(45,212,191,.08), transparent 26%),
+            linear-gradient(180deg,#f8f9ff 0%,#f4f6fb 52%,#f8fafc 100%) !important;
+        }
+        .main .block-container { max-width: 1460px !important; }
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] {
+          border-radius: 18px !important;
+          border-color: #e5e9f3 !important;
+        }
+        .stApp [data-testid="stExpander"] {
+          border: 1px solid #e4e8f2 !important;
+          border-radius: 15px !important;
+          background: rgba(255,255,255,.82) !important;
+          overflow: hidden;
+        }
+        .stApp [data-testid="stExpander"] summary {
+          font-weight: 700 !important;
+          min-height: 44px;
+        }
+        .stApp [data-testid="stTextInput"] input,
+        .stApp [data-testid="stTextArea"] textarea,
+        .stApp [data-testid="stNumberInput"] input {
+          border-radius: 12px !important;
+          background: #fff !important;
+        }
+        .stApp [data-testid="stSelectbox"] [role="combobox"] {
+          border-radius: 12px !important;
+        }
+        .stApp [data-testid="stChatInput"] textarea {
+          min-height: 54px !important;
+        }
+        .stApp [data-testid="stChatMessage"] {
+          border-radius: 18px !important;
+          border: 1px solid #e5e9f3 !important;
+          box-shadow: 0 8px 24px rgba(17,26,50,.045) !important;
+        }
+        .stApp .eb-nav-hero, .stApp .eb-ai-hero {
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
+          box-shadow: 0 24px 60px rgba(32,44,104,.17) !important;
+        }
+        .stApp .eb-nav-hero:after {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          width: 250px; height: 250px;
+          right: -65px; top: -155px;
+          border: 1px solid rgba(255,255,255,.24);
+          border-radius: 50%;
+          box-shadow: 0 0 0 28px rgba(255,255,255,.045),0 0 0 58px rgba(255,255,255,.025);
+        }
+        .stApp .eb-nav-step {
+          transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+          box-shadow: 0 8px 24px rgba(17,26,50,.045);
+        }
+        .stApp .eb-nav-step:hover {
+          transform: translateY(-2px);
+          border-color: #cbd3ff !important;
+          box-shadow: 0 14px 32px rgba(48,61,125,.09);
+        }
+        @media (max-width: 700px) {
+          .stApp .eb-nav-hero { padding: 21px 19px !important; border-radius: 19px !important; }
+          .stApp .eb-nav-step { padding: 15px !important; }
+          .stApp [data-testid="stHorizontalBlock"] { gap: .65rem !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .stApp .eb-nav-step { transition: none !important; }
+        }
+
         /* AI Teacher receives the same signature system without changing provider behaviour. */
         .stApp .eb-ai-hero {
           border-radius: 24px !important;
