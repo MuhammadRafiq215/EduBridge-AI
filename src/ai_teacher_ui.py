@@ -21,6 +21,14 @@ from src.global_education import get_subject_options
 from src.guided_practice import (build_offline_practice_scaffold, build_practice_generation_prompt, normalise_practice_attempt, normalise_practice_request)
 
 
+
+def _build_subject_options(profile_subjects=None) -> list[str]:
+    """Combine the international subject catalogue with a learner's own subjects."""
+    personal = profile_subjects if isinstance(profile_subjects, list) else []
+    clean_personal = {value.strip() for value in personal if isinstance(value, str) and value.strip()}
+    return sorted(set(get_subject_options()) | clean_personal | {"General study"}, key=str.casefold)
+
+
 def _configured_provider():
     try:
         settings = st.secrets.get("ai", {})
@@ -154,7 +162,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             help="Saved only to your own learner profile.",
             key=f"save_topic_progress_{topic_owner}",
         )
-        subject_options = sorted(set(get_subject_options()) | set(snapshot["subjects"]) | {"General study"})
+        subject_options = _build_subject_options(snapshot["subjects"])
         with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
             subject_choice = st.selectbox("Subject", subject_options)
             topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
@@ -164,7 +172,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             submitted = st.form_submit_button("Save topic progress", type="primary", use_container_width=True)
         if submitted:
             try:
-                entry = normalise_topic_entry(subject_choice, topic_name, confidence, int(attempted), int(correct))
+                entry = normalise_topic_entry(custom_subject.strip() or subject_choice, topic_name, confidence, int(attempted), int(correct))
                 if save_progress and supabase and user_id:
                     updated = (saved_entries + [entry])[-300:]
                     profile_data["topic_progress"] = updated
@@ -237,7 +245,7 @@ def render_guided_practice(profile: dict, supabase=None, user_id: str | None = N
 
     if create_set:
         try:
-            request = normalise_practice_request(practice_subject, practice_topic, difficulty, practice_format)
+            request = normalise_practice_request(custom_practice_subject.strip() or practice_subject, practice_topic, difficulty, practice_format)
             provider = _configured_provider()
             if provider is not None:
                 question = build_practice_generation_prompt(request)
