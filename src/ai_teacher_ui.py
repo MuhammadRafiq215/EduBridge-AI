@@ -17,6 +17,7 @@ from src.specification_engine import (
     specification_coverage_summary,
 )
 from src.student_navigator import build_navigation_plan, build_student_snapshot
+from src.global_education import get_subject_options
 from src.guided_practice import (build_offline_practice_scaffold, build_practice_generation_prompt, normalise_practice_attempt, normalise_practice_request)
 
 
@@ -153,7 +154,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             help="Saved only to your own learner profile.",
             key=f"save_topic_progress_{topic_owner}",
         )
-        subject_options = snapshot["subjects"] or ["General study"]
+        subject_options = sorted(set(get_subject_options()) | set(snapshot["subjects"]) | {"General study"})
         with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
             subject_choice = st.selectbox("Subject", subject_options)
             topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
