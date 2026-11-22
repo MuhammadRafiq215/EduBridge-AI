@@ -82,7 +82,8 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             st.rerun()
 
     plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
-    adaptive = build_adaptive_plan(combined_entries, limit=3)\n    if focus_subject:\n        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
+    adaptive = build_adaptive_plan(combined_entries, limit=3)
+    if focus_subject:\n        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
     if adaptive:
         first = adaptive[0]
         next_title = f"{first['subject']} · {first['topic']}"
