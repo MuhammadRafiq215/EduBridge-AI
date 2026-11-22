@@ -83,7 +83,8 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
 
     plan = build_navigation_plan(snapshot, focus_subject=focus_subject)
     adaptive = build_adaptive_plan(combined_entries, limit=3)
-    if focus_subject:\n        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
+    if focus_subject:
+        adaptive = [item for item in adaptive if item["subject"] == focus_subject]
     if adaptive:
         first = adaptive[0]
         next_title = f"{first['subject']} · {first['topic']}"
@@ -149,10 +150,11 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             "Save to my signed-in profile",
             value=False,
             disabled=not bool(supabase and user_id),
-            help="Saved only to your own learner profile.",\n            key=f"save_topic_progress_{topic_owner}",
+            help="Saved only to your own learner profile.",
+            key=f"save_topic_progress_{topic_owner}",
         )
         subject_options = snapshot["subjects"] or ["General study"]
-        with st.form("topic_progress_form", clear_on_submit=True):
+        with st.form(f"topic_progress_form_{topic_owner}", clear_on_submit=True):
             subject_choice = st.selectbox("Subject", subject_options)
             topic_name = st.text_input("Topic", placeholder="e.g. Recursion or differentiation")
             confidence = st.slider("Confidence after studying", 1, 5, 3)
