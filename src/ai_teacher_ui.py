@@ -1,6 +1,8 @@
 """AI Teacher and Student Navigator interfaces for EduBridge AI."""
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from src.ai_teacher import build_profile_context, build_provider_from_settings, LocalModelProvider
@@ -96,7 +98,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
 
     st.markdown(
         f'<section class="eb-nav-step primary"><div class="eb-nav-label">{next_label}</div>'
-        f'<h3>{next_title}</h3><p>{next_action}</p></section>',
+        f'<h3>{html.escape(str(next_title))}</h3><p>{html.escape(str(next_action))}</p></section>',
         unsafe_allow_html=True,
     )
     action_cols = st.columns(2, gap="small")
@@ -115,7 +117,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         for item in adaptive[1:3]:
             st.markdown(
                 f'<section class="eb-nav-step"><div class="eb-nav-label">{item["priority"]}</div>'
-                f'<h3>{item["subject"]} · {item["topic"]}</h3><p>{item["action"]}</p></section>',
+                f'<h3>{html.escape(str(item["subject"]))} · {html.escape(str(item["topic"]))}</h3><p>{html.escape(str(item["action"]))}</p></section>',
                 unsafe_allow_html=True,
             )
     elif len(plan) > 1:
@@ -183,7 +185,7 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
             accuracy = f"{row['practice_accuracy']:.0f}% practice accuracy" if row["practice_accuracy"] is not None else "No practice score yet"
             st.markdown(
                 f'<section class="eb-nav-step"><div class="eb-nav-label">{row["subject"]} · {row["confidence"]}/5 confidence</div>'
-                f'<h3>{row["topic"]}</h3><p>{accuracy} · {row["evidence_level"].replace("_", " ")}</p></section>',
+                f'<h3>{html.escape(str(row["topic"]))}</h3><p>{html.escape(accuracy)} · {html.escape(row["evidence_level"].replace("_", " "))}</p></section>',
                 unsafe_allow_html=True,
             )
         if len(summaries) > 3:
