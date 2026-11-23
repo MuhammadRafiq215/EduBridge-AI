@@ -151,12 +151,14 @@ def validate_hosted_base_url(base_url: str) -> str:
 
 class OpenAICompatibleProvider:
     """Adapter for providers exposing the OpenAI-compatible Chat Completions API."""
-    def __init__(self, api_key: str, model: str, base_url: str = "https://api.openai.com/v1", timeout: int = 45):
+    def __init__(self, api_key: str, model: str, base_url: str = "https://api.openai.com/v1", timeout: int = 45, gateway_id: str | None = None, guardrails_confirmed: bool = False):
         if not api_key.strip() or not model.strip():
             raise ValueError("An API key and model name are required.")
         self.api_key, self.model = api_key.strip(), model.strip()
         self.base_url = validate_hosted_base_url(base_url)
         self.timeout = max(15, min(int(timeout), 120))
+        self.gateway_id = str(gateway_id or "").strip()
+        self.guardrails_confirmed = bool(guardrails_confirmed)
         self.supports_vision = False
         self.provider_name = "OpenAI API" if self.base_url == "https://api.openai.com/v1" else "Hosted AI provider"
         # OpenAI moderation is free to use and mandatory for the official OpenAI endpoint.
@@ -199,9 +201,9 @@ class OpenAICompatibleProvider:
         # public, school-age learner service. Keep the integration testable, but
         # fail closed until an independently reviewed input/output screening layer
         # is implemented and wired into this provider.
-        if self.provider_name == "Cloudflare Workers AI" and not self.moderation_enabled:
+        if self.provider_name == "Cloudflare Workers AI" and (not self.gateway_id or not self.guardrails_confirmed):
             raise RuntimeError(
-                "Student-facing AI is paused until EduBridge safety screening is configured and tested for this provider."
+                "Student-facing AI is paused until Cloudflare AI Gateway Guardrails is configured to block unsafe prompts, prompt injection and unsafe responses."
             )
         request_messages = build_request_messages(messages, profile_context, image, knowledge_context)
         latest_user_text = next((
@@ -213,10 +215,13 @@ class OpenAICompatibleProvider:
                 "I can help with learning-focused questions, but I can’t continue with this request. "
                 "If this relates to a safety concern, please speak with a trusted adult."
             )
-        body = json.dumps({"model": self.model, "messages": request_messages, "temperature": 0.3}).encode("utf-8")
+        body = json.dumps({"model": self.model, "messages": request_messages, "temperature": 0.3, "max_tokens": 900, "stream": False}).encode("utf-8")
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        if self.provider_name == "Cloudflare Workers AI":
+            headers["cf-aig-gateway-id"] = self.gateway_id
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions", data=body,
-            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            headers=headers,
             method="POST",
         )
         try:
@@ -343,7 +348,7 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
         if not api_key:
             return None
         base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
-        provider = OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
+        provider = OpenAICompatibleProvider(\n            api_key=api_key, model=model, base_url=base_url, timeout=timeout,\n            gateway_id=str(settings.get("safety_gateway_id", "")).strip() or None,\n            guardrails_confirmed=settings.get("guardrails_enabled") is True,\n        )
         if provider_type == "cloudflare_workers_ai":
             parsed = urlparse(provider.base_url)
             if parsed.hostname != "api.cloudflare.com" or "/accounts/" not in parsed.path or not parsed.path.endswith("/ai/v1"):

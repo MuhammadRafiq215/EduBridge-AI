@@ -16,7 +16,7 @@ class Phase30SafetyGateTests(unittest.TestCase):
         self.assertIsNotNone(provider)
         self.assertFalse(provider.moderation_enabled)
         with patch("src.ai_teacher.urllib.request.urlopen") as network:
-            with self.assertRaisesRegex(RuntimeError, "safety screening"):
+            with self.assertRaisesRegex(RuntimeError, "AI Gateway Guardrails"):
                 provider.answer([{"role": "user", "content": "Explain photosynthesis"}])
         network.assert_not_called()
 
