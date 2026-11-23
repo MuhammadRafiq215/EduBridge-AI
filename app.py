@@ -10,7 +10,7 @@ import streamlit as st
 
 from src.account_store import (get_supabase_client, restore_auth_session, save_auth_session, clear_auth_session, load_learner_profile, save_learner_profile, delete_learner_profile)
 from src.student_intelligence import build_student_intelligence
-from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan, build_personalised_recommendations
+from src.student_guidance import LEVELS, LEVEL_SUBJECTS, PATHWAYS, build_learning_snapshot, build_weekly_plan, build_personalised_recommendations, search_pathways
 from src.modeling import ARTIFACTS, run_experiment
 from src.profile_export import build_profile_pdf
 from src.research_ui import render_research_lab
@@ -785,8 +785,16 @@ elif page == "My learning profile":
             )
 
 elif page == "Career pathways":
-    hero("Explore your next chapter.", "A visual career studio for comparing fields, building foundations and discovering small projects you can actually try.", "CAREER STUDIO")
-    pathway_names = list(PATHWAYS.keys())
+    hero("Explore your next chapter.", "Search career sectors, connect them to the subjects you enjoy, and discover degree directions and starter projects.", "CAREER DISCOVERY STUDIO")
+    search_col, subject_col = st.columns([1.2, 1], gap="medium")
+    with search_col:
+        career_query = st.text_input("Search careers, degrees or sectors", placeholder="Try: data science, health, design, finance…", key="career_search_query")
+    with subject_col:
+        career_subjects = st.multiselect("Explore through subjects", get_subject_options(), key="career_subject_filter", placeholder="Choose Mathematics, Physics, Biology…")
+    pathway_names = search_pathways(career_query, career_subjects)
+    if not pathway_names:
+        st.info("No exact matches yet. Clear one filter or try a broader subject or career term.")
+        pathway_names = search_pathways()
     if st.session_state.get("career_pathway_select") not in pathway_names:
         st.session_state.pop("career_pathway_select", None)
     selected = st.selectbox("Choose a field to explore", pathway_names, key="career_pathway_select")
