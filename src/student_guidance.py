@@ -206,3 +206,122 @@ def build_personalised_recommendations(profile: dict) -> dict:
         "note": "Recommendations use your self-reported confidence and selected pathway. They are study-planning suggestions, not grades, admissions predictions or a trained ML model.",
     }
 
+
+
+# Expanded career discovery catalogue, aligned to the modern Career Clusters framework.
+# Preparation themes are exploratory examples; exact prerequisites vary by country,
+# institution and degree programme.
+PATHWAYS.update({
+    "Agriculture & Food Systems": {
+        "description": "Explore food systems, sustainable agriculture, animal science and the technologies that support communities.",
+        "focus": ["Biology", "Chemistry", "Environmental Science", "Mathematics", "Geography", "Computing"],
+        "projects": ["Map local food supply chains using public information", "Analyse a public agriculture or climate dataset", "Design a simple water-use awareness dashboard"],
+        "degrees": ["Agricultural Science", "Food Science & Technology", "Animal Science", "Agribusiness", "Horticulture", "Food Engineering"],
+        "resources": [["FAO — Education and learning", "https://www.fao.org/"], ["OpenStax Biology", "https://openstax.org/subjects/science"]],
+    },
+    "Energy & Environmental Science": {
+        "description": "Investigate energy systems, climate, conservation and practical approaches to environmental challenges.",
+        "focus": ["Physics", "Chemistry", "Mathematics", "Biology", "Geography", "Computing"],
+        "projects": ["Visualise a public climate dataset", "Compare solar-energy output scenarios with fictional data", "Create a local biodiversity information guide"],
+        "degrees": ["Environmental Science", "Renewable Energy Engineering", "Climate Science", "Geology", "Environmental Management", "Sustainable Development"],
+        "resources": [["NASA Climate", "https://climate.nasa.gov/"], ["Our World in Data — Environment", "https://ourworldindata.org/environment"]],
+    },
+    "Finance & Accounting": {
+        "description": "Understand how organisations manage money, measure performance and make evidence-based financial decisions.",
+        "focus": ["Mathematics", "Statistics", "Accounting", "Economics", "Business Studies", "Computing"],
+        "projects": ["Build a fictional monthly budget spreadsheet", "Create a simple financial-ratio explainer using sample data", "Visualise a public economic indicator"],
+        "degrees": ["Accounting", "Finance", "Actuarial Science", "Banking", "Financial Economics", "Business Analytics"],
+        "resources": [["CORE Econ", "https://www.core-econ.org/"], ["Khan Academy — Finance", "https://www.khanacademy.org/economics-finance-domain"]],
+    },
+    "Law, Policy & International Relations": {
+        "description": "Explore legal systems, public policy, diplomacy, governance and the careful use of evidence.",
+        "focus": ["English", "History", "Civics", "Economics", "Politics", "Research Methods"],
+        "projects": ["Compare public policy summaries from two official sources", "Create a plain-language guide to a public institution", "Write an evidence-based debate brief"],
+        "degrees": ["Law (LLB)", "Political Science", "International Relations", "Public Policy", "Governance", "Criminology"],
+        "resources": [["United Nations — Learning", "https://www.un.org/en/academic-impact"], ["OpenLearn", "https://www.open.edu/openlearn/"]],
+    },
+    "Media, Communication & Journalism": {
+        "description": "Combine storytelling, research, visual communication and responsible reporting across digital and traditional media.",
+        "focus": ["English", "Media Studies", "Art & Design", "Computing", "History", "Research Methods"],
+        "projects": ["Produce a short fact-checked explainer", "Create an accessible infographic from public data", "Compare how two outlets frame the same public event"],
+        "degrees": ["Journalism", "Mass Communication", "Media Studies", "Digital Media", "Film & Television", "Public Relations"],
+        "resources": [["BBC Academy", "https://www.bbc.co.uk/academy"], ["Adobe Education Exchange", "https://edex.adobe.com/"]],
+    },
+    "Hospitality, Events & Tourism": {
+        "description": "Explore visitor experiences, event planning, hospitality operations and sustainable tourism.",
+        "focus": ["English", "Business Studies", "Geography", "Mathematics", "Communication", "Digital Skills"],
+        "projects": ["Design a sample visitor guide for a local heritage site", "Create a fictional event budget", "Map an accessible one-day cultural itinerary"],
+        "degrees": ["Hospitality Management", "Tourism Management", "Event Management", "Hotel Management", "Culinary Arts", "Travel Operations"],
+        "resources": [["UN Tourism", "https://www.unwto.org/"], ["OpenLearn", "https://www.open.edu/openlearn/"]],
+    },
+    "Manufacturing, Robotics & Automation": {
+        "description": "Discover how products are designed, built, tested and improved using engineering, computing and automation.",
+        "focus": ["Mathematics", "Physics", "Chemistry", "Computer Science", "Design Technology", "Engineering"],
+        "projects": ["Model a simple production workflow", "Build a safe software simulation of a sorting system", "Analyse quality-control sample data"],
+        "degrees": ["Mechatronics Engineering", "Robotics Engineering", "Industrial Engineering", "Manufacturing Engineering", "Materials Science", "Automation"],
+        "resources": [["MIT OpenCourseWare", "https://ocw.mit.edu/"], ["FIRST — Robotics", "https://www.firstinspires.org/"]],
+    },
+    "Cybersecurity & Networks": {
+        "description": "Learn how digital systems communicate and how organisations protect information, privacy and services.",
+        "focus": ["Computer Science", "Mathematics", "Physics", "Networking", "English", "Digital Ethics"],
+        "projects": ["Draw a home-network concept map", "Build a password-strength education demo without collecting passwords", "Create a cyber-safety awareness guide"],
+        "degrees": ["Cybersecurity", "Computer Networks", "Information Security", "Computer Science", "Digital Forensics", "Information Systems"],
+        "resources": [["Cisco Networking Academy", "https://www.netacad.com/"], ["NIST Cybersecurity Framework", "https://www.nist.gov/cyberframework"]],
+    },
+    "Transportation & Logistics": {
+        "description": "Study how people, goods and information move through transport systems and supply networks.",
+        "focus": ["Mathematics", "Physics", "Geography", "Economics", "Computing", "Business Studies"],
+        "projects": ["Map a fictional delivery route and compare travel times", "Visualise public transport data", "Draw a supply-chain process map"],
+        "degrees": ["Logistics & Supply Chain Management", "Transport Planning", "Aerospace Engineering", "Aviation Management", "Marine Engineering", "Operations Research"],
+        "resources": [["World Bank Transport", "https://www.worldbank.org/en/topic/transport"], ["Our World in Data", "https://ourworldindata.org/"]],
+    },
+    "Education & Learning Sciences": {
+        "description": "Explore teaching, educational technology, learning research and ways to make knowledge accessible.",
+        "focus": ["English", "Psychology", "Mathematics", "Computer Science", "Biology", "Research Methods"],
+        "projects": ["Create a short interactive lesson", "Analyse an open education dataset", "Design a revision planner for a chosen topic"],
+        "degrees": ["Education", "Educational Psychology", "Learning Sciences", "Special Education", "Educational Technology", "Teacher Education"],
+        "resources": [["UNESCO Education", "https://www.unesco.org/en/education"], ["OpenLearn", "https://www.open.edu/openlearn/"]],
+    },
+    "Sports Science & Human Performance": {
+        "description": "Investigate movement, exercise science, sports data and wellbeing through evidence-based study.",
+        "focus": ["Biology", "Physics", "Mathematics", "Psychology", "Statistics", "Health Science"],
+        "projects": ["Visualise a public sports dataset", "Create a sports-science concept explainer", "Compare fictional training-session data responsibly"],
+        "degrees": ["Sports Science", "Exercise Physiology", "Kinesiology", "Sports Psychology", "Physical Education", "Sports Analytics"],
+        "resources": [["OpenStax — Biology", "https://openstax.org/subjects/science"], ["Khan Academy", "https://www.khanacademy.org/"]],
+    },
+    "Public Service & Community Development": {
+        "description": "Explore public institutions, community programmes, emergency planning and evidence-led services.",
+        "focus": ["English", "Civics", "Geography", "Economics", "Statistics", "Research Methods"],
+        "projects": ["Map publicly listed community services", "Summarise a public development indicator", "Create a community information resource"],
+        "degrees": ["Public Administration", "Development Studies", "Social Work", "Public Policy", "Disaster Management", "Urban Studies"],
+        "resources": [["UNDP", "https://www.undp.org/"], ["World Bank Data", "https://data.worldbank.org/"]],
+    },
+    "Veterinary & Animal Sciences": {
+        "description": "Learn about animal biology, health, welfare and the science of animal populations and ecosystems.",
+        "focus": ["Biology", "Chemistry", "Mathematics", "Environmental Science", "English"],
+        "projects": ["Create an animal-biology learning guide", "Visualise a public biodiversity dataset", "Compare animal-welfare guidance from official organisations"],
+        "degrees": ["Veterinary Medicine", "Animal Science", "Zoology", "Wildlife Biology", "Animal Nutrition", "Veterinary Public Health"],
+        "resources": [["FAO", "https://www.fao.org/"], ["OpenStax Biology", "https://openstax.org/subjects/science"]],
+    },
+})
+
+
+def search_pathways(query: str = "", subjects: list[str] | None = None) -> list[str]:
+    """Return career sectors matching a learner's search text and chosen subjects."""
+    term = (query or "").strip().casefold()
+    chosen = {item.casefold() for item in (subjects or []) if isinstance(item, str)}
+    matches = []
+    for name, details in PATHWAYS.items():
+        searchable = " ".join([
+            name, details.get("description", ""),
+            " ".join(details.get("focus", [])),
+            " ".join(details.get("degrees", [])),
+            " ".join(details.get("projects", [])),
+        ]).casefold()
+        text_match = not term or term in searchable
+        subject_match = not chosen or bool(chosen.intersection(
+            {item.casefold() for item in details.get("focus", [])}
+        ))
+        if text_match and subject_match:
+            matches.append(name)
+    return matches
