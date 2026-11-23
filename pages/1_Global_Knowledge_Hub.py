@@ -52,9 +52,9 @@ kb=EducationalKnowledgeBase(registry)
 st.markdown('<div class="kb-hero"><div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#c9f27b">EDUBRIDGE INTELLIGENCE</div><h1>Global Knowledge Hub</h1><p>Explore qualification systems, retrieve source-linked guidance and inspect the evidence behind every indexed answer.</p></div>',unsafe_allow_html=True)
 coverage=registry["coverage"]
 a,b,c=st.columns(3)
-a.metric("Indexed official sources",len(kb.documents))
-b.metric("Systems tracked",len(coverage))
-c.metric("Research pending",sum(x["status"]=="discovery_pending" for x in coverage))
+a.metric("Reviewed source records",len(kb.documents))
+b.metric("Qualification pathways",len(coverage))
+c.metric("Jurisdictions",len({x["jurisdiction"] for x in coverage}))
 
 search_tab,coverage_tab,eval_tab=st.tabs(["🔎 Ask the knowledge base","🌐 Global coverage","🧪 Retrieval evaluation"])
 with search_tab:
@@ -89,14 +89,14 @@ with coverage_tab:
     st.caption("Coverage status measures our research progress, not the quality or completeness of an education system.")
     frame=pd.DataFrame(coverage)
     counts=frame.groupby(["jurisdiction","status"]).size().reset_index(name="systems")
-    chart=px.bar(counts,x="jurisdiction",y="systems",color="status",barmode="stack",title="Tracked pathways by jurisdiction and research status")
-    chart.update_layout(xaxis_title="",yaxis_title="Tracked pathways",legend_title="Research status")
+    chart=px.bar(counts,x="jurisdiction",y="systems",color="status",barmode="stack",title="Tracked pathways by jurisdiction and source coverage")
+    chart.update_layout(xaxis_title="",yaxis_title="Tracked pathways",legend_title="Source coverage")
     st.plotly_chart(chart,use_container_width=True)
     for region in sorted(frame["jurisdiction"].unique()):
         subset=frame[frame["jurisdiction"]==region]
         with st.expander(f"{region} · {len(subset)} tracked pathways"):
             for _,row in subset.iterrows():
-                mark="🟢 Source reviewed" if row["status"]=="verified_snippet" else "🟡 Research pending"
+                mark="🟢 Source reviewed" if row["status"]=="verified_snippet" else "Directory reference"
                 st.markdown(f"**{row['system']}** — {row['qualification']}  \n{mark}  \nNext: {row['next_task']}")
                 for source_id in row["source_ids"]:
                     source=next(s for s in registry["sources"] if s["source_id"]==source_id)
