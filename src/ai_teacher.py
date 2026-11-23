@@ -194,6 +194,15 @@ class OpenAICompatibleProvider:
         image: tuple[bytes, str] | None = None,
         knowledge_context: str | None = None,
     ) -> str:
+        # Cloudflare's chat endpoint does not provide the moderation checks used by
+        # the OpenAI adapter. Do not silently treat "no moderation" as safe for a
+        # public, school-age learner service. Keep the integration testable, but
+        # fail closed until an independently reviewed input/output screening layer
+        # is implemented and wired into this provider.
+        if not self.moderation_enabled:
+            raise RuntimeError(
+                "Student-facing AI is paused until EduBridge safety screening is configured and tested for this provider."
+            )
         request_messages = build_request_messages(messages, profile_context, image, knowledge_context)
         latest_user_text = next((
             item.get("content", "") for item in reversed(request_messages)
