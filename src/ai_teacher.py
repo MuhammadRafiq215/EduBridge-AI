@@ -311,6 +311,10 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
     """Build an explicitly configured local or OpenAI-compatible provider."""
     if not isinstance(settings, dict):
         return None
+    # Hosted generation is opt-in: deployment secrets must explicitly enable it
+    # only after provider terms, age suitability, privacy and safety controls are reviewed.
+    if settings.get("enabled") is not True:
+        return None
     provider_type = str(settings.get("provider", "openai_compatible")).strip().lower()
     model = str(settings.get("model", "")).strip()
     if not model:
@@ -325,13 +329,18 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
         provider = LocalModelProvider(model=model, base_url=base_url, timeout=timeout)
         provider.supports_vision = bool(settings.get("supports_vision", False))
         return provider
-    if provider_type == "openai_compatible":
+    if provider_type in {"openai_compatible", "cloudflare_workers_ai"}:
         api_key = str(settings.get("api_key", "")).strip()
         if not api_key:
             return None
         base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
         provider = OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
-        if provider.base_url == "https://api.openai.com/v1":
+        if provider_type == "cloudflare_workers_ai":
+            parsed = urlparse(provider.base_url)
+            if parsed.hostname != "api.cloudflare.com" or "/accounts/" not in parsed.path or not parsed.path.endswith("/ai/v1"):
+                raise ValueError("Cloudflare Workers AI requires its account-scoped HTTPS /ai/v1 endpoint.")
+            provider.provider_name = "Cloudflare Workers AI"
+        elif provider.base_url == "https://api.openai.com/v1":
             # Image input remains disabled until an image moderation and review path is implemented.
             provider.supports_vision = False
             provider.provider_name = "OpenAI API · text safety screening"
@@ -339,4 +348,4 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
             provider.supports_vision = bool(settings.get("supports_vision", False))
             provider.provider_name = "Configured AI provider"
         return provider
-    raise ValueError("AI provider must be 'local' or 'openai_compatible'.")
+    raise ValueError("AI provider must be 'local', 'openai_compatible' or 'cloudflare_workers_ai'.")
