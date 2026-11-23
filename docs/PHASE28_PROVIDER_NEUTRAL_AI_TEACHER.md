@@ -15,7 +15,7 @@ Hosted generation now remains disabled unless `[ai].enabled = true` is explicitl
 - content-safety controls, reporting and adult escalation;
 - quota, rate limits, budget caps and automatic billing behaviour.
 
-A provider's email verification, free tier, or zero-retention statement is not proof of suitability for a minor-facing public product.
+A provider's email verification, free tier, or zero-retention statement is not proof of suitability for a minor-facing public product. Cloudflare's published Privacy Policy currently states that its websites and services are not intended for or designed to attract individuals under 18 and that it does not knowingly collect or share personal information from under-18s. Because EduBridge is intended for school-age learners, this creates a material unresolved suitability concern. Do not deploy Cloudflare Workers AI for learner-facing traffic unless Cloudflare gives written clarification/approval covering this exact customer application and end-user age group, and the adult project owner completes a privacy/legal review. See https://www.cloudflare.com/privacypolicy/.
 
 ## Streamlit Community Cloud secrets
 Keep secrets in the Streamlit app's server-side Secrets settings. Never place them in GitHub, source files, browser code, learner profiles, chat-history rows or this conversation.
