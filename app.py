@@ -829,6 +829,21 @@ elif page == "Career pathways":
                 f'<h4>{title}</h4><p>{detail}</p></div>',
                 unsafe_allow_html=True,
             )
+    st.markdown("### Turn curiosity into a next step")
+    next_a, next_b, next_c = st.columns(3, gap="medium")
+    with next_a:
+        if st.button("Explore this field with AI Teacher", key="career_open_ai_teacher", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "AI Teacher"
+            st.rerun()
+    with next_b:
+        if st.button("Build a study plan", key="career_open_study_planner", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Study planner"
+            st.rerun()
+    with next_c:
+        if st.button("Compare another pathway", key="career_compare_pathways", use_container_width=True):
+            st.session_state["career_pathway_select"] = pathway_names[(pathway_names.index(selected) + 1) % len(pathway_names)] if len(pathway_names) > 1 else selected
+            st.rerun()
+
     left, right = st.columns([1, 1], gap="large")
     with left:
         st.markdown("### Skills & preparation")
