@@ -135,7 +135,7 @@ class AITeacherTests(unittest.TestCase):
 
     def test_openai_provider_keeps_image_upload_disabled(self):
         provider = build_provider_from_settings({
-            "provider": "openai_compatible",
+            "enabled": True, "provider": "openai_compatible",
             "model": "test-model",
             "api_key": "test-key",
             "base_url": "https://api.openai.com/v1",
@@ -146,7 +146,7 @@ class AITeacherTests(unittest.TestCase):
 
     def test_local_provider_can_be_configured_without_an_api_key(self):
         provider = build_provider_from_settings({
-            "provider": "local",
+            "enabled": True, "provider": "local",
             "model": "demo-model",
             "base_url": "http://127.0.0.1:11434",
             "supports_vision": True,
@@ -158,14 +158,14 @@ class AITeacherTests(unittest.TestCase):
     def test_local_provider_rejects_non_loopback_hosts(self):
         with self.assertRaises(ValueError):
             build_provider_from_settings({
-                "provider": "local",
+                "enabled": True, "provider": "local",
                 "model": "demo-model",
                 "base_url": "https://example.invalid",
             })
 
     def test_hosted_provider_requires_an_api_key(self):
         self.assertIsNone(build_provider_from_settings({
-            "provider": "openai_compatible",
+            "enabled": True, "provider": "openai_compatible",
             "model": "demo-model",
             "base_url": "https://example.invalid/v1",
         }))
@@ -201,6 +201,41 @@ class AITeacherTests(unittest.TestCase):
         result = build_request_messages(turns)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[1], {"role": "user", "content": "Explain fractions"})
+
+
+    def test_hosted_provider_is_disabled_unless_explicitly_enabled(self):
+        settings = {
+            "provider": "openai_compatible",
+            "model": "demo-model",
+            "api_key": "test-key",
+            "base_url": "https://provider.example/v1",
+        }
+        self.assertIsNone(build_provider_from_settings(settings))
+        settings["enabled"] = True
+        self.assertIsInstance(build_provider_from_settings(settings), OpenAICompatibleProvider)
+
+    def test_cloudflare_workers_ai_uses_shared_openai_compatible_adapter(self):
+        provider = build_provider_from_settings({
+            "enabled": True,
+            "provider": "cloudflare_workers_ai",
+            "model": "@cf/moonshotai/kimi-k2.7-code",
+            "api_key": "test-token",
+            "base_url": "https://api.cloudflare.com/client/v4/accounts/1234567890abcdef1234567890abcdef/ai/v1",
+        })
+        self.assertIsInstance(provider, OpenAICompatibleProvider)
+        self.assertEqual(provider.provider_name, "Cloudflare Workers AI")
+        self.assertFalse(provider.moderation_enabled)
+        self.assertFalse(provider.supports_vision)
+
+    def test_cloudflare_provider_rejects_non_account_scoped_endpoint(self):
+        with self.assertRaisesRegex(ValueError, "account-scoped"):
+            build_provider_from_settings({
+                "enabled": True,
+                "provider": "cloudflare_workers_ai",
+                "model": "demo-model",
+                "api_key": "test-token",
+                "base_url": "https://example.invalid/v1",
+            })
 
 
 if __name__ == "__main__":

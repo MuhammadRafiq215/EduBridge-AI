@@ -17,14 +17,14 @@ from src.ai_teacher import (
 class RuntimeReadinessTests(unittest.TestCase):
     def test_unconfigured_hosted_provider_stays_disabled(self):
         self.assertIsNone(build_provider_from_settings({
-            "provider": "openai_compatible",
+            "enabled": True, "provider": "openai_compatible",
             "model": "example-model",
             "base_url": "https://api.openai.com/v1",
         }))
 
     def test_openai_configuration_never_enables_vision(self):
         provider = build_provider_from_settings({
-            "provider": "openai_compatible",
+            "enabled": True, "provider": "openai_compatible",
             "model": "example-model",
             "api_key": "test-only-not-a-real-key",
             "base_url": "https://api.openai.com/v1",
@@ -36,14 +36,14 @@ class RuntimeReadinessTests(unittest.TestCase):
 
     def test_local_runtime_is_explicit_and_loopback_only(self):
         provider = build_provider_from_settings({
-            "provider": "local",
+            "enabled": True, "provider": "local",
             "model": "example-local-model",
             "base_url": "http://127.0.0.1:11434",
         })
         self.assertIsInstance(provider, LocalModelProvider)
         with self.assertRaises(ValueError):
             build_provider_from_settings({
-                "provider": "local",
+                "enabled": True, "provider": "local",
                 "model": "example-local-model",
                 "base_url": "http://192.0.2.10:11434",
             })
