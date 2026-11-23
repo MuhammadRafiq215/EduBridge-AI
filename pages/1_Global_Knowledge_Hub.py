@@ -97,7 +97,6 @@ with coverage_tab:
         with st.expander(f"{region} · {len(subset)} tracked pathways"):
             for _,row in subset.iterrows():
                 mark="Reviewed source notes" if row["status"]=="verified_snippet" else "Directory listing"
-                st.markdown(f"**{row['system']}** — {row['qualification']}  \n{mark}  \nNext: {row['next_task']}")
                 for source_id in row["source_ids"]:
                     source=next(s for s in registry["sources"] if s["source_id"]==source_id)
                     st.markdown(f"[{source['title']}]({source['source_url']})")
