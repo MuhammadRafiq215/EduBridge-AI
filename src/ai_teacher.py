@@ -348,7 +348,7 @@ def build_provider_from_settings(settings: dict[str, Any] | None):
         if not api_key:
             return None
         base_url = str(settings.get("base_url", "https://api.openai.com/v1")).strip()
-        provider = OpenAICompatibleProvider(api_key=api_key, model=model, base_url=base_url, timeout=timeout)
+        provider = OpenAICompatibleProvider(\n            api_key=api_key, model=model, base_url=base_url, timeout=timeout,\n            gateway_id=str(settings.get("safety_gateway_id", "")).strip() or None,\n            guardrails_confirmed=settings.get("guardrails_enabled") is True,\n        )
         if provider_type == "cloudflare_workers_ai":
             parsed = urlparse(provider.base_url)
             if parsed.hostname != "api.cloudflare.com" or "/accounts/" not in parsed.path or not parsed.path.endswith("/ai/v1"):
