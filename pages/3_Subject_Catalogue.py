@@ -85,7 +85,7 @@ for item in rows:
             "Religious and Cultural Studies":["Islamic","Islamiyat","Ethics","Pakistan Studies","Culture"]
         }.get(group,[])
         subjects=[s for s in subjects if any(k.casefold() in s.casefold() for k in keywords)]
-    if query and not subjects: continue
+    if not subjects: continue
     filtered.append((item,subjects))
 if not filtered:
     st.info("No matching subject catalogue. Try a broader search or another jurisdiction.")
