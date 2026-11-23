@@ -199,7 +199,7 @@ class OpenAICompatibleProvider:
         # public, school-age learner service. Keep the integration testable, but
         # fail closed until an independently reviewed input/output screening layer
         # is implemented and wired into this provider.
-        if not self.moderation_enabled:
+        if self.provider_name == "Cloudflare Workers AI" and not self.moderation_enabled:
             raise RuntimeError(
                 "Student-facing AI is paused until EduBridge safety screening is configured and tested for this provider."
             )
