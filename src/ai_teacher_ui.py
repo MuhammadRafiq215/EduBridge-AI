@@ -86,6 +86,18 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         help="Search the catalogue or choose a subject you added to your profile.",
     )
     focus_subject = None if focus == "Let EduBridge choose" else focus
+    intent = st.radio(
+        "What would help you most right now?",
+        ["Understand a concept", "Practise questions", "Review a topic", "Explore careers"],
+        horizontal=True,
+        key=f"navigator_intent_{topic_owner}",
+    )
+    available_time = st.selectbox(
+        "Time available today",
+        ["10 minutes", "20 minutes", "30 minutes", "45 minutes", "1 hour"],
+        index=2,
+        key=f"navigator_time_{topic_owner}",
+    )
     planning_snapshot = dict(snapshot)
     if focus_subject and focus_subject not in planning_snapshot["subjects"]:
         planning_snapshot["subjects"] = [focus_subject] + planning_snapshot["subjects"]
@@ -94,6 +106,13 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
 
     plan = build_navigation_plan(planning_snapshot, focus_subject=focus_subject)
     adaptive = build_adaptive_plan(combined_entries, limit=3)
+    intent_actions = {
+        "Understand a concept": f"Ask for one clear explanation, then request a worked example. You have {available_time}.",
+        "Practise questions": f"Try a short question set on {focus_subject or 'your current priority'}, then review each explanation. You have {available_time}.",
+        "Review a topic": f"Choose one topic from your records, revisit the key idea and test yourself. You have {available_time}.",
+        "Explore careers": "Open Career pathways, choose the subjects you enjoy and compare degree directions and starter projects.",
+    }
+    intent_action = intent_actions[intent]
     if focus_subject:
         adaptive = [item for item in adaptive if item["subject"] == focus_subject]
     if adaptive:
@@ -114,6 +133,16 @@ def render_student_navigator(profile: dict | None, supabase=None, user_id: str |
         f'<h3>{html.escape(str(next_title))}</h3><p>{html.escape(str(next_action))}</p></section>',
         unsafe_allow_html=True,
     )
+    st.markdown("#### Your action for today")
+    st.info(intent_action)
+    if intent == "Explore careers":
+        if st.button("Explore career pathways", key=f"navigator_career_{topic_owner}", type="primary", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "Career pathways"
+            st.rerun()
+    elif intent == "Understand a concept" or intent == "Practise questions":
+        if st.button("Continue with AI Teacher", key=f"navigator_teacher_{topic_owner}", type="primary", use_container_width=True):
+            st.session_state["navigate_to_workspace"] = "AI Teacher"
+            st.rerun()
     metric_cols = st.columns(3, gap="small")
     metric_cols[0].metric("Subjects", len(set(snapshot["subjects"]) | ({focus_subject} if focus_subject else set())))
     metric_cols[1].metric("Topics recorded", len(combined_entries))
