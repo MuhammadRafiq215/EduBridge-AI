@@ -86,17 +86,17 @@ with search_tab:
 
 with coverage_tab:
     st.subheader("Qualification-system coverage")
-    st.caption("Coverage status measures our research progress, not the quality or completeness of an education system.")
+    st.caption("Explore the qualification pathways represented in EduBridge. Each link opens the awarding body or official source where available.")
     frame=pd.DataFrame(coverage)
-    counts=frame.groupby(["jurisdiction","status"]).size().reset_index(name="systems")
-    chart=px.bar(counts,x="jurisdiction",y="systems",color="status",barmode="stack",title="Tracked pathways by jurisdiction and source coverage")
-    chart.update_layout(xaxis_title="",yaxis_title="Tracked pathways",legend_title="Source coverage")
+    counts=frame.groupby("jurisdiction").size().reset_index(name="pathways")
+    chart=px.bar(counts,x="jurisdiction",y="pathways",title="Qualification pathways by jurisdiction")
+    chart.update_layout(xaxis_title="",yaxis_title="Pathways",showlegend=False)
     st.plotly_chart(chart,use_container_width=True)
     for region in sorted(frame["jurisdiction"].unique()):
         subset=frame[frame["jurisdiction"]==region]
         with st.expander(f"{region} · {len(subset)} tracked pathways"):
             for _,row in subset.iterrows():
-                mark="🟢 Source reviewed" if row["status"]=="verified_snippet" else "Directory reference"
+                mark="Reviewed source notes" if row["status"]=="verified_snippet" else "Directory listing"
                 st.markdown(f"**{row['system']}** — {row['qualification']}  \n{mark}  \nNext: {row['next_task']}")
                 for source_id in row["source_ids"]:
                     source=next(s for s in registry["sources"] if s["source_id"]==source_id)
